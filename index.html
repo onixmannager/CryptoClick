@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onix Manager — Soluciones Digitales</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta property="og:title" content="Onix Manager - Soluciones Digitales">
+    <meta property="og:description" content="Educación financiera, tecnología blockchain y desarrollo de proyectos digitales.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/onixmannager/Landingpage/main/logoonixmanager%20(2).png">
+    <meta property="og:type" content="website">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg:         #090b0f;
+            --bg2:        #0e1117;
+            --surface:    #13161e;
+            --surface2:   #1a1e28;
+            --gold:       #e8a020;
+            --gold-light: #f5bc50;
+            --gold-dim:   rgba(232,160,32,0.12);
+            --white:      #f0f2f5;
+            --text:       #8b95a8;
+            --text2:      #c4cad6;
+            --border:     rgba(255,255,255,0.07);
+            --border-g:   rgba(232,160,32,0.2);
+            --ff-display: 'Playfair Display', Georgia, serif;
+            --ff-body:    'IBM Plex Sans', sans-serif;
+            --ff-mono:    'IBM Plex Mono', monospace;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--bg); color:var(--text2); font-family:var(--ff-body); line-height:1.6; }
+        a { text-decoration:none; color:inherit; }
+        .container { max-width:1100px; margin:0 auto; padding:0 1.5rem; }
+
+        /* ── Header ── */
+        .header { padding:1.5rem 0; border-bottom:1px solid var(--border); }
+        .logo { font-family:var(--ff-display); font-size:1.4rem; font-weight:700; color:var(--white); }
+        .logo span { color:var(--gold); }
+
+        /* ── Hero ── */
+        .hero { display:flex; flex-wrap:wrap; align-items:center; gap:3rem; padding:3rem 0 2rem; }
+        .hero-content { flex:1; }
+        .hero-badge {
+            display:inline-block; font-family:var(--ff-mono); font-size:0.7rem;
+            letter-spacing:0.2em; background:var(--gold-dim); color:var(--gold);
+            padding:0.2rem 0.8rem; border-radius:30px; margin-bottom:1rem;
+        }
+        .hero-content h1 { font-family:var(--ff-display); font-size:clamp(2rem,5vw,3.2rem); font-weight:800; color:var(--white); line-height:1.2; }
+        .hero-content h1 span { color:var(--gold); }
+        .hero-content p { font-size:1rem; color:var(--text); margin:1.2rem 0; max-width:500px; }
+        .hero-image { flex:0.6; text-align:center; }
+        .profile-pic { width:220px; height:220px; border-radius:50%; object-fit:cover; border:3px solid var(--gold); box-shadow:0 0 20px rgba(232,160,32,0.2); }
+
+        /* ── Sección base ── */
+        .section { padding:3rem 0; border-top:1px solid var(--border); }
+        .section:first-of-type { border-top:none; }
+        .section-header { text-align:center; margin-bottom:2rem; }
+        .section-header .eyebrow { font-family:var(--ff-mono); font-size:0.7rem; letter-spacing:0.2em; color:var(--gold); text-transform:uppercase; }
+        .section-header h2 { font-family:var(--ff-display); font-size:clamp(1.8rem,4vw,2.3rem); font-weight:700; color:var(--white); margin-top:0.5rem; }
+
+        /* ════════════════════════════════
+           SOBRE MÍ — panel horizontal
+        ════════════════════════════════ */
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .about-item {
+            padding: 2.2rem 1.8rem;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: background .3s;
+        }
+        .about-item:last-child { border-right: none; }
+
+        /* barra animada top */
+        .about-item::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            transform: scaleX(0); transform-origin: left;
+            transition: transform .4s ease;
+        }
+        .about-item:hover::before { transform: scaleX(1); }
+        .about-item:hover { background: var(--surface2); }
+
+        /* número decorativo fondo */
+        .about-num {
+            position: absolute; top: 1.1rem; right: 1.3rem;
+            font-family: var(--ff-mono); font-size: 3.8rem; font-weight: 700;
+            color: rgba(232,160,32,0.055); line-height: 1;
+            pointer-events: none; user-select: none;
+        }
+        .about-icon {
+            width: 46px; height: 46px; background: var(--gold-dim);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.2rem; transition: transform .3s;
+        }
+        .about-item:hover .about-icon { transform: scale(1.1) rotate(-4deg); }
+        .about-icon i { font-size: 1.4rem; color: var(--gold); }
+        .about-item h3 { font-family: var(--ff-display); font-size: 1.15rem; font-weight: 700; color: var(--white); margin-bottom: .5rem; }
+        .about-item p { color: var(--text); font-size: .83rem; line-height: 1.6; }
+
+        /* ════════════════════════════════
+           PROYECTOS — bento grid
+        ════════════════════════════════ */
+        .projects-bento {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+        }
+        .bento-card:nth-child(1) { grid-column: span 2; }
+        .bento-card:nth-child(2) { grid-column: span 2; }
+        .bento-card:nth-child(3) { grid-column: span 2; }
+        .bento-card:nth-child(4) { grid-column: span 3; }
+        .bento-card:nth-child(5) { grid-column: span 3; }
+
+        /* accent colors por proyecto */
+        .bento-card:nth-child(1) { --ac: #00b4d8; }
+        .bento-card:nth-child(2) { --ac: #e8a020; }
+        .bento-card:nth-child(3) { --ac: #a78bfa; }
+        .bento-card:nth-child(4) { --ac: #f59e0b; }
+        .bento-card:nth-child(5) { --ac: #34d399; }
+
+        .bento-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.6rem;
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+            transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+        }
+        /* esquina coloreada */
+        .bento-card::before {
+            content: '';
+            position: absolute; top: 0; right: 0;
+            width: 80px; height: 80px;
+            border-radius: 0 18px 0 80px;
+            background: var(--ac);
+            opacity: .07;
+            transition: opacity .35s, width .35s, height .35s;
+        }
+        .bento-card:hover::before { opacity: .15; width: 110px; height: 110px; }
+        .bento-card:hover {
+            transform: translateY(-5px);
+            border-color: color-mix(in srgb, var(--ac) 35%, transparent);
+            box-shadow: 0 12px 36px color-mix(in srgb, var(--ac) 10%, transparent);
+        }
+        .bento-tag {
+            font-family: var(--ff-mono); font-size: .6rem; letter-spacing: .15em;
+            text-transform: uppercase; color: var(--ac); margin-bottom: .8rem; opacity: .85;
+        }
+        .bento-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+            background: color-mix(in srgb, var(--ac) 13%, transparent);
+            border: 1px solid color-mix(in srgb, var(--ac) 22%, transparent);
+            transition: transform .3s;
+        }
+        .bento-card:hover .bento-icon { transform: rotate(-6deg) scale(1.1); }
+        .bento-icon i { font-size: 1.25rem; color: var(--ac); }
+        .bento-card h3 { font-family: var(--ff-display); font-size: 1.12rem; font-weight: 700; color: var(--white); margin-bottom: .4rem; }
+        .bento-card p { color: var(--text); font-size: .82rem; line-height: 1.55; flex: 1; margin-bottom: 1rem; }
+        .bento-link {
+            display: inline-flex; align-items: center; gap: .35rem;
+            font-size: .78rem; font-weight: 600; color: var(--ac); margin-top: auto;
+            transition: gap .2s;
+        }
+        .bento-link i { font-size: .68rem; transition: transform .2s; }
+        .bento-link:hover { gap: .55rem; }
+        .bento-link:hover i { transform: translateX(3px); }
+        .bento-soon {
+            display: inline-flex; align-items: center; gap: .3rem;
+            font-family: var(--ff-mono); font-size: .6rem; letter-spacing: .12em;
+            text-transform: uppercase; padding: .22rem .65rem; border-radius: 100px;
+            background: color-mix(in srgb, var(--ac) 10%, transparent);
+            border: 1px solid color-mix(in srgb, var(--ac) 22%, transparent);
+            color: var(--ac); margin-top: auto; width: fit-content;
+        }
+        .bento-soon::before {
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: var(--ac); animation: blink 1.4s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+        /* ── Redes sociales (idéntico al original) ── */
+        .social-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; margin-top:1rem; }
+        .social-btn {
+            display:inline-flex; align-items:center; gap:.6rem;
+            background:rgba(255,255,255,0.05); border:1px solid var(--border);
+            border-radius:50px; padding:.6rem 1.2rem; font-size:.85rem; transition:all .2s;
+        }
+        .social-btn i { font-size:1rem; }
+        .social-btn.telegram:hover  { background:#0088cc; border-color:#0088cc; color:#fff; }
+        .social-btn.twitter:hover   { background:#1DA1F2; border-color:#1DA1F2; color:#fff; }
+        .social-btn.youtube:hover   { background:#FF0000; border-color:#FF0000; color:#fff; }
+        .social-btn.instagram:hover { background:linear-gradient(45deg,#f09433,#d62976,#962fbf); border-color:transparent; color:#fff; }
+        .social-btn.facebook:hover  { background:#1877F2; border-color:#1877F2; color:#fff; }
+
+        /* ── Formulario (idéntico al original) ── */
+        .contact-form { max-width:600px; margin:0 auto; background:var(--surface); border-radius:24px; padding:2rem; border:1px solid var(--border); }
+        .form-group { margin-bottom:1.2rem; }
+        input, textarea { width:100%; padding:.8rem 1rem; background:var(--bg2); border:1px solid var(--border); border-radius:12px; color:var(--white); font-family:var(--ff-body); font-size:.9rem; transition:border-color .2s; }
+        input:focus, textarea:focus { outline:none; border-color:var(--gold); }
+        textarea { resize:vertical; min-height:100px; }
+        .btn-submit { background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:var(--bg); border:none; padding:.8rem 2rem; border-radius:40px; font-weight:700; cursor:pointer; width:100%; font-size:1rem; transition:transform .2s,box-shadow .2s; }
+        .btn-submit:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(232,160,32,0.3); }
+        .contact-note { text-align:center; font-size:.85rem; margin-top:1rem; color:var(--text); background:var(--gold-dim); padding:.8rem; border-radius:16px; border-left:3px solid var(--gold); }
+
+        /* ── Footer ── */
+        .footer { border-top:1px solid var(--border); padding:2rem 0; text-align:center; font-size:.75rem; color:var(--text); }
+
+        /* ── Reveal ── */
+        .reveal { opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+        .rd1 { transition-delay:.07s; } .rd2 { transition-delay:.14s; }
+        .rd3 { transition-delay:.21s; } .rd4 { transition-delay:.28s; }
+        .rd5 { transition-delay:.35s; }
+
+        /* ── Responsive ── */
+        @media(max-width:900px){
+            .projects-bento { grid-template-columns:repeat(2,1fr); }
+            .bento-card:nth-child(n) { grid-column:span 1; }
+            .bento-card:nth-child(5) { grid-column:span 2; }
+        }
+        @media(max-width:768px){
+            .hero { flex-direction:column-reverse; text-align:center; gap:1.5rem; }
+            .hero-content p { margin-left:auto; margin-right:auto; }
+            .about-grid { grid-template-columns:1fr; }
+            .about-item { border-right:none; border-bottom:1px solid var(--border); }
+            .about-item:last-child { border-bottom:none; }
+            .projects-bento { grid-template-columns:1fr; }
+            .bento-card:nth-child(n) { grid-column:span 1; }
+            .contact-form { padding:1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <div class="logo">Onix <span>Manager</span></div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero reveal">
+        <div class="hero-content">
+            <div class="hero-badge">Bienvenido</div>
+            <h1>Hola, soy <span>Onix Manager</span></h1>
+            <p>Emprendedor digital, experto en tecnología blockchain y creador de negocios online. Combino mi pasión por las finanzas descentralizadas con el desarrollo de proyectos digitales que generan valor real y soluciones prácticas para la vida cotidiana.</p>
+            <div style="margin-top:1.5rem;">
+                <a href="#contacto" class="social-btn" style="background:var(--gold-dim);border-color:var(--gold);color:var(--gold);">Contáctame</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="https://raw.githubusercontent.com/onixmannager/Landingpage/refs/heads/main/file_00000000fe0c720a90a0404c80cd8a18.png" alt="Onix Manager" class="profile-pic" id="profile-img">
+        </div>
+    </div>
+
+    <!-- ════ SOBRE MÍ ════ -->
+    <div class="section reveal">
+        <div class="section-header">
+            <div class="eyebrow">Sobre mí</div>
+            <h2>Más de 5 años impulsando la educación tecnológica y los proyectos digitales</h2>
+        </div>
+        <div class="about-grid">
+            <div class="about-item">
+                <span class="about-num">01</span>
+                <div class="about-icon"><i class="fas fa-chalkboard-user"></i></div>
+                <h3>Educador Cripto</h3>
+                <p>He formado a mas de 400 de personas en el mundo de las criptomonedas, blockchain y trading, con cursos prácticos y accesibles.</p>
+            </div>
+            <div class="about-item">
+                <span class="about-num">02</span>
+                <div class="about-icon"><i class="fas fa-code"></i></div>
+                <h3>Creador de Proyectos Digitales</h3>
+                <p>Desarrollo plataformas educativas, herramientas de análisis y comunidades, siempre con foco en la innovación.</p>
+            </div>
+            <div class="about-item">
+                <span class="about-num">03</span>
+                <div class="about-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>Estratega de Negocios Online</h3>
+                <p>Ayudo a emprendedores a lanzar y escalar sus proyectos digitales, desde la idea hasta la ejecución, aprovechando las oportunidades de la economía digital.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ MIS PROYECTOS ════ -->
+    <div class="section reveal">
+        <div class="section-header">
+            <div class="eyebrow">Mis proyectos</div>
+            <h2>Plataformas y servicios activos que he creado</h2>
+        </div>
+        <div class="projects-bento">
+
+            <div class="bento-card reveal rd1">
+                <div class="bento-tag">Tecnología · Web3</div>
+                <div class="bento-icon"><i class="fas fa-globe"></i></div>
+                <h3>Tecnologías Onix</h3>
+                <p>Soluciones tecnológicas y desarrollo web para negocios tradicionales.</p>
+                <a href="https://tecnologiasonix.com/" class="bento-link">Explorar <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="bento-card reveal rd2">
+                <div class="bento-tag">Educación · Finanzas</div>
+                <div class="bento-icon"><i class="fas fa-graduation-cap"></i></div>
+                <h3>Onix Crypto Manager</h3>
+                <p>Plataforma de educación financiera y cripto con cursos, herramientas y comunidad.</p>
+                <a href="https://landingpage-three-eta.vercel.app/index.html" class="bento-link">Explorar <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="bento-card reveal rd3">
+                <div class="bento-tag">Entretenimiento</div>
+                <div class="bento-icon"><i class="fas fa-film"></i></div>
+                <h3>Cinonix</h3>
+                <p>Contenido audiovisual, peliculas y series, entretenimiento.</p>
+                <a href="https://cinonix.vercel.app/cinonix.html" class="bento-link">Explorar <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="bento-card reveal rd4">
+                <div class="bento-tag">Cripto · Gaming</div>
+                <div class="bento-icon"><i class="fas fa-coins"></i></div>
+                <h3>CryptoClick</h3>
+                <p> Proyecto crypto capaz de generar Tokens gratis.</p>
+                <a href="https://landingpage-three-eta.vercel.app/CryptoClickVideoInfo.html" class="bento-link">Explorar <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="bento-card reveal rd5">
+                <div class="bento-tag">Marketing · Agencia</div>
+                <div class="bento-icon"><i class="fas fa-bullhorn"></i></div>
+                <h3>Zona VIP Trends</h3>
+                <p>Agencia de publicidad automatizada y gestión de redes sociales. Potenciamos marcas en el ecosistema digital con estrategias personalizadas.</p>
+                <span class="bento-soon">Próximamente</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Redes sociales -->
+    <div class="section reveal">
+        <div class="section-header">
+            <div class="eyebrow">Conéctate</div>
+            <h2>Sígueme en mis redes</h2>
+        </div>
+        <div class="social-grid">
+            <a href="https://t.me/+PFIS9sSrP3UwOTk8" target="_blank" class="social-btn telegram"><i class="fab fa-telegram-plane"></i> Telegram</a>
+            <a href="https://x.com/OMannager" target="_blank" class="social-btn twitter"><i class="fab fa-twitter"></i> Twitter</a>
+            <a href="https://youtube.com/@onixmanager" target="_blank" class="social-btn youtube"><i class="fab fa-youtube"></i> YouTube</a>
+            <a href="https://www.instagram.com/onixmanager" target="_blank" class="social-btn instagram"><i class="fab fa-instagram"></i> Instagram</a>
+            <a href="https://www.facebook.com/zoehdpworkinghard" target="_blank" class="social-btn facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
+        </div>
+    </div>
+
+    <!-- Contacto -->
+    <div class="section reveal" id="contacto">
+        <div class="section-header">
+            <div class="eyebrow">Escríbeme</div>
+            <h2>¿Tienes un proyecto o duda?</h2>
+        </div>
+        <div class="contact-form">
+            <form action="mailto:info@tecnologiasonix.com" method="post" enctype="text/plain">
+                <div class="form-group">
+                    <input type="text" name="nombre" placeholder="Tu nombre" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Tu email" required>
+                </div>
+                <div class="form-group">
+                    <textarea name="mensaje" placeholder="Cuéntame en qué puedo ayudarte..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-paper-plane"></i> Enviar mensaje</button>
+            </form>
+            <div class="contact-note">
+                <i class="fas fa-lightbulb"></i> ¿Necesitas crear o diseñar un proyecto o negocio digital? ¿Tienes alguna consulta sobre desarrollo web, blockchain o estrategias online? Estaré encantado de ayudarte. Escríbeme y conversemos.
+            </div>
+            <p style="font-size:.7rem;text-align:center;margin-top:.8rem;color:var(--text);">Al hacer clic se abrirá tu cliente de correo. Envíame un mensaje directo.</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 Onix Manager — Todos los derechos reservados.</p>
+    </div>
+
+</div>
+
+
+
+<script>
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
