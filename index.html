@@ -79,18 +79,12 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 .or3{width:268px;height:268px;border:1px dashed rgba(255,60,172,.08);animation:os 30s linear infinite}
 @keyframes os{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
-/* AMPLIFIED SATELLITES */
-.osat{position:absolute;border-radius:50%;pointer-events:none;font-size:18px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 6px rgba(255,215,0,.7))}
+/* SATELLITES — original size */
+.osat{position:absolute;border-radius:50%;pointer-events:none;font-size:12px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
 .os1{animation:osat1 14s linear infinite}
 .os2{animation:osat2 22s linear infinite reverse}
-.os3{animation:osat3 18s linear infinite}
-.os4{animation:osat4 26s linear infinite reverse}
-.os5{animation:osat5 10s linear infinite}
 @keyframes osat1{from{transform:rotate(0) translateX(110px) rotate(0)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
 @keyframes osat2{from{transform:rotate(0) translateX(122px) rotate(0)}to{transform:rotate(360deg) translateX(122px) rotate(-360deg)}}
-@keyframes osat3{from{transform:rotate(0) translateX(110px) rotate(0)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
-@keyframes osat4{from{transform:rotate(0) translateX(134px) rotate(0)}to{transform:rotate(360deg) translateX(134px) rotate(-360deg)}}
-@keyframes osat5{from{transform:rotate(180deg) translateX(104px) rotate(-180deg)}to{transform:rotate(540deg) translateX(104px) rotate(-540deg)}}
 
 #coinbtn{width:186px;height:186px;border-radius:50%;border:none;cursor:pointer;position:relative;overflow:hidden;transition:transform .07s ease,box-shadow .07s ease;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
 #coinbtn.s0{background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);box-shadow:0 0 0 5px rgba(255,215,0,.12),0 0 50px rgba(255,107,53,.35),0 8px 32px rgba(0,0,0,.5)}
@@ -205,7 +199,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
 /* NAV */
 #bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(11,10,20,.97);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;z-index:100;padding:6px 0 10px}
-.nbtn{flex:1;background:none;border:none;cursor:pointer;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-family:var(--fb);font-size:9px;font-weight:800;letter-spacing:.3px;transition:color .2s;position:relative}
+.nbtn{flex:1;background:none;border:none;cursor:pointer;padding:6px 1px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-family:var(--fb);font-size:8px;font-weight:800;letter-spacing:.2px;transition:color .2s;position:relative}
 .nbtn.active{color:var(--yellow)}
 .nicon{font-size:19px}
 .ndot{width:7px;height:7px;background:var(--pink);border-radius:50%;position:absolute;top:3px;right:calc(50% - 14px);box-shadow:0 0 6px var(--pink)}
@@ -292,10 +286,8 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
     <div id="coinsec">
       <div id="coinout">
         <div class="or or1"></div><div class="or or2"></div><div class="or or3"></div>
-        <!-- 5 amplified satellites -->
         <div class="osat os1">⚡</div>
         <div class="osat os2">💎</div>
-        <div class="osat os3">🌟</div>
         <button id="coinbtn" class="s0" ontouchstart="htap(event)" onclick="htap(event)">
           <div class="csheen"></div><div class="cglow"></div>
           <div class="csym">CLK$</div>
@@ -426,6 +418,39 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
   </div>
 
+  <!-- SAVE/LOAD -->
+  <div id="screen-save" class="screen">
+    <div class="sh">💾 Mi Partida</div>
+    <div class="ss">Exporta tu progreso para usarlo en cualquier dispositivo o navegador</div>
+
+    <!-- EXPORT -->
+    <div style="background:var(--card);border:1px solid rgba(255,215,0,.2);border-radius:18px;padding:18px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:10px">📤 EXPORTAR PARTIDA</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Genera un código con toda tu partida. Cópialo y guárdalo donde quieras (notas, email, etc.)</div>
+      <button onclick="exportSave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:12px;font-family:var(--fh);font-size:17px;color:#1a0a00;cursor:pointer;margin-bottom:10px">📋 Generar y copiar código</button>
+      <div id="exportbox" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;word-break:break-all;font-size:10px;color:var(--cyan);font-family:monospace;line-height:1.5;max-height:80px;overflow-y:auto"></div>
+    </div>
+
+    <!-- IMPORT -->
+    <div style="background:var(--card);border:1px solid rgba(139,92,246,.25);border-radius:18px;padding:18px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--purple);font-weight:800;letter-spacing:2px;margin-bottom:10px">📥 IMPORTAR PARTIDA</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Pega aquí tu código para restaurar tu progreso. <strong style="color:var(--red)">¡Sustituirá la partida actual!</strong></div>
+      <textarea id="importinp" placeholder="Pega tu código aquí..." style="width:100%;height:80px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;color:white;font-family:monospace;font-size:11px;resize:none;outline:none;line-height:1.5"></textarea>
+      <button onclick="importSave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;font-family:var(--fh);font-size:17px;color:white;cursor:pointer;margin-top:8px">✅ Restaurar partida</button>
+    </div>
+
+    <!-- INFO -->
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px">
+      <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px">💡 CÓMO FUNCIONA</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">1. Pulsa <strong style="color:var(--yellow)">Generar código</strong> en el dispositivo actual</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">2. Copia y envíate el código por WhatsApp, email o notas</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">3. En el nuevo dispositivo, pégalo en <strong style="color:var(--purple)">Importar</strong></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">4. ¡Tu partida estará exactamente igual! 🎉</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <nav id="bnav">
@@ -434,6 +459,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
   <button class="nbtn" id="nav-referral" onclick="goTo('referral')"><span class="nicon">👥</span>AMIGOS</button>
   <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">📡</span>COMUNIDAD</button>
+  <button class="nbtn" id="nav-save" onclick="goTo('save')"><span class="nicon">💾</span>PARTIDA</button>
 </nav>
 
 <!-- OVERLAYS -->
@@ -650,9 +676,7 @@ function htap(e){
   if(S.energy<1){document.getElementById('noeov').classList.add('show');return}
 
   // ── VIBRATION ──────────────────────────────────────────
-  if(navigator.vibrate){
-    navigator.vibrate([18]);
-  }
+  try{if(window.navigator&&window.navigator.vibrate)window.navigator.vibrate(15);}catch(err){}
   // ───────────────────────────────────────────────────────
 
   const mult=isBoost()?2:1;
@@ -686,9 +710,7 @@ function htap(e){
 
   spawnFloat(e,'+'+fmt(earned));
   spawnRipple(e);
-  // Reduced tap confetti: only spawn when combo >= 4, smaller count
-  if(combo>=3)spawnParts(getCenter(),Math.min(combo,12));
-  if(navigator.vibrate){}// already called above
+  if(combo>=5)spawnParts(getCenter(),combo);
 
   checkMiss();upd();
 }
@@ -724,21 +746,18 @@ function resPC(){pCv.width=window.innerWidth;pCv.height=window.innerHeight}
 resPC();window.addEventListener('resize',resPC);
 
 function spawnParts(pos,n){
-  // Reduced density: cap at 12 for normal taps, spread a bit wider
-  const cnt=Math.min(n,12);
+  const cnt=Math.min(8+n,35);
   for(let i=0;i<cnt;i++){
-    const a=Math.random()*Math.PI*2,sp=2+Math.random()*5;
-    PARTS.push({x:pos.x,y:pos.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,life:1,dec:.025+Math.random()*.035,sz:2+Math.random()*4,col:PCOLS[Math.random()*PCOLS.length|0]});
+    const a=Math.random()*Math.PI*2,sp=3+Math.random()*8;
+    PARTS.push({x:pos.x,y:pos.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,dec:.016+Math.random()*.025,sz:3+Math.random()*6,col:PCOLS[Math.random()*PCOLS.length|0]});
   }
 }
 
-// Burst (combo x10+) keeps more impact but still reduced vs original
 function spawnBurst(){
   const c=getCenter();
-  const cnt=40; // was 120, now 40
-  for(let i=0;i<cnt;i++){
-    const a=Math.random()*Math.PI*2,sp=4+Math.random()*10;
-    PARTS.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.010+Math.random()*.018,sz:3+Math.random()*7,col:PCOLS[Math.random()*PCOLS.length|0]});
+  for(let i=0;i<120;i++){
+    const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;
+    PARTS.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});
   }
 }
 
@@ -940,6 +959,48 @@ function renderLB(){
 }
 
 // ══════════════════════════════════
+// SAVE / LOAD CODE
+// ══════════════════════════════════
+function exportSave(){
+  // Snapshot current state, encode as base64
+  const data=JSON.stringify({...S,lastSave:Date.now()});
+  const code='CLK1-'+btoa(unescape(encodeURIComponent(data)));
+  // Show in box
+  const box=document.getElementById('exportbox');
+  box.style.display='block';
+  box.textContent=code;
+  // Copy to clipboard
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(code).then(()=>toast('📋 ¡Código copiado! Guárdalo en un lugar seguro')).catch(()=>toast('📋 Código generado, selecciónalo y cópialo'));
+  } else {
+    // Fallback: select the text
+    const range=document.createRange();range.selectNode(box);
+    window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+    toast('📋 Código generado, selecciónalo y cópialo');
+  }
+}
+
+function importSave(){
+  const raw=document.getElementById('importinp').value.trim();
+  if(!raw){toast('❌ Pega tu código primero');return}
+  if(!raw.startsWith('CLK1-')){toast('❌ Código inválido — debe empezar por CLK1-');return}
+  try{
+    const json=decodeURIComponent(escape(atob(raw.slice(5))));
+    const data=JSON.parse(json);
+    // Validate it's a real save (must have clk key)
+    if(typeof data.clk==='undefined')throw new Error('bad');
+    Object.assign(S,data);
+    save();recalc();upd();checkMiss();
+    document.getElementById('importinp').value='';
+    toast('✅ ¡Partida restaurada correctamente!');
+    rankBurst();
+    setTimeout(()=>goTo('mine'),800);
+  }catch(e){
+    toast('❌ Código corrupto o inválido, compruébalo');
+  }
+}
+
+// ══════════════════════════════════
 // NAV
 // ══════════════════════════════════
 function goTo(n){
@@ -951,6 +1012,11 @@ function goTo(n){
   if(n==='missions')renderMiss();
   if(n==='referral')renderRef();
   if(n==='leaderboard')renderLB();
+  if(n==='save'){
+    // Hide export box when re-entering screen
+    document.getElementById('exportbox').style.display='none';
+    document.getElementById('importinp').value='';
+  }
 }
 
 // ══════════════════════════════════
@@ -991,6 +1057,9 @@ function runLoader(){
 function init(){
   load();recalc();upd();checkMiss();
   document.addEventListener('dblclick',e=>e.preventDefault());
+  // Vibration: attach directly to coinbtn touchstart for maximum browser compatibility
+  const cb=document.getElementById('coinbtn');
+  cb.addEventListener('touchstart',()=>{try{window.navigator.vibrate&&window.navigator.vibrate(15);}catch(e){}},{passive:true});
   runLoader();
 }
 init();
