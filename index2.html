@@ -78,6 +78,8 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 .or2{width:244px;height:244px;border:1px dashed rgba(6,182,212,.12);animation:os 22s linear infinite reverse}
 .or3{width:268px;height:268px;border:1px dashed rgba(255,60,172,.08);animation:os 30s linear infinite}
 @keyframes os{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* SATELLITES — original size */
 .osat{position:absolute;border-radius:50%;pointer-events:none;font-size:12px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
 .os1{animation:osat1 14s linear infinite}
 .os2{animation:osat2 22s linear infinite reverse}
@@ -93,7 +95,10 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 #coinbtn:active{transform:scale(0.91)!important}
 .csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 3.5s ease-in-out infinite;pointer-events:none}
 @keyframes sheen{0%{transform:translateX(-100%) rotate(15deg)}55%{transform:translateX(450%) rotate(15deg)}100%{transform:translateX(450%) rotate(15deg)}}
-.csym{font-family:var(--fh);font-size:52px;color:rgba(255,255,255,.88);text-shadow:0 2px 10px rgba(0,0,0,.4);pointer-events:none;user-select:none;position:relative;z-index:1}
+
+/* CLK$ label on coin — smaller so it fits */
+.csym{font-family:var(--fh);font-size:32px;color:rgba(255,255,255,.92);text-shadow:0 2px 10px rgba(0,0,0,.5);pointer-events:none;user-select:none;position:relative;z-index:1;letter-spacing:1px;line-height:1}
+
 .cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s}
 #coinbtn:active .cglow{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.15),transparent)}
 .crip{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none;transform:translate(-50%,-50%);animation:rexp .55s ease-out forwards}
@@ -194,7 +199,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
 /* NAV */
 #bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(11,10,20,.97);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;z-index:100;padding:6px 0 10px}
-.nbtn{flex:1;background:none;border:none;cursor:pointer;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-family:var(--fb);font-size:9px;font-weight:800;letter-spacing:.3px;transition:color .2s;position:relative}
+.nbtn{flex:1;background:none;border:none;cursor:pointer;padding:6px 1px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-family:var(--fb);font-size:8px;font-weight:800;letter-spacing:.2px;transition:color .2s;position:relative}
 .nbtn.active{color:var(--yellow)}
 .nicon{font-size:19px}
 .ndot{width:7px;height:7px;background:var(--pink);border-radius:50%;position:absolute;top:3px;right:calc(50% - 14px);box-shadow:0 0 6px var(--pink)}
@@ -281,10 +286,11 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
     <div id="coinsec">
       <div id="coinout">
         <div class="or or1"></div><div class="or or2"></div><div class="or or3"></div>
-        <div class="osat os1">⚡</div><div class="osat os2">💎</div>
+        <div class="osat os1">⚡</div>
+        <div class="osat os2">💎</div>
         <button id="coinbtn" class="s0" ontouchstart="htap(event)" onclick="htap(event)">
           <div class="csheen"></div><div class="cglow"></div>
-          <div class="csym">$</div>
+          <div class="csym">CLK$</div>
         </button>
       </div>
       <div id="comboa">
@@ -412,6 +418,39 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
   </div>
 
+  <!-- SAVE/LOAD -->
+  <div id="screen-save" class="screen">
+    <div class="sh">💾 Mi Partida</div>
+    <div class="ss">Exporta tu progreso para usarlo en cualquier dispositivo o navegador</div>
+
+    <!-- EXPORT -->
+    <div style="background:var(--card);border:1px solid rgba(255,215,0,.2);border-radius:18px;padding:18px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:10px">📤 EXPORTAR PARTIDA</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Genera un código con toda tu partida. Cópialo y guárdalo donde quieras (notas, email, etc.)</div>
+      <button onclick="exportSave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:12px;font-family:var(--fh);font-size:17px;color:#1a0a00;cursor:pointer;margin-bottom:10px">📋 Generar y copiar código</button>
+      <div id="exportbox" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;word-break:break-all;font-size:10px;color:var(--cyan);font-family:monospace;line-height:1.5;max-height:80px;overflow-y:auto"></div>
+    </div>
+
+    <!-- IMPORT -->
+    <div style="background:var(--card);border:1px solid rgba(139,92,246,.25);border-radius:18px;padding:18px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--purple);font-weight:800;letter-spacing:2px;margin-bottom:10px">📥 IMPORTAR PARTIDA</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Pega aquí tu código para restaurar tu progreso. <strong style="color:var(--red)">¡Sustituirá la partida actual!</strong></div>
+      <textarea id="importinp" placeholder="Pega tu código aquí..." style="width:100%;height:80px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;color:white;font-family:monospace;font-size:11px;resize:none;outline:none;line-height:1.5"></textarea>
+      <button onclick="importSave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;font-family:var(--fh);font-size:17px;color:white;cursor:pointer;margin-top:8px">✅ Restaurar partida</button>
+    </div>
+
+    <!-- INFO -->
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px">
+      <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px">💡 CÓMO FUNCIONA</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">1. Pulsa <strong style="color:var(--yellow)">Generar código</strong> en el dispositivo actual</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">2. Copia y envíate el código por WhatsApp, email o notas</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">3. En el nuevo dispositivo, pégalo en <strong style="color:var(--purple)">Importar</strong></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">4. ¡Tu partida estará exactamente igual! 🎉</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <nav id="bnav">
@@ -420,6 +459,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
   <button class="nbtn" id="nav-referral" onclick="goTo('referral')"><span class="nicon">👥</span>AMIGOS</button>
   <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">📡</span>COMUNIDAD</button>
+  <button class="nbtn" id="nav-save" onclick="goTo('save')"><span class="nicon">💾</span>PARTIDA</button>
 </nav>
 
 <!-- OVERLAYS -->
@@ -470,34 +510,118 @@ const SKINS=[
   {id:4,ico:'❤️', name:'Ruby',   cls:'s4',lvl:15},
 ];
 const UPS=[
-  {id:'gpu',   n:'Mining GPU',    i:'🖥️',d:'Tokens pasivos/hora',   base:100,  pph:2,   max:20},
-  {id:'asic',  n:'ASIC Rig',      i:'⚙️',d:'Minado profesional',     base:500,  pph:12,  max:15},
-  {id:'pool',  n:'Mining Pool',   i:'🌐',d:'Pool de minería',         base:2000, pph:50,  max:10},
-  {id:'farm',  n:'Crypto Farm',   i:'🏭',d:'Granja de servidores',    base:8000, pph:200, max:8 },
-  {id:'dc',    n:'Data Center',   i:'🗄️',d:'Centro de datos masivo',  base:40000,pph:1000,max:5 },
-  {id:'tap2',  n:'Tap Booster',   i:'👆',d:'+2 $CLK por tap',         base:300,  tapB:2,  max:10},
-  {id:'tap5',  n:'Turbo Fingers', i:'⚡',d:'+5 $CLK por tap',         base:1500, tapB:5,  max:8 },
-  {id:'batt',  n:'Battery Pack',  i:'🔋',d:'+200 energía máxima',     base:400,  eB:200,  max:10},
-  {id:'regen', n:'Fast Regen',    i:'💨',d:'+1 recarga/segundo',      base:800,  rB:1,    max:5 },
-  {id:'boost', n:'x2 Boost',      i:'🚀',d:'Dobla $CLK por tap 30min',base:5000, bMin:30, max:5 },
+  {id:'gpu',   n:'Mining GPU',       i:'🖥️',d:'Procesador basico de tokens',        base:100,     pph:2,      max:50},
+  {id:'asic',  n:'ASIC Rig',         i:'⚙️',d:'Hardware dedicado al minado',         base:500,     pph:12,     max:40},
+  {id:'pool',  n:'Mining Pool',      i:'🌐',d:'Pool de mineria colaborativa',         base:2000,    pph:50,     max:30},
+  {id:'farm',  n:'Crypto Farm',      i:'🏭',d:'Granja de servidores',                base:8000,    pph:200,    max:25},
+  {id:'dc',    n:'Data Center',      i:'🗄️',d:'Centro de datos masivo',              base:40000,   pph:1000,   max:20},
+  {id:'qc',    n:'Quantum Core',     i:'⚛️',d:'Procesamiento cuantico avanzado',     base:200000,  pph:6000,   max:15},
+  {id:'sat',   n:'Satelite Miner',   i:'🛰️',d:'Minado orbital desde el espacio',     base:1000000, pph:35000,  max:10},
+  {id:'moon',  n:'Moon Base',        i:'🌕',d:'Base de minado lunar permanente',      base:5000000, pph:200000, max:8 },
+  {id:'dyson', n:'Dyson Sphere',     i:'☀️',d:'Captura energia solar total',         base:25000000,pph:1200000,max:5 },
+  {id:'multi', n:'Multiversum Node', i:'🌌',d:'Nodo interdimensional de minado',     base:1e8,     pph:8000000,max:3 },
+  {id:'tap1',  n:'Tap Booster I',    i:'👆',d:'+2 CLK por tap',                      base:300,     tapB:2,     max:20},
+  {id:'tap2x', n:'Turbo Fingers',    i:'⚡',d:'+5 CLK por tap',                      base:1500,    tapB:5,     max:15},
+  {id:'tap3',  n:'Golden Touch',     i:'✋',d:'+12 CLK por tap',                     base:8000,    tapB:12,    max:12},
+  {id:'tap4',  n:'Diamond Hands',    i:'💎',d:'+30 CLK por tap',                     base:40000,   tapB:30,    max:10},
+  {id:'tap5x', n:'Laser Fingertips', i:'🔫',d:'+80 CLK por tap',                     base:200000,  tapB:80,    max:8 },
+  {id:'tap6',  n:'Quantum Tap',      i:'🌀',d:'+250 CLK por tap',                    base:1000000, tapB:250,   max:6 },
+  {id:'tap7',  n:'God Finger',       i:'☝️',d:'+1000 CLK por tap',                   base:8000000, tapB:1000,  max:4 },
+  {id:'tap8',  n:'Big Bang Tap',     i:'💥',d:'+5000 CLK por tap',                   base:5e7,     tapB:5000,  max:3 },
+  {id:'bt1',   n:'Battery Pack',     i:'🔋',d:'+200 energia maxima',                 base:400,     eB:200,     max:20},
+  {id:'bt2',   n:'Power Cell',       i:'🔌',d:'+500 energia maxima',                 base:2000,    eB:500,     max:15},
+  {id:'bt3',   n:'Supercapacitor',   i:'⚡',d:'+1500 energia maxima',                base:12000,   eB:1500,    max:10},
+  {id:'bt4',   n:'Fusion Core',      i:'☢️',d:'+5000 energia maxima',                base:80000,   eB:5000,    max:8 },
+  {id:'bt5',   n:'Dark Energy Cell', i:'🌑',d:'+20000 energia maxima',               base:500000,  eB:20000,   max:5 },
+  {id:'rg1',   n:'Fast Regen I',     i:'💨',d:'+1 recarga/segundo',                  base:800,     rB:1,       max:15},
+  {id:'rg2',   n:'Fast Regen II',    i:'🌬️',d:'+3 recarga/segundo',                  base:5000,    rB:3,       max:10},
+  {id:'rg3',   n:'Turbo Regen',      i:'🌪️',d:'+8 recarga/segundo',                  base:30000,   rB:8,       max:8 },
+  {id:'rg4',   n:'Instant Recharge', i:'⚡',d:'+25 recarga/segundo',                 base:200000,  rB:25,      max:5 },
+  {id:'rg5',   n:'Infinite Flow',    i:'♾️',d:'+80 recarga/segundo',                 base:1500000, rB:80,      max:3 },
+  {id:'bst1',  n:'x2 Boost',         i:'🚀',d:'Dobla CLK por tap 30min',             base:5000,    bMin:30,    max:10},
+  {id:'bst2',  n:'Mega Boost',       i:'💫',d:'x2 Boost 120min extra',               base:50000,   bMin:120,   max:5 },
+  {id:'algo',  n:'Trading Algorithm',i:'🤖',d:'Bot de trading autonomo',             base:15000,   pph:300,    max:20},
+  {id:'defi',  n:'DeFi Protocol',    i:'🏦',d:'Staking y yield farming',             base:70000,   pph:1500,   max:15},
+  {id:'nft',   n:'NFT Collection',   i:'🖼️',d:'Royalties de NFTs por hora',          base:300000,  pph:7000,   max:12},
+  {id:'dao',   n:'DAO Treasury',     i:'🗳️',d:'Ingresos de gobernanza',              base:1500000, pph:35000,  max:10},
+  {id:'l2',    n:'Layer 2 Network',  i:'🔗',d:'Comisiones de red L2',                base:8000000, pph:180000, max:8 },
+  {id:'ora',   n:'Blockchain Oracle',i:'🔮',d:'Datos on-chain premium',              base:4e7,     pph:900000, max:5 },
+  {id:'ai',    n:'AI Miner',         i:'🧠',d:'Inteligencia artificial de minado',   base:2e8,     pph:5000000,max:3 },
+  {id:'time',  n:'Time Crystal',     i:'💠',d:'Minado a traves del tiempo',          base:1e9,     pph:3e7,    max:2 },
 ];
 const MISS=[
-  {id:'t100',  n:'Primer centenar',  i:'👆',g:100,    t:'taps',    r:200  },
-  {id:'t1k',   n:'Tap Master',       i:'🔥',g:1000,   t:'taps',    r:1000 },
-  {id:'t10k',  n:'Tap Legend',       i:'⚡',g:10000,  t:'taps',    r:5000 },
-  {id:'t100k', n:'Tap God',          i:'🌌',g:100000, t:'taps',    r:25000},
-  {id:'c1k',   n:'Primer millar',    i:'💰',g:1000,   t:'clk',     r:500  },
-  {id:'c10k',  n:'En racha',         i:'💎',g:10000,  t:'clk',     r:2000 },
-  {id:'c100k', n:'Ballena pequeña',  i:'🐳',g:100000, t:'clk',     r:10000},
-  {id:'c1m',   n:'Millonario CLK',   i:'🤑',g:1000000,t:'clk',     r:50000},
-  {id:'l5',    n:'Subiendo peldaños',i:'📈',g:5,      t:'lvl',     r:800  },
-  {id:'l10',   n:'Doble dígito',     i:'🏆',g:10,     t:'lvl',     r:3000 },
-  {id:'l20',   n:'Veterano',         i:'👑',g:20,     t:'lvl',     r:15000},
-  {id:'u3',    n:'Inversor',         i:'🖥️',g:3,      t:'ups',     r:600  },
-  {id:'u10',   n:'VC Mode',          i:'🏦',g:10,     t:'ups',     r:5000 },
-  {id:'cmb5',  n:'Combo King',       i:'🔥',g:5,      t:'combo',   r:400  },
-  {id:'cmb20', n:'Ultra Combo',      i:'⚡',g:20,     t:'combo',   r:2000 },
-  {id:'d7',    n:'7 días seguidos',  i:'📅',g:7,      t:'dstreak', r:7000 },
+  // TAP MISSIONS — escalada brutal
+  {id:'t10',    n:'Primeros pasos',      i:'👆',g:10,         t:'taps',    r:50    },
+  {id:'t100',   n:'Primer centenar',     i:'✊',g:100,        t:'taps',    r:200   },
+  {id:'t500',   n:'Calentando motores',  i:'🔥',g:500,        t:'taps',    r:600   },
+  {id:'t1k',    n:'Tap Master',          i:'⚡',g:1000,       t:'taps',    r:1000  },
+  {id:'t5k',    n:'Dedos de acero',      i:'🦾',g:5000,       t:'taps',    r:3000  },
+  {id:'t10k',   n:'Tap Legend',          i:'🏆',g:10000,      t:'taps',    r:5000  },
+  {id:'t25k',   n:'Manos incansables',   i:'💪',g:25000,      t:'taps',    r:10000 },
+  {id:'t50k',   n:'Tap Máquina',         i:'🤖',g:50000,      t:'taps',    r:20000 },
+  {id:'t100k',  n:'Tap God',             i:'🌌',g:100000,     t:'taps',    r:40000 },
+  {id:'t250k',  n:'El Incansable',       i:'♾️',g:250000,     t:'taps',    r:100000},
+  {id:'t500k',  n:'Medio millón',        i:'💫',g:500000,     t:'taps',    r:200000},
+  {id:'t1m',    n:'Un millón de taps',   i:'🌟',g:1000000,    t:'taps',    r:500000},
+  {id:'t5m',    n:'Tap Eterno',          i:'⚡',g:5000000,    t:'taps',    r:2000000},
+  {id:'t10m',   n:'Leyenda Absoluta',    i:'👑',g:10000000,   t:'taps',    r:5000000},
+  // CLK ACUMULADO — riqueza progresiva
+  {id:'c100',   n:'Primeros CLK',        i:'💰',g:100,        t:'clk',     r:50    },
+  {id:'c1k',    n:'Primer millar',       i:'💵',g:1000,       t:'clk',     r:500   },
+  {id:'c10k',   n:'En racha',            i:'💎',g:10000,      t:'clk',     r:2000  },
+  {id:'c50k',   n:'Cuenta gorda',        i:'🏦',g:50000,      t:'clk',     r:8000  },
+  {id:'c100k',  n:'Ballena pequena',     i:'🐳',g:100000,     t:'clk',     r:15000 },
+  {id:'c500k',  n:'Medio millon CLK',    i:'💸',g:500000,     t:'clk',     r:60000 },
+  {id:'c1m',    n:'Millonario CLK',      i:'🤑',g:1000000,    t:'clk',     r:120000},
+  {id:'c5m',    n:'Multi-millonario',    i:'🎩',g:5000000,    t:'clk',     r:500000},
+  {id:'c10m',   n:'Crypto Tycoon',       i:'🐋',g:10000000,   t:'clk',     r:1000000},
+  {id:'c50m',   n:'Tiburon del Mercado', i:'🦈',g:50000000,   t:'clk',     r:4000000},
+  {id:'c100m',  n:'Cien Millones',       i:'💹',g:100000000,  t:'clk',     r:8000000},
+  {id:'c1b',    n:'El Primer Billion',   i:'🌐',g:1000000000, t:'clk',     r:5e7   },
+  {id:'c10b',   n:'Dios del Blockchain', i:'⚡',g:10000000000,t:'clk',     r:2e8   },
+  // NIVEL — subir de rango
+  {id:'l2',     n:'Primer ascenso',      i:'📈',g:2,          t:'lvl',     r:300   },
+  {id:'l5',     n:'Subiendo peldanos',   i:'🪜',g:5,          t:'lvl',     r:800   },
+  {id:'l10',    n:'Doble digito',        i:'🏆',g:10,         t:'lvl',     r:3000  },
+  {id:'l20',    n:'Veterano',            i:'👑',g:20,         t:'lvl',     r:15000 },
+  {id:'l30',    n:'Experto Crypto',      i:'🎖️',g:30,         t:'lvl',     r:50000 },
+  {id:'l50',    n:'Blockchain God',      i:'⚡',g:50,         t:'lvl',     r:200000},
+  {id:'l75',    n:'Maestro Eterno',      i:'🌌',g:75,         t:'lvl',     r:800000},
+  {id:'l100',   n:'El Centenario',       i:'💯',g:100,        t:'lvl',     r:3000000},
+  // MEJORAS — inversor
+  {id:'u1',     n:'Primera inversion',   i:'🖥️',g:1,          t:'ups',     r:200   },
+  {id:'u3',     n:'Inversor',            i:'💼',g:3,          t:'ups',     r:600   },
+  {id:'u10',    n:'VC Mode',             i:'🏦',g:10,         t:'ups',     r:5000  },
+  {id:'u25',    n:'Magnate',             i:'🎩',g:25,         t:'ups',     r:25000 },
+  {id:'u50',    n:'Fondo de inversion',  i:'📊',g:50,         t:'ups',     r:100000},
+  {id:'u100',   n:'Imperio de Mejoras',  i:'🏰',g:100,        t:'ups',     r:500000},
+  {id:'u200',   n:'Maquina Perfecta',    i:'⚙️',g:200,        t:'ups',     r:2000000},
+  {id:'u500',   n:'Dios de las Mejoras', i:'🌟',g:500,        t:'ups',     r:1e7   },
+  // COMBO — velocidad y habilidad
+  {id:'cmb3',   n:'Combo Iniciado',      i:'🔥',g:3,          t:'combo',   r:150   },
+  {id:'cmb5',   n:'Combo King',          i:'💢',g:5,          t:'combo',   r:400   },
+  {id:'cmb10',  n:'Combo Master',        i:'⚡',g:10,         t:'combo',   r:1500  },
+  {id:'cmb20',  n:'Ultra Combo',         i:'🌀',g:20,         t:'combo',   r:5000  },
+  {id:'cmb50',  n:'Combo Insano',        i:'🔴',g:50,         t:'combo',   r:20000 },
+  {id:'cmb100', n:'Combo Legendario',    i:'🌟',g:100,        t:'combo',   r:80000 },
+  {id:'cmb250', n:'Combo Inmortal',      i:'👑',g:250,        t:'combo',   r:350000},
+  {id:'cmb500', n:'Combo Dios',          i:'⚡',g:500,        t:'combo',   r:1500000},
+  // DAILY STREAK — constancia
+  {id:'d1',     n:'Primer dia',          i:'📅',g:1,          t:'dstreak', r:200   },
+  {id:'d3',     n:'3 dias seguidos',     i:'🗓️',g:3,          t:'dstreak', r:1000  },
+  {id:'d7',     n:'7 dias seguidos',     i:'🔥',g:7,          t:'dstreak', r:7000  },
+  {id:'d14',    n:'Dos semanas crack',   i:'💪',g:14,         t:'dstreak', r:25000 },
+  {id:'d30',    n:'Un mes fiel',         i:'🏅',g:30,         t:'dstreak', r:100000},
+  {id:'d60',    n:'Dos meses sin falta', i:'🎖️',g:60,         t:'dstreak', r:400000},
+  {id:'d100',   n:'100 dias legendario', i:'👑',g:100,        t:'dstreak', r:1500000},
+  {id:'d365',   n:'Un ano entero',       i:'🌟',g:365,        t:'dstreak', r:1e7   },
+  // REFERIDOS
+  {id:'r1',     n:'Primer amigo',        i:'👥',g:1,          t:'refs',    r:500   },
+  {id:'r3',     n:'Pequena tribu',       i:'👨‍👩‍👧',g:3,          t:'refs',    r:2000  },
+  {id:'r10',    n:'Tu red crece',        i:'🌐',g:10,         t:'refs',    r:8000  },
+  {id:'r25',    n:'Influencer CLK',      i:'📣',g:25,         t:'refs',    r:30000 },
+  {id:'r50',    n:'Evangelista Crypto',  i:'🚀',g:50,         t:'refs',    r:100000},
+  {id:'r100',   n:'Lider de masas',      i:'👑',g:100,        t:'refs',    r:500000},
 ];
 const DRWD=[200,400,600,800,1200,1600,2500];
 const LBM=[
@@ -635,6 +759,10 @@ function htap(e){
   else if(e.type==='click'&&tLock){tLock=false;return}
   if(S.energy<1){document.getElementById('noeov').classList.add('show');return}
 
+  // ── VIBRATION ──────────────────────────────────────────
+  try{if(window.navigator&&window.navigator.vibrate)window.navigator.vibrate(15);}catch(err){}
+  // ───────────────────────────────────────────────────────
+
   const mult=isBoost()?2:1;
   const earned=S.tapPow*mult;
   S.clk+=earned;S.totalClk+=earned;S.totalTaps++;
@@ -667,7 +795,6 @@ function htap(e){
   spawnFloat(e,'+'+fmt(earned));
   spawnRipple(e);
   if(combo>=5)spawnParts(getCenter(),combo);
-  if(navigator.vibrate)navigator.vibrate(10);
 
   checkMiss();upd();
 }
@@ -709,9 +836,17 @@ function spawnParts(pos,n){
     PARTS.push({x:pos.x,y:pos.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,dec:.016+Math.random()*.025,sz:3+Math.random()*6,col:PCOLS[Math.random()*PCOLS.length|0]});
   }
 }
-function spawnBurst(){const c=getCenter();spawnParts(c,60)}
-function rankBurst(){
+
+function spawnBurst(){
+  const c=getCenter();
   for(let i=0;i<120;i++){
+    const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;
+    PARTS.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});
+  }
+}
+
+function rankBurst(){
+  for(let i=0;i<80;i++){
     const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;
     PARTS.push({x:window.innerWidth/2,y:window.innerHeight*.4,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});
   }
@@ -837,6 +972,7 @@ function checkMiss(){
     if(m.t==='ups')ms.p=Math.min(m.g,S.upsCount);
     if(m.t==='combo')ms.p=Math.min(m.g,S.maxCombo);
     if(m.t==='dstreak')ms.p=Math.min(m.g,S.dStreak);
+    if(m.t==='refs')ms.p=Math.min(m.g,S.refs);
   }
   const has=MISS.some(m=>{const ms=S.missions[m.id];return ms&&!ms.c&&ms.p>=m.g});
   const nav=document.getElementById('nav-missions');
@@ -848,14 +984,36 @@ function checkMiss(){
 function renderMiss(){
   checkMiss();
   const list=document.getElementById('misslist');list.innerHTML='';
-  for(const m of MISS){
-    if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};
-    const ms=S.missions[m.id];
-    const pct=Math.min(100,(ms.p/m.g)*100);
-    const done=ms.c,ready=!done&&ms.p>=m.g;
-    const card=document.createElement('div');card.className='mc';
-    card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+'</div><div class="mpw"><div class="mpb" style="width:'+pct+'%"></div></div><div class="mrwd">🪙 '+fmt(m.r)+' $CLK · '+fmt(ms.p)+'/'+fmt(m.g)+'</div></div>'+(done?'<div style="font-size:22px">✅</div>':'<button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'Reclamar':pct.toFixed(0)+'%')+'</button>');
-    list.appendChild(card);
+
+  const cats=[
+    {key:'taps',    label:'👆 TAPS',          col:'var(--cyan)'},
+    {key:'clk',     label:'💰 $CLK ACUMULADO', col:'var(--yellow)'},
+    {key:'lvl',     label:'📈 NIVEL',          col:'var(--purple)'},
+    {key:'ups',     label:'⚡ MEJORAS',        col:'var(--orange)'},
+    {key:'combo',   label:'🔥 COMBO',          col:'var(--pink)'},
+    {key:'dstreak', label:'📅 RACHA DIARIA',   col:'var(--green)'},
+    {key:'refs',    label:'👥 REFERIDOS',      col:'var(--blue)'},
+  ];
+
+  for(const cat of cats){
+    const missions=MISS.filter(m=>m.t===cat.key);
+    const allDone=missions.every(m=>S.missions[m.id]&&S.missions[m.id].c);
+    // Section header
+    const hdr=document.createElement('div');
+    hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';
+    hdr.textContent=cat.label+(allDone?' ✅':'');
+    list.appendChild(hdr);
+
+    for(const m of missions){
+      if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};
+      const ms=S.missions[m.id];
+      const pct=Math.min(100,(ms.p/m.g)*100);
+      const done=ms.c,ready=!done&&ms.p>=m.g;
+      const card=document.createElement('div');card.className='mc';
+      if(done)card.style.opacity='.45';
+      card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+'</div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(m.r)+' $CLK &nbsp;·&nbsp; '+fmt(ms.p)+'/'+fmt(m.g)+'</div></div>'+(done?'<div style="font-size:22px">✅</div>':'<button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>');
+      list.appendChild(card);
+    }
   }
 }
 
@@ -908,6 +1066,48 @@ function renderLB(){
 }
 
 // ══════════════════════════════════
+// SAVE / LOAD CODE
+// ══════════════════════════════════
+function exportSave(){
+  // Snapshot current state, encode as base64
+  const data=JSON.stringify({...S,lastSave:Date.now()});
+  const code='CLK1-'+btoa(unescape(encodeURIComponent(data)));
+  // Show in box
+  const box=document.getElementById('exportbox');
+  box.style.display='block';
+  box.textContent=code;
+  // Copy to clipboard
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(code).then(()=>toast('📋 ¡Código copiado! Guárdalo en un lugar seguro')).catch(()=>toast('📋 Código generado, selecciónalo y cópialo'));
+  } else {
+    // Fallback: select the text
+    const range=document.createRange();range.selectNode(box);
+    window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+    toast('📋 Código generado, selecciónalo y cópialo');
+  }
+}
+
+function importSave(){
+  const raw=document.getElementById('importinp').value.trim();
+  if(!raw){toast('❌ Pega tu código primero');return}
+  if(!raw.startsWith('CLK1-')){toast('❌ Código inválido — debe empezar por CLK1-');return}
+  try{
+    const json=decodeURIComponent(escape(atob(raw.slice(5))));
+    const data=JSON.parse(json);
+    // Validate it's a real save (must have clk key)
+    if(typeof data.clk==='undefined')throw new Error('bad');
+    Object.assign(S,data);
+    save();recalc();upd();checkMiss();
+    document.getElementById('importinp').value='';
+    toast('✅ ¡Partida restaurada correctamente!');
+    rankBurst();
+    setTimeout(()=>goTo('mine'),800);
+  }catch(e){
+    toast('❌ Código corrupto o inválido, compruébalo');
+  }
+}
+
+// ══════════════════════════════════
 // NAV
 // ══════════════════════════════════
 function goTo(n){
@@ -919,6 +1119,11 @@ function goTo(n){
   if(n==='missions')renderMiss();
   if(n==='referral')renderRef();
   if(n==='leaderboard')renderLB();
+  if(n==='save'){
+    // Hide export box when re-entering screen
+    document.getElementById('exportbox').style.display='none';
+    document.getElementById('importinp').value='';
+  }
 }
 
 // ══════════════════════════════════
@@ -959,6 +1164,9 @@ function runLoader(){
 function init(){
   load();recalc();upd();checkMiss();
   document.addEventListener('dblclick',e=>e.preventDefault());
+  // Vibration: attach directly to coinbtn touchstart for maximum browser compatibility
+  const cb=document.getElementById('coinbtn');
+  cb.addEventListener('touchstart',()=>{try{window.navigator.vibrate&&window.navigator.vibrate(15);}catch(e){}},{passive:true});
   runLoader();
 }
 init();
