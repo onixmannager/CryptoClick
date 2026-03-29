@@ -14,7 +14,7 @@
   --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;overscroll-behavior:none}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none}
 
 /* LOADING */
 #loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s}
@@ -78,11 +78,19 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 .or2{width:244px;height:244px;border:1px dashed rgba(6,182,212,.12);animation:os 22s linear infinite reverse}
 .or3{width:268px;height:268px;border:1px dashed rgba(255,60,172,.08);animation:os 30s linear infinite}
 @keyframes os{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-.osat{position:absolute;border-radius:50%;pointer-events:none;font-size:12px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+
+/* AMPLIFIED SATELLITES */
+.osat{position:absolute;border-radius:50%;pointer-events:none;font-size:18px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 6px rgba(255,215,0,.7))}
 .os1{animation:osat1 14s linear infinite}
 .os2{animation:osat2 22s linear infinite reverse}
+.os3{animation:osat3 18s linear infinite}
+.os4{animation:osat4 26s linear infinite reverse}
+.os5{animation:osat5 10s linear infinite}
 @keyframes osat1{from{transform:rotate(0) translateX(110px) rotate(0)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
 @keyframes osat2{from{transform:rotate(0) translateX(122px) rotate(0)}to{transform:rotate(360deg) translateX(122px) rotate(-360deg)}}
+@keyframes osat3{from{transform:rotate(0) translateX(110px) rotate(0)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
+@keyframes osat4{from{transform:rotate(0) translateX(134px) rotate(0)}to{transform:rotate(360deg) translateX(134px) rotate(-360deg)}}
+@keyframes osat5{from{transform:rotate(180deg) translateX(104px) rotate(-180deg)}to{transform:rotate(540deg) translateX(104px) rotate(-540deg)}}
 
 #coinbtn{width:186px;height:186px;border-radius:50%;border:none;cursor:pointer;position:relative;overflow:hidden;transition:transform .07s ease,box-shadow .07s ease;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
 #coinbtn.s0{background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);box-shadow:0 0 0 5px rgba(255,215,0,.12),0 0 50px rgba(255,107,53,.35),0 8px 32px rgba(0,0,0,.5)}
@@ -93,7 +101,10 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 #coinbtn:active{transform:scale(0.91)!important}
 .csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 3.5s ease-in-out infinite;pointer-events:none}
 @keyframes sheen{0%{transform:translateX(-100%) rotate(15deg)}55%{transform:translateX(450%) rotate(15deg)}100%{transform:translateX(450%) rotate(15deg)}}
-.csym{font-family:var(--fh);font-size:52px;color:rgba(255,255,255,.88);text-shadow:0 2px 10px rgba(0,0,0,.4);pointer-events:none;user-select:none;position:relative;z-index:1}
+
+/* CLK$ label on coin — smaller so it fits */
+.csym{font-family:var(--fh);font-size:32px;color:rgba(255,255,255,.92);text-shadow:0 2px 10px rgba(0,0,0,.5);pointer-events:none;user-select:none;position:relative;z-index:1;letter-spacing:1px;line-height:1}
+
 .cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s}
 #coinbtn:active .cglow{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.15),transparent)}
 .crip{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none;transform:translate(-50%,-50%);animation:rexp .55s ease-out forwards}
@@ -281,10 +292,15 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
     <div id="coinsec">
       <div id="coinout">
         <div class="or or1"></div><div class="or or2"></div><div class="or or3"></div>
-        <div class="osat os1">⚡</div><div class="osat os2">💎</div>
+        <!-- 5 amplified satellites -->
+        <div class="osat os1">⚡</div>
+        <div class="osat os2">💎</div>
+        <div class="osat os3">🌟</div>
+        <div class="osat os4">🔥</div>
+        <div class="osat os5">💫</div>
         <button id="coinbtn" class="s0" ontouchstart="htap(event)" onclick="htap(event)">
           <div class="csheen"></div><div class="cglow"></div>
-          <div class="csym">$</div>
+          <div class="csym">CLK$</div>
         </button>
       </div>
       <div id="comboa">
@@ -344,11 +360,72 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
     </div>
   </div>
 
-  <!-- LEADERBOARD -->
+  <!-- TELEGRAM CTA -->
   <div id="screen-leaderboard" class="screen">
-    <div class="sh">🏆 Ranking</div>
-    <div class="ss">Los mejores mineros de $CLK del mundo</div>
-    <div id="lbList"></div>
+    <div class="sh">📡 Comunidad</div>
+    <div class="ss">Únete para no perderte el Airdrop de $CLK</div>
+
+    <div style="background:linear-gradient(135deg,#0d1b2a,#1a1040);border:1px solid rgba(139,92,246,.4);border-radius:20px;padding:24px 20px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(139,92,246,.3),transparent);border-radius:50%"></div>
+      <div style="position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(255,60,172,.2),transparent);border-radius:50%"></div>
+      <div style="font-size:52px;margin-bottom:10px">🚀</div>
+      <div style="font-family:var(--fh);font-size:22px;color:var(--yellow);margin-bottom:8px">¡AIRDROP DE $CLK!</div>
+      <div style="font-size:13px;color:#c4b5fd;line-height:1.6;margin-bottom:6px">Todos los jugadores recibirán sus tokens <strong style="color:white">$CLK reales</strong> cuando lancemos en blockchain.</div>
+      <div style="font-size:12px;color:var(--muted);font-weight:700">Tus tokens actuales = tu parte del airdrop 🎁</div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,107,53,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:6px">⚠️ NO TE QUEDES SIN TU PARTE</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5">Para cobrar tus $CLK en el airdrop <strong style="color:var(--yellow)">debes estar suscrito</strong> al canal oficial antes del lanzamiento</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <a href="https://t.me/cryptoclikoficial" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#0088cc,#006aaa);border-radius:16px;padding:16px;text-decoration:none;box-shadow:0 4px 20px rgba(0,136,204,.3)">
+        <div style="font-size:32px;flex-shrink:0">📢</div>
+        <div style="flex:1">
+          <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Canal de Noticias</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Anuncios oficiales · Fecha del airdrop · Actualizaciones</div>
+        </div>
+        <div style="font-size:20px;color:white">›</div>
+      </a>
+
+      <a href="https://t.me/cryptoclikgrupo" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border-radius:16px;padding:16px;text-decoration:none;box-shadow:0 4px 20px rgba(139,92,246,.3)">
+        <div style="font-size:32px;flex-shrink:0">👥</div>
+        <div style="flex:1">
+          <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Grupo de la Comunidad</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Habla con otros mineros · Estrategias · Soporte</div>
+        </div>
+        <div style="font-size:20px;color:white">›</div>
+      </a>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:2px;margin-bottom:12px">🗺️ CÓMO FUNCIONA EL AIRDROP</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--orange));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#1a0a00;flex-shrink:0">1</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)">Sigue minando $CLK en el juego</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0088cc,#006aaa);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:white;flex-shrink:0">2</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)">Suscríbete al canal oficial de Telegram</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:white;flex-shrink:0">3</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)">En el lanzamiento, reclama tus tokens reales</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green),#059669);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#001a0a;flex-shrink:0">4</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)">¡Cobra tus $CLK reales en tu wallet! 💰</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(6,182,212,.08));border:1px solid rgba(16,185,129,.2);border-radius:14px;padding:14px;text-align:center">
+      <div style="font-size:11px;color:var(--green);font-weight:800;letter-spacing:1px;margin-bottom:4px">🌍 ÚNETE A LA REVOLUCIÓN $CLK</div>
+      <div style="font-size:12px;color:var(--muted)">Comparte el juego · Invita amigos · Gana más $CLK</div>
+    </div>
+
   </div>
 
 </div>
@@ -358,7 +435,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span>MEJORAS</button>
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
   <button class="nbtn" id="nav-referral" onclick="goTo('referral')"><span class="nicon">👥</span>AMIGOS</button>
-  <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span>RANKING</button>
+  <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">📡</span>COMUNIDAD</button>
 </nav>
 
 <!-- OVERLAYS -->
@@ -574,6 +651,12 @@ function htap(e){
   else if(e.type==='click'&&tLock){tLock=false;return}
   if(S.energy<1){document.getElementById('noeov').classList.add('show');return}
 
+  // ── VIBRATION ──────────────────────────────────────────
+  if(navigator.vibrate){
+    navigator.vibrate([18]);
+  }
+  // ───────────────────────────────────────────────────────
+
   const mult=isBoost()?2:1;
   const earned=S.tapPow*mult;
   S.clk+=earned;S.totalClk+=earned;S.totalTaps++;
@@ -605,8 +688,9 @@ function htap(e){
 
   spawnFloat(e,'+'+fmt(earned));
   spawnRipple(e);
-  if(combo>=5)spawnParts(getCenter(),combo);
-  if(navigator.vibrate)navigator.vibrate(10);
+  // Reduced tap confetti: only spawn when combo >= 4, smaller count
+  if(combo>=4)spawnParts(getCenter(),Math.min(combo,12));
+  if(navigator.vibrate){}// already called above
 
   checkMiss();upd();
 }
@@ -642,15 +726,26 @@ function resPC(){pCv.width=window.innerWidth;pCv.height=window.innerHeight}
 resPC();window.addEventListener('resize',resPC);
 
 function spawnParts(pos,n){
-  const cnt=Math.min(8+n,35);
+  // Reduced density: cap at 12 for normal taps, spread a bit wider
+  const cnt=Math.min(n,12);
   for(let i=0;i<cnt;i++){
-    const a=Math.random()*Math.PI*2,sp=3+Math.random()*8;
-    PARTS.push({x:pos.x,y:pos.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,dec:.016+Math.random()*.025,sz:3+Math.random()*6,col:PCOLS[Math.random()*PCOLS.length|0]});
+    const a=Math.random()*Math.PI*2,sp=2+Math.random()*5;
+    PARTS.push({x:pos.x,y:pos.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,life:1,dec:.025+Math.random()*.035,sz:2+Math.random()*4,col:PCOLS[Math.random()*PCOLS.length|0]});
   }
 }
-function spawnBurst(){const c=getCenter();spawnParts(c,60)}
+
+// Burst (combo x10+) keeps more impact but still reduced vs original
+function spawnBurst(){
+  const c=getCenter();
+  const cnt=40; // was 120, now 40
+  for(let i=0;i<cnt;i++){
+    const a=Math.random()*Math.PI*2,sp=4+Math.random()*10;
+    PARTS.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.010+Math.random()*.018,sz:3+Math.random()*7,col:PCOLS[Math.random()*PCOLS.length|0]});
+  }
+}
+
 function rankBurst(){
-  for(let i=0;i<120;i++){
+  for(let i=0;i<80;i++){
     const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;
     PARTS.push({x:window.innerWidth/2,y:window.innerHeight*.4,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});
   }
