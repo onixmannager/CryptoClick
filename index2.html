@@ -79,7 +79,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 .or3{width:268px;height:268px;border:1px dashed rgba(255,60,172,.08);animation:os 30s linear infinite}
 @keyframes os{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
-/* SATELLITES — original size */
 .osat{position:absolute;border-radius:50%;pointer-events:none;font-size:12px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
 .os1{animation:osat1 14s linear infinite}
 .os2{animation:osat2 22s linear infinite reverse}
@@ -96,7 +95,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 .csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 3.5s ease-in-out infinite;pointer-events:none}
 @keyframes sheen{0%{transform:translateX(-100%) rotate(15deg)}55%{transform:translateX(450%) rotate(15deg)}100%{transform:translateX(450%) rotate(15deg)}}
 
-/* CLK$ label on coin — smaller so it fits */
 .csym{font-family:var(--fh);font-size:32px;color:rgba(255,255,255,.92);text-shadow:0 2px 10px rgba(0,0,0,.5);pointer-events:none;user-select:none;position:relative;z-index:1;letter-spacing:1px;line-height:1}
 
 .cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s}
@@ -423,7 +421,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
     <div class="sh">💾 Mi Partida</div>
     <div class="ss">Exporta tu progreso para usarlo en cualquier dispositivo o navegador</div>
 
-    <!-- EXPORT -->
     <div style="background:var(--card);border:1px solid rgba(255,215,0,.2);border-radius:18px;padding:18px;margin-bottom:12px">
       <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:10px">📤 EXPORTAR PARTIDA</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Genera un código con toda tu partida. Cópialo y guárdalo donde quieras (notas, email, etc.)</div>
@@ -431,7 +428,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <div id="exportbox" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;word-break:break-all;font-size:10px;color:var(--cyan);font-family:monospace;line-height:1.5;max-height:80px;overflow-y:auto"></div>
     </div>
 
-    <!-- IMPORT -->
     <div style="background:var(--card);border:1px solid rgba(139,92,246,.25);border-radius:18px;padding:18px;margin-bottom:12px">
       <div style="font-size:11px;color:var(--purple);font-weight:800;letter-spacing:2px;margin-bottom:10px">📥 IMPORTAR PARTIDA</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Pega aquí tu código para restaurar tu progreso. <strong style="color:var(--red)">¡Sustituirá la partida actual!</strong></div>
@@ -439,7 +435,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <button onclick="importSave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;font-family:var(--fh);font-size:17px;color:white;cursor:pointer;margin-top:8px">✅ Restaurar partida</button>
     </div>
 
-    <!-- INFO -->
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px">
       <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px">💡 CÓMO FUNCIONA</div>
       <div style="display:flex;flex-direction:column;gap:6px">
@@ -550,7 +545,6 @@ const UPS=[
   {id:'time',  n:'Time Crystal',     i:'💠',d:'Minado a traves del tiempo',          base:1e9,     pph:3e7,    max:2 },
 ];
 const MISS=[
-  // TAP MISSIONS — escalada brutal
   {id:'t10',    n:'Primeros pasos',      i:'👆',g:10,         t:'taps',    r:50    },
   {id:'t100',   n:'Primer centenar',     i:'✊',g:100,        t:'taps',    r:200   },
   {id:'t500',   n:'Calentando motores',  i:'🔥',g:500,        t:'taps',    r:600   },
@@ -565,7 +559,6 @@ const MISS=[
   {id:'t1m',    n:'Un millón de taps',   i:'🌟',g:1000000,    t:'taps',    r:500000},
   {id:'t5m',    n:'Tap Eterno',          i:'⚡',g:5000000,    t:'taps',    r:2000000},
   {id:'t10m',   n:'Leyenda Absoluta',    i:'👑',g:10000000,   t:'taps',    r:5000000},
-  // CLK ACUMULADO — riqueza progresiva
   {id:'c100',   n:'Primeros CLK',        i:'💰',g:100,        t:'clk',     r:50    },
   {id:'c1k',    n:'Primer millar',       i:'💵',g:1000,       t:'clk',     r:500   },
   {id:'c10k',   n:'En racha',            i:'💎',g:10000,      t:'clk',     r:2000  },
@@ -579,16 +572,14 @@ const MISS=[
   {id:'c100m',  n:'Cien Millones',       i:'💹',g:100000000,  t:'clk',     r:8000000},
   {id:'c1b',    n:'El Primer Billion',   i:'🌐',g:1000000000, t:'clk',     r:5e7   },
   {id:'c10b',   n:'Dios del Blockchain', i:'⚡',g:10000000000,t:'clk',     r:2e8   },
-  // NIVEL — subir de rango
-  {id:'l2',     n:'Primer ascenso',      i:'📈',g:2,          t:'lvl',     r:300   },
-  {id:'l5',     n:'Subiendo peldanos',   i:'🪜',g:5,          t:'lvl',     r:800   },
-  {id:'l10',    n:'Doble digito',        i:'🏆',g:10,         t:'lvl',     r:3000  },
-  {id:'l20',    n:'Veterano',            i:'👑',g:20,         t:'lvl',     r:15000 },
-  {id:'l30',    n:'Experto Crypto',      i:'🎖️',g:30,         t:'lvl',     r:50000 },
-  {id:'l50',    n:'Blockchain God',      i:'⚡',g:50,         t:'lvl',     r:200000},
-  {id:'l75',    n:'Maestro Eterno',      i:'🌌',g:75,         t:'lvl',     r:800000},
-  {id:'l100',   n:'El Centenario',       i:'💯',g:100,        t:'lvl',     r:3000000},
-  // MEJORAS — inversor
+  {id:'l2m',    n:'Primer ascenso',      i:'📈',g:2,          t:'lvl',     r:300   },
+  {id:'l5m',    n:'Subiendo peldanos',   i:'🪜',g:5,          t:'lvl',     r:800   },
+  {id:'l10m',   n:'Doble digito',        i:'🏆',g:10,         t:'lvl',     r:3000  },
+  {id:'l20m',   n:'Veterano',            i:'👑',g:20,         t:'lvl',     r:15000 },
+  {id:'l30m',   n:'Experto Crypto',      i:'🎖️',g:30,         t:'lvl',     r:50000 },
+  {id:'l50m',   n:'Blockchain God',      i:'⚡',g:50,         t:'lvl',     r:200000},
+  {id:'l75m',   n:'Maestro Eterno',      i:'🌌',g:75,         t:'lvl',     r:800000},
+  {id:'l100m',  n:'El Centenario',       i:'💯',g:100,        t:'lvl',     r:3000000},
   {id:'u1',     n:'Primera inversion',   i:'🖥️',g:1,          t:'ups',     r:200   },
   {id:'u3',     n:'Inversor',            i:'💼',g:3,          t:'ups',     r:600   },
   {id:'u10',    n:'VC Mode',             i:'🏦',g:10,         t:'ups',     r:5000  },
@@ -597,7 +588,6 @@ const MISS=[
   {id:'u100',   n:'Imperio de Mejoras',  i:'🏰',g:100,        t:'ups',     r:500000},
   {id:'u200',   n:'Maquina Perfecta',    i:'⚙️',g:200,        t:'ups',     r:2000000},
   {id:'u500',   n:'Dios de las Mejoras', i:'🌟',g:500,        t:'ups',     r:1e7   },
-  // COMBO — velocidad y habilidad
   {id:'cmb3',   n:'Combo Iniciado',      i:'🔥',g:3,          t:'combo',   r:150   },
   {id:'cmb5',   n:'Combo King',          i:'💢',g:5,          t:'combo',   r:400   },
   {id:'cmb10',  n:'Combo Master',        i:'⚡',g:10,         t:'combo',   r:1500  },
@@ -606,7 +596,6 @@ const MISS=[
   {id:'cmb100', n:'Combo Legendario',    i:'🌟',g:100,        t:'combo',   r:80000 },
   {id:'cmb250', n:'Combo Inmortal',      i:'👑',g:250,        t:'combo',   r:350000},
   {id:'cmb500', n:'Combo Dios',          i:'⚡',g:500,        t:'combo',   r:1500000},
-  // DAILY STREAK — constancia
   {id:'d1',     n:'Primer dia',          i:'📅',g:1,          t:'dstreak', r:200   },
   {id:'d3',     n:'3 dias seguidos',     i:'🗓️',g:3,          t:'dstreak', r:1000  },
   {id:'d7',     n:'7 dias seguidos',     i:'🔥',g:7,          t:'dstreak', r:7000  },
@@ -615,7 +604,6 @@ const MISS=[
   {id:'d60',    n:'Dos meses sin falta', i:'🎖️',g:60,         t:'dstreak', r:400000},
   {id:'d100',   n:'100 dias legendario', i:'👑',g:100,        t:'dstreak', r:1500000},
   {id:'d365',   n:'Un ano entero',       i:'🌟',g:365,        t:'dstreak', r:1e7   },
-  // REFERIDOS
   {id:'r1',     n:'Primer amigo',        i:'👥',g:1,          t:'refs',    r:500   },
   {id:'r3',     n:'Pequena tribu',       i:'👨‍👩‍👧',g:3,          t:'refs',    r:2000  },
   {id:'r10',    n:'Tu red crece',        i:'🌐',g:10,         t:'refs',    r:8000  },
@@ -635,12 +623,18 @@ const LBM=[
   {name:'TxHash99',     s:87234,  r:'Crypto Noob'},
 ];
 const PCOLS=['#FFD700','#FF6B35','#FF3CAC','#06B6D4','#10B981','#8B5CF6','#84CC16'];
+const SAVE_KEY='cck4'; // Bumped key to avoid corrupt old saves
 
 // ══════════════════════════════════
-// STATE
+// STATE — Single source of truth
+// S.clk        = saldo actual (lo que el jugador tiene para gastar)
+// S.totalClk   = CLK histórico acumulado total (nunca baja, para misiones)
+// S.totalTaps  = taps históricos (nunca baja)
 // ══════════════════════════════════
-const S={
-  clk:0,totalClk:0,totalTaps:0,
+const DEFAULTS={
+  clk:0,
+  totalClk:0,   // historical — only ever goes up
+  totalTaps:0,  // historical — only ever goes up
   lvl:1,xp:0,xpNeed:500,
   energy:1000,eMax:1000,eRegen:3,
   tapPow:1,pph:0,
@@ -653,23 +647,101 @@ const S={
   lastSave:Date.now(),lastPassive:Date.now(),
 };
 
+// Live state — never reassign S itself, only mutate its properties
+const S=Object.assign({},DEFAULTS);
+
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<7;i++)r+=c[Math.random()*c.length|0];return r}
 
-function save(){localStorage.setItem('cck3',JSON.stringify({...S,lastSave:Date.now()}))}
+// ══════════════════════════════════
+// SAVE / LOAD  —  bulletproof version
+// ══════════════════════════════════
+let _saveScheduled=false;
+
+/** Schedule a debounced save so rapid taps don't thrash localStorage */
+function save(){
+  if(_saveScheduled)return;
+  _saveScheduled=true;
+  setTimeout(()=>{
+    _saveScheduled=false;
+    try{
+      // Sanitize before saving
+      const snap=sanitize({...S,lastSave:Date.now()});
+      localStorage.setItem(SAVE_KEY,JSON.stringify(snap));
+    }catch(e){console.warn('Save failed',e);}
+  },800); // debounce 800ms
+}
+
+/** Force-save immediately (used before page unload) */
+function forceSave(){
+  _saveScheduled=false;
+  try{
+    const snap=sanitize({...S,lastSave:Date.now()});
+    localStorage.setItem(SAVE_KEY,JSON.stringify(snap));
+  }catch(e){}
+}
+
+/** Make sure all numbers are valid and no value ever goes backwards */
+function sanitize(d){
+  // Ensure numbers are finite and non-negative
+  const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin'];
+  for(const k of nums){
+    if(typeof d[k]!=='number'||!isFinite(d[k]))d[k]=DEFAULTS[k]||0;
+    if(d[k]<0)d[k]=0;
+  }
+  // Enforce minimums
+  if(d.lvl<1)d.lvl=1;
+  if(d.xpNeed<500)d.xpNeed=500;
+  if(d.eMax<1000)d.eMax=1000;
+  if(d.eRegen<3)d.eRegen=3;
+  if(d.tapPow<1)d.tapPow=1;
+  if(!d.ups||typeof d.ups!=='object')d.ups={};
+  if(!d.missions||typeof d.missions!=='object')d.missions={};
+  return d;
+}
 
 function load(){
   try{
-    const d=JSON.parse(localStorage.getItem('cck3'));
-    if(!d)return;
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return;
+    const d=sanitize(JSON.parse(raw));
     Object.assign(S,d);
-    const os=(Date.now()-S.lastSave)/1000;
-    const oclk=S.pph/3600*os;
-    if(oclk>1){S.clk+=oclk;S.totalClk+=oclk;setTimeout(()=>toast('💤 Ganaste '+fmt(oclk)+' $CLK offline!'),2000)}
-    S.energy=Math.min(S.eMax,S.energy+S.eRegen*os);
-  }catch(e){}
+
+    // Apply offline earnings (passive income while away)
+    const offSec=Math.min((Date.now()-S.lastSave)/1000, 86400); // cap at 24h
+    if(offSec>5&&S.pph>0){
+      const earned=S.pph/3600*offSec;
+      addClk(earned,'offline');
+      setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);
+    }
+    // Restore energy
+    const eRestore=S.eRegen*offSec;
+    S.energy=Math.min(S.eMax,S.energy+eRestore);
+
+  }catch(e){console.warn('Load failed',e);}
+
   if(!S.refCode)S.refCode=genCode();
   if(!S.missions)S.missions={};
   if(!S.ups)S.ups={};
+}
+
+// ══════════════════════════════════
+// CORE CURRENCY FUNCTION
+// The ONE place where CLK is added — prevents double-counting bugs
+// mode: 'tap' | 'passive' | 'reward' | 'daily' | 'offline' | 'ref'
+// ══════════════════════════════════
+function addClk(amount, mode){
+  if(!isFinite(amount)||amount<=0)return;
+  const n=Math.floor(amount*100)/100; // keep 2 decimals max
+  S.clk+=n;
+  // totalClk tracks all CLK ever earned (for missions) — never decremented
+  S.totalClk+=n;
+}
+
+/** Spend CLK (buy upgrade etc.) — never touch totalClk */
+function spendClk(amount){
+  if(S.clk<amount)return false;
+  S.clk-=amount;
+  return true;
 }
 
 // ══════════════════════════════════
@@ -684,7 +756,6 @@ function fmt(n){
   return n+'';
 }
 function getRank(){let r=RANKS[0];for(const x of RANKS)if(S.lvl>=x.minLvl)r=x;return r}
-function getNextRank(){for(const x of RANKS)if(S.lvl<x.minLvl)return x;return null}
 function upCost(u){return Math.floor(u.base*Math.pow(1.5,S.ups[u.id]||0))}
 function isBoost(){return Date.now()<S.boostEnd}
 
@@ -698,7 +769,10 @@ function recalc(){
     if(u.rB)eR+=u.rB*l;
   }
   tap+=getRank().tapB;
-  S.tapPow=Math.max(1,tap);S.pph=Math.floor(pph);S.eMax=eMax;S.eRegen=eR;
+  S.tapPow=Math.max(1,Math.floor(tap));
+  S.pph=Math.floor(pph);
+  S.eMax=eMax;
+  S.eRegen=eR;
 }
 
 // ══════════════════════════════════
@@ -759,13 +833,14 @@ function htap(e){
   else if(e.type==='click'&&tLock){tLock=false;return}
   if(S.energy<1){document.getElementById('noeov').classList.add('show');return}
 
-  // ── VIBRATION ──────────────────────────────────────────
   try{if(window.navigator&&window.navigator.vibrate)window.navigator.vibrate(15);}catch(err){}
-  // ───────────────────────────────────────────────────────
 
   const mult=isBoost()?2:1;
   const earned=S.tapPow*mult;
-  S.clk+=earned;S.totalClk+=earned;S.totalTaps++;
+
+  // Use addClk — single source of truth
+  addClk(earned,'tap');
+  S.totalTaps++;
   S.energy=Math.max(0,S.energy-1);
 
   const now=Date.now();
@@ -796,7 +871,9 @@ function htap(e){
   spawnRipple(e);
   if(combo>=5)spawnParts(getCenter(),combo);
 
-  checkMiss();upd();
+  checkMiss();
+  upd();
+  save();
 }
 
 function getCenter(){const r=document.getElementById('coinbtn').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
@@ -864,14 +941,32 @@ function animP(){
 animP();
 
 // ══════════════════════════════════
-// PASSIVE TICK
+// PASSIVE TICK — runs every second
 // ══════════════════════════════════
 setInterval(()=>{
-  const now=Date.now(),dt=(now-S.lastPassive)/1000;S.lastPassive=now;
-  if(S.energy<S.eMax)S.energy=Math.min(S.eMax,S.energy+S.eRegen*dt);
-  if(S.pph>0){const e=S.pph/3600*dt;S.clk+=e;S.totalClk+=e;}
-  upd();save();checkMiss();
+  const now=Date.now();
+  const dt=Math.min((now-S.lastPassive)/1000, 5); // cap dt to 5s to prevent huge jumps
+  S.lastPassive=now;
+
+  // Energy regen
+  if(S.energy<S.eMax){
+    S.energy=Math.min(S.eMax,S.energy+S.eRegen*dt);
+  }
+
+  // Passive income — use addClk
+  if(S.pph>0){
+    addClk(S.pph/3600*dt,'passive');
+  }
+
+  upd();
+  save();
+  checkMiss();
 },1000);
+
+// Save on page hide/unload
+document.addEventListener('visibilitychange',()=>{if(document.hidden)forceSave();});
+window.addEventListener('beforeunload',forceSave);
+window.addEventListener('pagehide',forceSave);
 
 // ══════════════════════════════════
 // RANKUP
@@ -906,12 +1001,17 @@ function renderDG(){
 function claimDaily(){
   if(!isDailyReady())return;
   const rwd=DRWD[S.dailyDay%7];
-  S.clk+=rwd;S.totalClk+=rwd;
-  S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();
+  // Use addClk — single source of truth, no double-counting
+  addClk(rwd,'daily');
+  S.dailyDay=(S.dailyDay+1)%7;
+  S.dStreak++;
+  S.lastDaily=Date.now();
   upd();checkMiss();renderDG();
   document.getElementById('dailyclaim').disabled=true;
   document.getElementById('dailyclaim').style.opacity='.4';
-  toast('🎁 Bonus diario: +'+fmt(rwd)+' $CLK!');rankBurst();save();
+  toast('🎁 Bonus diario: +'+fmt(rwd)+' $CLK!');
+  rankBurst();
+  forceSave(); // force immediate save after daily claim
 }
 
 // ══════════════════════════════════
@@ -940,11 +1040,15 @@ function renderUps(){
 function buyUp(id){
   const u=UPS.find(x=>x.id===id);if(!u)return;
   const l=S.ups[id]||0;if(l>=u.max)return;
-  const cost=upCost(u);if(S.clk<cost){toast('❌ Sin suficiente $CLK');return}
-  S.clk-=cost;S.ups[id]=(l+1);S.upsCount++;
+  const cost=upCost(u);
+  // Use spendClk — clean deduction, never touches totalClk
+  if(!spendClk(cost)){toast('❌ Sin suficiente $CLK');return}
+  S.ups[id]=(l+1);
+  S.upsCount++;
   if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;
   recalc();upd();renderUps();checkMiss();
-  toast('✅ '+u.n+' → Nivel '+S.ups[id]);save();
+  toast('✅ '+u.n+' → Nivel '+S.ups[id]);
+  forceSave(); // force immediate save after purchase
 }
 
 function renderSkins(){
@@ -954,7 +1058,7 @@ function renderSkins(){
     const d=document.createElement('div');
     d.className='skinitem'+(sk.id===S.skin?' active':'')+(ok?'':' locked');
     d.innerHTML=sk.ico+'<span class="skinlbl">'+(ok?sk.name:'Lvl '+sk.lvl)+'</span>';
-    if(ok)d.onclick=()=>{S.skin=sk.id;save();renderSkins();upd();toast('🎨 Skin "'+sk.name+'" activada')};
+    if(ok)d.onclick=()=>{S.skin=sk.id;forceSave();renderSkins();upd();toast('🎨 Skin "'+sk.name+'" activada')};
     g.appendChild(d);
   }
 }
@@ -966,8 +1070,9 @@ function checkMiss(){
   for(const m of MISS){
     if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};
     const ms=S.missions[m.id];if(ms.c)continue;
+    // Progress uses historical counters — never goes backward
     if(m.t==='taps')ms.p=Math.min(m.g,S.totalTaps);
-    if(m.t==='clk')ms.p=Math.min(m.g,Math.floor(S.totalClk));
+    if(m.t==='clk')ms.p=Math.min(m.g,Math.floor(S.totalClk)); // uses totalClk not clk
     if(m.t==='lvl')ms.p=Math.min(m.g,S.lvl);
     if(m.t==='ups')ms.p=Math.min(m.g,S.upsCount);
     if(m.t==='combo')ms.p=Math.min(m.g,S.maxCombo);
@@ -998,7 +1103,6 @@ function renderMiss(){
   for(const cat of cats){
     const missions=MISS.filter(m=>m.t===cat.key);
     const allDone=missions.every(m=>S.missions[m.id]&&S.missions[m.id].c);
-    // Section header
     const hdr=document.createElement('div');
     hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';
     hdr.textContent=cat.label+(allDone?' ✅':'');
@@ -1020,8 +1124,13 @@ function renderMiss(){
 function claimM(id){
   const m=MISS.find(x=>x.id===id);if(!m)return;
   const ms=S.missions[id];if(!ms||ms.c||ms.p<m.g)return;
-  ms.c=true;S.clk+=m.r;S.totalClk+=m.r;
-  upd();renderMiss();toast('🎉 Misión: +'+fmt(m.r)+' $CLK');rankBurst();save();
+  ms.c=true;
+  // Use addClk — mission rewards go through single source of truth
+  addClk(m.r,'reward');
+  upd();renderMiss();
+  toast('🎉 Misión: +'+fmt(m.r)+' $CLK');
+  rankBurst();
+  forceSave(); // force immediate save after claim
 }
 
 // ══════════════════════════════════
@@ -1040,47 +1149,37 @@ function subRef(){
   const v=document.getElementById('refinp').value.trim().toUpperCase();
   if(!v)return;
   if(v===S.refCode){toast('❌ No puedes usar tu propio código');return}
-  const used=JSON.parse(localStorage.getItem('cck3_refs')||'[]');
+  const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');
   if(used.includes(v)){toast('❌ Código ya usado');return}
-  used.push(v);localStorage.setItem('cck3_refs',JSON.stringify(used));
-  S.clk+=500;S.totalClk+=500;S.refs++;S.refEarned+=500;
+  used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));
+  addClk(500,'ref');
+  S.refs++;S.refEarned+=500;
   upd();renderRef();toast('🎉 Código válido! +500 $CLK');
-  document.getElementById('refinp').value='';save();
+  document.getElementById('refinp').value='';
+  forceSave();
 }
 
 // ══════════════════════════════════
-// LEADERBOARD
+// LEADERBOARD — pantalla Comunidad (solo Telegram, no hay lista)
 // ══════════════════════════════════
 function renderLB(){
-  const list=document.getElementById('lbList');list.innerHTML='';
-  const me={name:'⭐ TÚ',s:Math.floor(S.totalClk),r:getRank().name,me:true};
-  const all=[...LBM,me].sort((a,b)=>b.s-a.s);
-  all.forEach((e,i)=>{
-    const p=i+1,em=p===1?'🥇':p===2?'🥈':p===3?'🥉':'#'+p;
-    const cl=p===1?'color:var(--yellow)':p===2?'color:#C0C0C0':p===3?'color:#CD7F32':'color:var(--muted)';
-    const row=document.createElement('div');row.className='lr';
-    if(e.me)row.style.borderColor='rgba(255,215,0,.4)';
-    row.innerHTML='<div class="lp" style="'+cl+'">'+em+'</div><div class="lname">'+e.name+'</div><div style="text-align:right"><div class="lscore">🪙 '+fmt(e.s)+'</div><div class="lrbadge">'+e.r+'</div></div>';
-    list.appendChild(row);
-  });
+  // La pantalla de Comunidad es la página de Telegram/Airdrop.
+  // No hay lista de jugadores que renderizar — función vacía por compatibilidad.
 }
 
 // ══════════════════════════════════
-// SAVE / LOAD CODE
+// EXPORT / IMPORT
 // ══════════════════════════════════
 function exportSave(){
-  // Snapshot current state, encode as base64
-  const data=JSON.stringify({...S,lastSave:Date.now()});
-  const code='CLK1-'+btoa(unescape(encodeURIComponent(data)));
-  // Show in box
+  forceSave();
+  const data=JSON.stringify(sanitize({...S,lastSave:Date.now()}));
+  const code='CLK2-'+btoa(unescape(encodeURIComponent(data)));
   const box=document.getElementById('exportbox');
   box.style.display='block';
   box.textContent=code;
-  // Copy to clipboard
   if(navigator.clipboard){
     navigator.clipboard.writeText(code).then(()=>toast('📋 ¡Código copiado! Guárdalo en un lugar seguro')).catch(()=>toast('📋 Código generado, selecciónalo y cópialo'));
   } else {
-    // Fallback: select the text
     const range=document.createRange();range.selectNode(box);
     window.getSelection().removeAllRanges();window.getSelection().addRange(range);
     toast('📋 Código generado, selecciónalo y cópialo');
@@ -1090,17 +1189,24 @@ function exportSave(){
 function importSave(){
   const raw=document.getElementById('importinp').value.trim();
   if(!raw){toast('❌ Pega tu código primero');return}
-  if(!raw.startsWith('CLK1-')){toast('❌ Código inválido — debe empezar por CLK1-');return}
+  // Support both old CLK1- and new CLK2- codes
+  const isV1=raw.startsWith('CLK1-');
+  const isV2=raw.startsWith('CLK2-');
+  if(!isV1&&!isV2){toast('❌ Código inválido — debe empezar por CLK1- o CLK2-');return}
   try{
-    const json=decodeURIComponent(escape(atob(raw.slice(5))));
-    const data=JSON.parse(json);
-    // Validate it's a real save (must have clk key)
+    const prefix=isV2?'CLK2-':'CLK1-';
+    const json=decodeURIComponent(escape(atob(raw.slice(prefix.length))));
+    const data=sanitize(JSON.parse(json));
     if(typeof data.clk==='undefined')throw new Error('bad');
     Object.assign(S,data);
-    save();recalc();upd();checkMiss();
+    if(!S.refCode)S.refCode=genCode();
+    if(!S.missions)S.missions={};
+    if(!S.ups)S.ups={};
+    recalc();upd();checkMiss();
     document.getElementById('importinp').value='';
     toast('✅ ¡Partida restaurada correctamente!');
     rankBurst();
+    forceSave();
     setTimeout(()=>goTo('mine'),800);
   }catch(e){
     toast('❌ Código corrupto o inválido, compruébalo');
@@ -1120,7 +1226,6 @@ function goTo(n){
   if(n==='referral')renderRef();
   if(n==='leaderboard')renderLB();
   if(n==='save'){
-    // Hide export box when re-entering screen
     document.getElementById('exportbox').style.display='none';
     document.getElementById('importinp').value='';
   }
@@ -1151,7 +1256,7 @@ function runLoader(){
       setTimeout(()=>{
         document.getElementById('loading').classList.add('hide');
         setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);
-        if(localStorage.getItem('cck3'))toast('👋 ¡Bienvenido de nuevo, minero!');
+        if(localStorage.getItem(SAVE_KEY))toast('👋 ¡Bienvenido de nuevo, minero!');
         else toast('🎉 ¡Bienvenido a Crypto Click! Empieza a minar $CLK');
       },400);
     }
@@ -1162,9 +1267,11 @@ function runLoader(){
 // INIT
 // ══════════════════════════════════
 function init(){
-  load();recalc();upd();checkMiss();
+  load();
+  recalc();
+  upd();
+  checkMiss();
   document.addEventListener('dblclick',e=>e.preventDefault());
-  // Vibration: attach directly to coinbtn touchstart for maximum browser compatibility
   const cb=document.getElementById('coinbtn');
   cb.addEventListener('touchstart',()=>{try{window.navigator.vibrate&&window.navigator.vibrate(15);}catch(e){}},{passive:true});
   runLoader();
