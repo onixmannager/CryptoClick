@@ -86,16 +86,20 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 @keyframes osat2{from{transform:rotate(0) translateX(122px) rotate(0)}to{transform:rotate(360deg) translateX(122px) rotate(-360deg)}}
 
 #coinbtn{width:186px;height:186px;border-radius:50%;border:none;cursor:pointer;position:relative;overflow:hidden;transition:transform .07s ease,box-shadow .07s ease;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
-#coinbtn.s0{background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);box-shadow:0 0 0 5px rgba(255,215,0,.12),0 0 50px rgba(255,107,53,.35),0 8px 32px rgba(0,0,0,.5)}
-#coinbtn.s1{background:radial-gradient(circle at 35% 30%,#e0f2fe,#38BDF8 38%,#0EA5E9 75%,#0369A1);box-shadow:0 0 0 5px rgba(56,189,248,.12),0 0 50px rgba(14,165,233,.35),0 8px 32px rgba(0,0,0,.5)}
-#coinbtn.s2{background:radial-gradient(circle at 35% 30%,#fdf4ff,#C084FC 38%,#9333EA 75%,#6B21A8);box-shadow:0 0 0 5px rgba(192,132,252,.12),0 0 50px rgba(147,51,234,.35),0 8px 32px rgba(0,0,0,.5)}
-#coinbtn.s3{background:radial-gradient(circle at 35% 30%,#f0fdf4,#4ADE80 38%,#16A34A 75%,#14532D);box-shadow:0 0 0 5px rgba(74,222,128,.12),0 0 50px rgba(22,163,74,.35),0 8px 32px rgba(0,0,0,.5)}
-#coinbtn.s4{background:radial-gradient(circle at 35% 30%,#fff1f2,#FB7185 38%,#E11D48 75%,#9F1239);box-shadow:0 0 0 5px rgba(251,113,133,.12),0 0 50px rgba(225,29,72,.35),0 8px 32px rgba(0,0,0,.5)}
+
+/* ── CAMBIO: fondo transparente para todas las skins ── */
+#coinbtn.s0,#coinbtn.s1,#coinbtn.s2,#coinbtn.s3,#coinbtn.s4{
+  background:transparent !important;
+  box-shadow:none !important;
+}
+
 #coinbtn:active{transform:scale(0.91)!important}
 .csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 3.5s ease-in-out infinite;pointer-events:none}
 @keyframes sheen{0%{transform:translateX(-100%) rotate(15deg)}55%{transform:translateX(450%) rotate(15deg)}100%{transform:translateX(450%) rotate(15deg)}}
 
-.csym{font-family:var(--fh);font-size:32px;color:rgba(255,255,255,.92);text-shadow:0 2px 10px rgba(0,0,0,.5);pointer-events:none;user-select:none;position:relative;z-index:1;letter-spacing:1px;line-height:1}
+/* ── CAMBIO: csym ahora es contenedor de imagen ── */
+.csym{pointer-events:none;user-select:none;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
+.csym img{width:186px;height:186px;object-fit:contain;pointer-events:none;display:block}
 
 .cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s}
 #coinbtn:active .cglow{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.15),transparent)}
@@ -245,53 +249,17 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 #toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 #toast.show{opacity:1}
 
+#logo{text-decoration:none;color:inherit;cursor:pointer}
 
-  #logo {
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-  }
-
-
-
-
-  .cbtn-big.cbtn-juego {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 18px 32px;
-  border-radius: 8px;
-
-  background: linear-gradient(135deg, #FFD700, #FF6B35);
-  color: #1a0a00;
-
-  font-size: 16px;
-  font-weight: 700;
-
-  text-decoration: none;   /* 🔥 quita subrayado */
-  cursor: pointer;
-
-  box-shadow: 0 8px 40px rgba(255,165,0,.3);
-  transition: all 0.2s ease;
-}
-
-.cbtn-big.cbtn-juego:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 50px rgba(255,165,0,.5);
-}
-
-
-
-
-  
+.cbtn-big.cbtn-juego{display:inline-flex;align-items:center;justify-content:center;padding:18px 32px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#FF6B35);color:#1a0a00;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 8px 40px rgba(255,165,0,.3);transition:all 0.2s ease}
+.cbtn-big.cbtn-juego:hover{transform:translateY(-3px);box-shadow:0 16px 50px rgba(255,165,0,.5)}
 </style>
 </head>
 <body>
 
 <div id="loading">
   <div class="ll">₿ CRYPTO CLICK</div>
-  <div style="font-size:48px;animation:pulse 1s infinite">🪙</div>
+  <div style="font-size:48px;animation:pulse 1s infinite">👽</div>
   <div class="lbw"><div class="lb" id="lbar"></div></div>
   <div class="lt" id="ltip">INICIANDO BLOCKCHAIN...</div>
 </div>
@@ -329,7 +297,10 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
         <div class="osat os2">💎</div>
         <button id="coinbtn" class="s0" ontouchstart="htap(event)" onclick="htap(event)">
           <div class="csheen"></div><div class="cglow"></div>
-          <div class="csym">CLK$</div>
+          <!-- ── CAMBIO: imagen alien en lugar de texto CLK$ ── -->
+          <div class="csym">
+            <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_032954295.png" alt="alien">
+          </div>
         </button>
       </div>
       <div id="comboa">
@@ -401,12 +372,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <div style="font-family:var(--fh);font-size:22px;color:var(--yellow);margin-bottom:8px">¡AIRDROP DE $CLK!</div>
       <div style="font-size:13px;color:#c4b5fd;line-height:1.6;margin-bottom:6px">Todos los jugadores recibirán sus tokens <strong style="color:white">$CLK reales</strong> cuando lancemos en blockchain.</div>
       <div style="font-size:12px;color:var(--muted);font-weight:700">Tus tokens actuales = tu parte del airdrop 🎁</div>
-
-      <a href="landing.html" class="cbtn-big cbtn-juego" style="margin-top:20px; display:inline-block;">
-  Saber más
-    </a>
-
-      
+      <a href="landing.html" class="cbtn-big cbtn-juego" style="margin-top:20px;display:inline-block;">Saber más</a>
     </div>
 
     <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,107,53,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center;margin-bottom:14px">
@@ -423,7 +389,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
         </div>
         <div style="font-size:20px;color:white">›</div>
       </a>
-
       <a href="https://t.me/cryptoclikgrupo" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border-radius:16px;padding:16px;text-decoration:none;box-shadow:0 4px 20px rgba(139,92,246,.3)">
         <div style="font-size:32px;flex-shrink:0">👥</div>
         <div style="flex:1">
@@ -460,7 +425,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <div style="font-size:11px;color:var(--green);font-weight:800;letter-spacing:1px;margin-bottom:4px">🌍 ÚNETE A LA REVOLUCIÓN $CLK</div>
       <div style="font-size:12px;color:var(--muted)">Comparte el juego · Invita amigos · Gana más $CLK</div>
     </div>
-
   </div>
 
   <!-- SAVE/LOAD -->
@@ -531,9 +495,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════
-// CONSTANTS
-// ══════════════════════════════════
 const RANKS=[
   {name:'Crypto Noob',  minLvl:1,  e:'🐣',tapB:0  },
   {name:'Hodler',       minLvl:3,  e:'💎',tapB:1  },
@@ -659,671 +620,209 @@ const MISS=[
   {id:'r100',   n:'Lider de masas',      i:'👑',g:100,        t:'refs',    r:500000},
 ];
 const DRWD=[200,400,600,800,1200,1600,2500];
-const LBM=[
-  {name:'SatoshiKing',  s:8847392,r:'Blockchain God'},
-  {name:'CryptoWolf',   s:4938471,r:'Satoshi'},
-  {name:'DiamondHands', s:2984321,r:'DeFi King'},
-  {name:'HodlMaster',   s:1651234,r:'Whale'},
-  {name:'MoonBoy',      s:923981, r:'DeFi Shark'},
-  {name:'CoinHunter',   s:487654, r:'Trader Pro'},
-  {name:'BlockBuilder', s:254321, r:'Hodler'},
-  {name:'TxHash99',     s:87234,  r:'Crypto Noob'},
-];
 const PCOLS=['#FFD700','#FF6B35','#FF3CAC','#06B6D4','#10B981','#8B5CF6','#84CC16'];
-const SAVE_KEY='cck4'; // Bumped key to avoid corrupt old saves
+const SAVE_KEY='cck4';
 
-// ══════════════════════════════════
-// STATE — Single source of truth
-// S.clk        = saldo actual (lo que el jugador tiene para gastar)
-// S.totalClk   = CLK histórico acumulado total (nunca baja, para misiones)
-// S.totalTaps  = taps históricos (nunca baja)
-// ══════════════════════════════════
 const DEFAULTS={
-  clk:0,
-  totalClk:0,   // historical — only ever goes up
-  totalTaps:0,  // historical — only ever goes up
+  clk:0,totalClk:0,totalTaps:0,
   lvl:1,xp:0,xpNeed:500,
   energy:1000,eMax:1000,eRegen:3,
   tapPow:1,pph:0,
   ups:{},missions:{},
   refCode:'',refs:0,refEarned:0,
-  maxCombo:0,upsCount:0,
-  skin:0,
-  dailyDay:0,dStreak:0,lastDaily:0,
-  boostEnd:0,
+  maxCombo:0,upsCount:0,skin:0,
+  dailyDay:0,dStreak:0,lastDaily:0,boostEnd:0,
   lastSave:Date.now(),lastPassive:Date.now(),
 };
-
-// Live state — never reassign S itself, only mutate its properties
 const S=Object.assign({},DEFAULTS);
 
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<7;i++)r+=c[Math.random()*c.length|0];return r}
 
-// ══════════════════════════════════
-// SAVE / LOAD  —  bulletproof version
-// ══════════════════════════════════
 let _saveScheduled=false;
-
-/** Schedule a debounced save so rapid taps don't thrash localStorage */
 function save(){
-  if(_saveScheduled)return;
-  _saveScheduled=true;
-  setTimeout(()=>{
-    _saveScheduled=false;
-    try{
-      // Sanitize before saving
-      const snap=sanitize({...S,lastSave:Date.now()});
-      localStorage.setItem(SAVE_KEY,JSON.stringify(snap));
-    }catch(e){console.warn('Save failed',e);}
-  },800); // debounce 800ms
+  if(_saveScheduled)return;_saveScheduled=true;
+  setTimeout(()=>{_saveScheduled=false;try{localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));}catch(e){}},800);
 }
-
-/** Force-save immediately (used before page unload) */
 function forceSave(){
   _saveScheduled=false;
-  try{
-    const snap=sanitize({...S,lastSave:Date.now()});
-    localStorage.setItem(SAVE_KEY,JSON.stringify(snap));
-  }catch(e){}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));}catch(e){}
 }
-
-/** Make sure all numbers are valid and no value ever goes backwards */
 function sanitize(d){
-  // Ensure numbers are finite and non-negative
   const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin'];
-  for(const k of nums){
-    if(typeof d[k]!=='number'||!isFinite(d[k]))d[k]=DEFAULTS[k]||0;
-    if(d[k]<0)d[k]=0;
-  }
-  // Enforce minimums
-  if(d.lvl<1)d.lvl=1;
-  if(d.xpNeed<500)d.xpNeed=500;
-  if(d.eMax<1000)d.eMax=1000;
-  if(d.eRegen<3)d.eRegen=3;
-  if(d.tapPow<1)d.tapPow=1;
-  if(!d.ups||typeof d.ups!=='object')d.ups={};
-  if(!d.missions||typeof d.missions!=='object')d.missions={};
+  for(const k of nums){if(typeof d[k]!=='number'||!isFinite(d[k]))d[k]=DEFAULTS[k]||0;if(d[k]<0)d[k]=0;}
+  if(d.lvl<1)d.lvl=1;if(d.xpNeed<500)d.xpNeed=500;if(d.eMax<1000)d.eMax=1000;if(d.eRegen<3)d.eRegen=3;if(d.tapPow<1)d.tapPow=1;
+  if(!d.ups||typeof d.ups!=='object')d.ups={};if(!d.missions||typeof d.missions!=='object')d.missions={};
   return d;
 }
-
 function load(){
   try{
-    const raw=localStorage.getItem(SAVE_KEY);
-    if(!raw)return;
-    const d=sanitize(JSON.parse(raw));
-    Object.assign(S,d);
-
-    // Apply offline earnings (passive income while away)
-    const offSec=Math.min((Date.now()-S.lastSave)/1000, 86400); // cap at 24h
-    if(offSec>5&&S.pph>0){
-      const earned=S.pph/3600*offSec;
-      addClk(earned,'offline');
-      setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);
-    }
-    // Restore energy
-    const eRestore=S.eRegen*offSec;
-    S.energy=Math.min(S.eMax,S.energy+eRestore);
-
-  }catch(e){console.warn('Load failed',e);}
-
+    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;
+    const d=sanitize(JSON.parse(raw));Object.assign(S,d);
+    const offSec=Math.min((Date.now()-S.lastSave)/1000,86400);
+    if(offSec>5&&S.pph>0){const earned=S.pph/3600*offSec;addClk(earned,'offline');setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);}
+    S.energy=Math.min(S.eMax,S.energy+S.eRegen*offSec);
+  }catch(e){}
   if(!S.refCode)S.refCode=genCode();
-  if(!S.missions)S.missions={};
-  if(!S.ups)S.ups={};
+  if(!S.missions)S.missions={};if(!S.ups)S.ups={};
 }
+function addClk(amount,mode){if(!isFinite(amount)||amount<=0)return;const n=Math.floor(amount*100)/100;S.clk+=n;S.totalClk+=n;}
+function spendClk(amount){if(S.clk<amount)return false;S.clk-=amount;return true;}
 
-// ══════════════════════════════════
-// CORE CURRENCY FUNCTION
-// The ONE place where CLK is added — prevents double-counting bugs
-// mode: 'tap' | 'passive' | 'reward' | 'daily' | 'offline' | 'ref'
-// ══════════════════════════════════
-function addClk(amount, mode){
-  if(!isFinite(amount)||amount<=0)return;
-  const n=Math.floor(amount*100)/100; // keep 2 decimals max
-  S.clk+=n;
-  // totalClk tracks all CLK ever earned (for missions) — never decremented
-  S.totalClk+=n;
-}
-
-/** Spend CLK (buy upgrade etc.) — never touch totalClk */
-function spendClk(amount){
-  if(S.clk<amount)return false;
-  S.clk-=amount;
-  return true;
-}
-
-// ══════════════════════════════════
-// UTILS
-// ══════════════════════════════════
-function fmt(n){
-  n=Math.floor(n);
-  if(n>=1e12)return(n/1e12).toFixed(2)+'T';
-  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
-  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
-  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
-  return n+'';
-}
+function fmt(n){n=Math.floor(n);if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n+''}
 function getRank(){let r=RANKS[0];for(const x of RANKS)if(S.lvl>=x.minLvl)r=x;return r}
 function upCost(u){return Math.floor(u.base*Math.pow(1.5,S.ups[u.id]||0))}
 function isBoost(){return Date.now()<S.boostEnd}
-
 function recalc(){
   let tap=1,pph=0,eMax=1000,eR=3;
-  for(const u of UPS){
-    const l=S.ups[u.id]||0;if(!l)continue;
-    if(u.tapB)tap+=u.tapB*l;
-    if(u.pph)pph+=u.pph*l*Math.pow(1.15,l-1);
-    if(u.eB)eMax+=u.eB*l;
-    if(u.rB)eR+=u.rB*l;
-  }
-  tap+=getRank().tapB;
-  S.tapPow=Math.max(1,Math.floor(tap));
-  S.pph=Math.floor(pph);
-  S.eMax=eMax;
-  S.eRegen=eR;
+  for(const u of UPS){const l=S.ups[u.id]||0;if(!l)continue;if(u.tapB)tap+=u.tapB*l;if(u.pph)pph+=u.pph*l*Math.pow(1.15,l-1);if(u.eB)eMax+=u.eB*l;if(u.rB)eR+=u.rB*l;}
+  tap+=getRank().tapB;S.tapPow=Math.max(1,Math.floor(tap));S.pph=Math.floor(pph);S.eMax=eMax;S.eRegen=eR;
 }
 
-// ══════════════════════════════════
-// DISPLAY
-// ══════════════════════════════════
 let bumpTO=null;
 function upd(){
-  const bn=document.getElementById('balnum');
-  bn.textContent=fmt(S.clk);
-  bn.classList.remove('bump');void bn.offsetWidth;bn.classList.add('bump');
-  if(bumpTO)clearTimeout(bumpTO);
-  bumpTO=setTimeout(()=>bn.classList.remove('bump'),120);
-
+  const bn=document.getElementById('balnum');bn.textContent=fmt(S.clk);bn.classList.remove('bump');void bn.offsetWidth;bn.classList.add('bump');
+  if(bumpTO)clearTimeout(bumpTO);bumpTO=setTimeout(()=>bn.classList.remove('bump'),120);
   const mult=isBoost()?2:1;
   document.getElementById('pertap').textContent=S.tapPow*mult;
   document.getElementById('perhour').textContent=fmt(S.pph);
   document.getElementById('svlvl').textContent=S.lvl;
   document.getElementById('svtaps').textContent=fmt(S.totalTaps);
   document.getElementById('svcombo').textContent=S.maxCombo+'🔥';
-
   const xpP=Math.min(100,Math.round(S.xp/S.xpNeed*100));
   document.getElementById('xplabel').textContent='Nivel '+S.lvl+' · '+fmt(S.xp)+'/'+fmt(S.xpNeed)+' XP';
   document.getElementById('xppct').textContent=xpP+'%';
   document.getElementById('xpb').style.width=xpP+'%';
-
-  const r=getRank();
-  document.getElementById('rankpill').textContent=r.e+' '+r.name;
-
+  const r=getRank();document.getElementById('rankpill').textContent=r.e+' '+r.name;
   document.getElementById('ecur').textContent=Math.floor(S.energy);
   document.getElementById('emax').textContent=S.eMax;
   document.getElementById('eregen').textContent=S.eRegen;
   document.getElementById('noeregen').textContent=S.eRegen;
   document.getElementById('enfill').style.width=Math.max(0,Math.min(100,(S.energy/S.eMax)*100))+'%';
-
   document.getElementById('boostpill').classList.toggle('show',isBoost());
-
   const dr=isDailyReady();
   document.getElementById('dailybtn').classList.toggle('ready',dr);
   document.getElementById('dailybadge').textContent=dr?'RECLAMAR':'✅ OK';
   if(dr){document.getElementById('dailysub').textContent='¡Reclama tu recompensa!';}
-  else{
-    const nxt=86400000-(Date.now()-S.lastDaily);
-    const h=Math.floor(nxt/3600000),m=Math.floor((nxt%3600000)/60000);
-    document.getElementById('dailysub').textContent='Vuelve en '+h+'h '+m+'m';
-  }
-
+  else{const nxt=86400000-(Date.now()-S.lastDaily);const h=Math.floor(nxt/3600000),m=Math.floor((nxt%3600000)/60000);document.getElementById('dailysub').textContent='Vuelve en '+h+'h '+m+'m';}
   document.getElementById('coinbtn').className=SKINS[S.skin]?SKINS[S.skin].cls:'s0';
 }
 
-// ══════════════════════════════════
-// TAP
-// ══════════════════════════════════
 let lastTap=0,combo=0,comboTO=null,tLock=false;
-
 function htap(e){
   e.preventDefault();
-  if(e.type==='touchstart')tLock=true;
-  else if(e.type==='click'&&tLock){tLock=false;return}
+  if(e.type==='touchstart')tLock=true;else if(e.type==='click'&&tLock){tLock=false;return}
   if(S.energy<1){document.getElementById('noeov').classList.add('show');return}
-
   try{if(window.navigator&&window.navigator.vibrate)window.navigator.vibrate(15);}catch(err){}
-
-  const mult=isBoost()?2:1;
-  const earned=S.tapPow*mult;
-
-  // Use addClk — single source of truth
-  addClk(earned,'tap');
-  S.totalTaps++;
-  S.energy=Math.max(0,S.energy-1);
-
+  const mult=isBoost()?2:1,earned=S.tapPow*mult;
+  addClk(earned,'tap');S.totalTaps++;S.energy=Math.max(0,S.energy-1);
   const now=Date.now();
-  if(now-lastTap<500)combo++;else combo=1;
-  lastTap=now;
+  if(now-lastTap<500)combo++;else combo=1;lastTap=now;
   if(combo>S.maxCombo)S.maxCombo=combo;
-
   if(comboTO)clearTimeout(comboTO);
   comboTO=setTimeout(()=>{combo=0;document.getElementById('combopill').classList.remove('show');},1600);
   document.getElementById('cv').textContent=combo;
   document.getElementById('combopill').classList.toggle('show',combo>=3);
   if(combo===10){spawnBurst();showSfire();}
   if(combo>10&&combo%5===0)spawnBurst();
-
   S.xp+=1+Math.floor(combo/5);
   if(S.xp>=S.xpNeed){
-    const pr=getRank().name;
-    S.xp-=S.xpNeed;S.lvl++;
-    S.xpNeed=Math.floor(500*Math.pow(1.18,S.lvl-1));
-    recalc();
-    const nr=getRank();
-    const sk=SKINS.find(x=>x.lvl===S.lvl);
-    if(sk)toast('🎨 Nueva skin "'+sk.name+'" desbloqueada!');
-    if(nr.name!==pr)showRankup(nr);
+    const pr=getRank().name;S.xp-=S.xpNeed;S.lvl++;S.xpNeed=Math.floor(500*Math.pow(1.18,S.lvl-1));recalc();
+    const nr=getRank();const sk=SKINS.find(x=>x.lvl===S.lvl);if(sk)toast('🎨 Nueva skin "'+sk.name+'" desbloqueada!');if(nr.name!==pr)showRankup(nr);
   }
-
-  spawnFloat(e,'+'+fmt(earned));
-  spawnRipple(e);
-  if(combo>=5)spawnParts(getCenter(),combo);
-
-  checkMiss();
-  upd();
-  save();
+  spawnFloat(e,'+'+fmt(earned));spawnRipple(e);if(combo>=5)spawnParts(getCenter(),combo);
+  checkMiss();upd();save();
 }
-
 function getCenter(){const r=document.getElementById('coinbtn').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
-
 function spawnFloat(e,txt){
   const el=document.createElement('div');el.className='fn';el.textContent=txt;
   const r=document.getElementById('coinbtn').getBoundingClientRect();
   el.style.cssText='left:'+(r.left+r.width/2+(Math.random()-.5)*70)+'px;top:'+(r.top+r.height/2-10)+'px';
   document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
 }
-
 function spawnRipple(e){
-  const btn=document.getElementById('coinbtn');
-  const r=btn.getBoundingClientRect();
+  const btn=document.getElementById('coinbtn'),r=btn.getBoundingClientRect();
   const el=document.createElement('div');el.className='crip';
-  const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
-  const cy=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
-  el.style.cssText='left:'+cx+'px;top:'+cy+'px';
+  el.style.cssText='left:'+((e.touches?e.touches[0].clientX:e.clientX)-r.left)+'px;top:'+((e.touches?e.touches[0].clientY:e.clientY)-r.top)+'px';
   btn.appendChild(el);setTimeout(()=>el.remove(),560);
 }
-
 function showSfire(){const el=document.getElementById('sfire');el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}
 
-// ══════════════════════════════════
-// PARTICLES
-// ══════════════════════════════════
-const pCv=document.getElementById('pC');
-const pX=pCv.getContext('2d');
-const PARTS=[];
+const pCv=document.getElementById('pC'),pX=pCv.getContext('2d'),PARTS=[];
 function resPC(){pCv.width=window.innerWidth;pCv.height=window.innerHeight}
 resPC();window.addEventListener('resize',resPC);
-
-function spawnParts(pos,n){
-  const cnt=Math.min(8+n,35);
-  for(let i=0;i<cnt;i++){
-    const a=Math.random()*Math.PI*2,sp=3+Math.random()*8;
-    PARTS.push({x:pos.x,y:pos.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,dec:.016+Math.random()*.025,sz:3+Math.random()*6,col:PCOLS[Math.random()*PCOLS.length|0]});
-  }
-}
-
-function spawnBurst(){
-  const c=getCenter();
-  for(let i=0;i<120;i++){
-    const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;
-    PARTS.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});
-  }
-}
-
-function rankBurst(){
-  for(let i=0;i<80;i++){
-    const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;
-    PARTS.push({x:window.innerWidth/2,y:window.innerHeight*.4,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});
-  }
-}
-function animP(){
-  pX.clearRect(0,0,pCv.width,pCv.height);
-  for(let i=PARTS.length-1;i>=0;i--){
-    const p=PARTS[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.life-=p.dec;
-    if(p.life<=0){PARTS.splice(i,1);continue}
-    pX.globalAlpha=p.life;pX.fillStyle=p.col;
-    pX.beginPath();pX.arc(p.x,p.y,p.sz*p.life,0,Math.PI*2);pX.fill();
-  }
-  pX.globalAlpha=1;requestAnimationFrame(animP);
-}
+function spawnParts(pos,n){const cnt=Math.min(8+n,35);for(let i=0;i<cnt;i++){const a=Math.random()*Math.PI*2,sp=3+Math.random()*8;PARTS.push({x:pos.x,y:pos.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,dec:.016+Math.random()*.025,sz:3+Math.random()*6,col:PCOLS[Math.random()*PCOLS.length|0]});}}
+function spawnBurst(){const c=getCenter();for(let i=0;i<120;i++){const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;PARTS.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});}}
+function rankBurst(){for(let i=0;i<80;i++){const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;PARTS.push({x:window.innerWidth/2,y:window.innerHeight*.4,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});}}
+function animP(){pX.clearRect(0,0,pCv.width,pCv.height);for(let i=PARTS.length-1;i>=0;i--){const p=PARTS[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.life-=p.dec;if(p.life<=0){PARTS.splice(i,1);continue}pX.globalAlpha=p.life;pX.fillStyle=p.col;pX.beginPath();pX.arc(p.x,p.y,p.sz*p.life,0,Math.PI*2);pX.fill();}pX.globalAlpha=1;requestAnimationFrame(animP);}
 animP();
 
-// ══════════════════════════════════
-// PASSIVE TICK — runs every second
-// ══════════════════════════════════
 setInterval(()=>{
-  const now=Date.now();
-  const dt=Math.min((now-S.lastPassive)/1000, 5); // cap dt to 5s to prevent huge jumps
-  S.lastPassive=now;
-
-  // Energy regen
-  if(S.energy<S.eMax){
-    S.energy=Math.min(S.eMax,S.energy+S.eRegen*dt);
-  }
-
-  // Passive income — use addClk
-  if(S.pph>0){
-    addClk(S.pph/3600*dt,'passive');
-  }
-
-  upd();
-  save();
-  checkMiss();
+  const now=Date.now(),dt=Math.min((now-S.lastPassive)/1000,5);S.lastPassive=now;
+  if(S.energy<S.eMax)S.energy=Math.min(S.eMax,S.energy+S.eRegen*dt);
+  if(S.pph>0)addClk(S.pph/3600*dt,'passive');
+  upd();save();checkMiss();
 },1000);
-
-// Save on page hide/unload
 document.addEventListener('visibilitychange',()=>{if(document.hidden)forceSave();});
 window.addEventListener('beforeunload',forceSave);
 window.addEventListener('pagehide',forceSave);
 
-// ══════════════════════════════════
-// RANKUP
-// ══════════════════════════════════
-function showRankup(r){
-  document.getElementById('ruemoji').textContent=r.e;
-  document.getElementById('runame').textContent=r.name;
-  document.getElementById('rubonus').textContent='+'+r.tapB+' poder de tap desbloqueado';
-  document.getElementById('ruov').classList.add('show');
-  rankBurst();
-}
+function showRankup(r){document.getElementById('ruemoji').textContent=r.e;document.getElementById('runame').textContent=r.name;document.getElementById('rubonus').textContent='+'+r.tapB+' poder de tap desbloqueado';document.getElementById('ruov').classList.add('show');rankBurst();}
 
-// ══════════════════════════════════
-// DAILY
-// ══════════════════════════════════
 function isDailyReady(){return Date.now()-S.lastDaily>86400000}
-function openDaily(){
-  renderDG();
-  document.getElementById('dailyov').classList.add('show');
-  const cb=document.getElementById('dailyclaim');
-  cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';
-}
-function renderDG(){
-  const g=document.getElementById('dailygrid');g.innerHTML='';
-  for(let i=0;i<7;i++){
-    const div=document.createElement('div');
-    div.className='dday'+(i<S.dailyDay?' done':i===S.dailyDay?' today':'');
-    div.innerHTML='<div class="ddv">'+fmt(DRWD[i])+'</div>Día '+(i+1);
-    g.appendChild(div);
-  }
-}
-function claimDaily(){
-  if(!isDailyReady())return;
-  const rwd=DRWD[S.dailyDay%7];
-  // Use addClk — single source of truth, no double-counting
-  addClk(rwd,'daily');
-  S.dailyDay=(S.dailyDay+1)%7;
-  S.dStreak++;
-  S.lastDaily=Date.now();
-  upd();checkMiss();renderDG();
-  document.getElementById('dailyclaim').disabled=true;
-  document.getElementById('dailyclaim').style.opacity='.4';
-  toast('🎁 Bonus diario: +'+fmt(rwd)+' $CLK!');
-  rankBurst();
-  forceSave(); // force immediate save after daily claim
-}
+function openDaily(){renderDG();document.getElementById('dailyov').classList.add('show');const cb=document.getElementById('dailyclaim');cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';}
+function renderDG(){const g=document.getElementById('dailygrid');g.innerHTML='';for(let i=0;i<7;i++){const div=document.createElement('div');div.className='dday'+(i<S.dailyDay?' done':i===S.dailyDay?' today':'');div.innerHTML='<div class="ddv">'+fmt(DRWD[i])+'</div>Día '+(i+1);g.appendChild(div);}}
+function claimDaily(){if(!isDailyReady())return;const rwd=DRWD[S.dailyDay%7];addClk(rwd,'daily');S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();upd();checkMiss();renderDG();document.getElementById('dailyclaim').disabled=true;document.getElementById('dailyclaim').style.opacity='.4';toast('🎁 Bonus diario: +'+fmt(rwd)+' $CLK!');rankBurst();forceSave();}
 
-// ══════════════════════════════════
-// UPGRADES
-// ══════════════════════════════════
 function renderUps(){
-  recalc();
-  const list=document.getElementById('upslist');list.innerHTML='';
+  recalc();const list=document.getElementById('upslist');list.innerHTML='';
   for(const u of UPS){
     const l=S.ups[u.id]||0,cost=upCost(u),maxed=l>=u.max,can=!maxed&&S.clk>=cost;
-    let bonus='';
-    if(u.pph)bonus='+'+fmt(Math.floor(u.pph*l*Math.pow(1.15,Math.max(0,l-1))))+'/h';
-    else if(u.tapB)bonus='+'+u.tapB*l+' tap';
-    else if(u.eB)bonus='+'+u.eB*l+' E';
-    else if(u.rB)bonus='+'+u.rB*l+'/s';
-    else if(u.bMin)bonus='+'+u.bMin*l+'min x2';
+    let bonus='';if(u.pph)bonus='+'+fmt(Math.floor(u.pph*l*Math.pow(1.15,Math.max(0,l-1))))+'/h';else if(u.tapB)bonus='+'+u.tapB*l+' tap';else if(u.eB)bonus='+'+u.eB*l+' E';else if(u.rB)bonus='+'+u.rB*l+'/s';else if(u.bMin)bonus='+'+u.bMin*l+'min x2';
     const pct=Math.round(l/u.max*100);
-    const card=document.createElement('div');
-    card.className='uc'+(can?' canbuy':'')+(maxed?' maxed':'');
+    const card=document.createElement('div');card.className='uc'+(can?' canbuy':'')+(maxed?' maxed':'');
     card.innerHTML='<div class="uico">'+u.i+'</div><div class="uinfo"><div class="uname">'+u.n+'</div><div class="udesc">'+u.d+(bonus?' · <span style="color:var(--cyan)">'+bonus+'</span>':'')+'</div><div class="ulvl">Nivel '+l+'/'+u.max+'</div><div class="ulvlb"><div class="ulvlf" style="width:'+pct+'%"></div></div></div><button class="ubtn" '+((!can||maxed)?'disabled':'')+' onclick="buyUp(\''+u.id+'\')">'+( maxed?'MAX':'🪙 '+fmt(cost))+'</button>';
     list.appendChild(card);
   }
   renderSkins();
 }
+function buyUp(id){const u=UPS.find(x=>x.id===id);if(!u)return;const l=S.ups[id]||0;if(l>=u.max)return;const cost=upCost(u);if(!spendClk(cost)){toast('❌ Sin suficiente $CLK');return}S.ups[id]=(l+1);S.upsCount++;if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;recalc();upd();renderUps();checkMiss();toast('✅ '+u.n+' → Nivel '+S.ups[id]);forceSave();}
+function renderSkins(){const g=document.getElementById('skingrid');g.innerHTML='';for(const sk of SKINS){const ok=S.lvl>=sk.lvl;const d=document.createElement('div');d.className='skinitem'+(sk.id===S.skin?' active':'')+(ok?'':' locked');d.innerHTML=sk.ico+'<span class="skinlbl">'+(ok?sk.name:'Lvl '+sk.lvl)+'</span>';if(ok)d.onclick=()=>{S.skin=sk.id;forceSave();renderSkins();upd();toast('🎨 Skin "'+sk.name+'" activada')};g.appendChild(d);}}
 
-function buyUp(id){
-  const u=UPS.find(x=>x.id===id);if(!u)return;
-  const l=S.ups[id]||0;if(l>=u.max)return;
-  const cost=upCost(u);
-  // Use spendClk — clean deduction, never touches totalClk
-  if(!spendClk(cost)){toast('❌ Sin suficiente $CLK');return}
-  S.ups[id]=(l+1);
-  S.upsCount++;
-  if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;
-  recalc();upd();renderUps();checkMiss();
-  toast('✅ '+u.n+' → Nivel '+S.ups[id]);
-  forceSave(); // force immediate save after purchase
-}
-
-function renderSkins(){
-  const g=document.getElementById('skingrid');g.innerHTML='';
-  for(const sk of SKINS){
-    const ok=S.lvl>=sk.lvl;
-    const d=document.createElement('div');
-    d.className='skinitem'+(sk.id===S.skin?' active':'')+(ok?'':' locked');
-    d.innerHTML=sk.ico+'<span class="skinlbl">'+(ok?sk.name:'Lvl '+sk.lvl)+'</span>';
-    if(ok)d.onclick=()=>{S.skin=sk.id;forceSave();renderSkins();upd();toast('🎨 Skin "'+sk.name+'" activada')};
-    g.appendChild(d);
-  }
-}
-
-// ══════════════════════════════════
-// MISSIONS
-// ══════════════════════════════════
 function checkMiss(){
-  for(const m of MISS){
-    if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};
-    const ms=S.missions[m.id];if(ms.c)continue;
-    // Progress uses historical counters — never goes backward
-    if(m.t==='taps')ms.p=Math.min(m.g,S.totalTaps);
-    if(m.t==='clk')ms.p=Math.min(m.g,Math.floor(S.totalClk)); // uses totalClk not clk
-    if(m.t==='lvl')ms.p=Math.min(m.g,S.lvl);
-    if(m.t==='ups')ms.p=Math.min(m.g,S.upsCount);
-    if(m.t==='combo')ms.p=Math.min(m.g,S.maxCombo);
-    if(m.t==='dstreak')ms.p=Math.min(m.g,S.dStreak);
-    if(m.t==='refs')ms.p=Math.min(m.g,S.refs);
-  }
+  for(const m of MISS){if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};const ms=S.missions[m.id];if(ms.c)continue;if(m.t==='taps')ms.p=Math.min(m.g,S.totalTaps);if(m.t==='clk')ms.p=Math.min(m.g,Math.floor(S.totalClk));if(m.t==='lvl')ms.p=Math.min(m.g,S.lvl);if(m.t==='ups')ms.p=Math.min(m.g,S.upsCount);if(m.t==='combo')ms.p=Math.min(m.g,S.maxCombo);if(m.t==='dstreak')ms.p=Math.min(m.g,S.dStreak);if(m.t==='refs')ms.p=Math.min(m.g,S.refs);}
   const has=MISS.some(m=>{const ms=S.missions[m.id];return ms&&!ms.c&&ms.p>=m.g});
-  const nav=document.getElementById('nav-missions');
-  const dot=nav.querySelector('.ndot');
-  if(has&&!dot){const d=document.createElement('div');d.className='ndot';nav.appendChild(d);}
-  else if(!has&&dot)dot.remove();
+  const nav=document.getElementById('nav-missions'),dot=nav.querySelector('.ndot');
+  if(has&&!dot){const d=document.createElement('div');d.className='ndot';nav.appendChild(d);}else if(!has&&dot)dot.remove();
 }
-
 function renderMiss(){
-  checkMiss();
-  const list=document.getElementById('misslist');list.innerHTML='';
-
-  const cats=[
-    {key:'taps',    label:'👆 TAPS',          col:'var(--cyan)'},
-    {key:'clk',     label:'💰 $CLK ACUMULADO', col:'var(--yellow)'},
-    {key:'lvl',     label:'📈 NIVEL',          col:'var(--purple)'},
-    {key:'ups',     label:'⚡ MEJORAS',        col:'var(--orange)'},
-    {key:'combo',   label:'🔥 COMBO',          col:'var(--pink)'},
-    {key:'dstreak', label:'📅 RACHA DIARIA',   col:'var(--green)'},
-    {key:'refs',    label:'👥 REFERIDOS',      col:'var(--blue)'},
-  ];
-
+  checkMiss();const list=document.getElementById('misslist');list.innerHTML='';
+  const cats=[{key:'taps',label:'👆 TAPS',col:'var(--cyan)'},{key:'clk',label:'💰 $CLK ACUMULADO',col:'var(--yellow)'},{key:'lvl',label:'📈 NIVEL',col:'var(--purple)'},{key:'ups',label:'⚡ MEJORAS',col:'var(--orange)'},{key:'combo',label:'🔥 COMBO',col:'var(--pink)'},{key:'dstreak',label:'📅 RACHA DIARIA',col:'var(--green)'},{key:'refs',label:'👥 REFERIDOS',col:'var(--blue)'}];
   for(const cat of cats){
-    const missions=MISS.filter(m=>m.t===cat.key);
-    const allDone=missions.every(m=>S.missions[m.id]&&S.missions[m.id].c);
-    const hdr=document.createElement('div');
-    hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';
-    hdr.textContent=cat.label+(allDone?' ✅':'');
-    list.appendChild(hdr);
-
-    for(const m of missions){
-      if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};
-      const ms=S.missions[m.id];
-      const pct=Math.min(100,(ms.p/m.g)*100);
-      const done=ms.c,ready=!done&&ms.p>=m.g;
-      const card=document.createElement('div');card.className='mc';
-      if(done)card.style.opacity='.45';
-      card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+'</div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(m.r)+' $CLK &nbsp;·&nbsp; '+fmt(ms.p)+'/'+fmt(m.g)+'</div></div>'+(done?'<div style="font-size:22px">✅</div>':'<button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>');
-      list.appendChild(card);
-    }
+    const missions=MISS.filter(m=>m.t===cat.key),allDone=missions.every(m=>S.missions[m.id]&&S.missions[m.id].c);
+    const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label+(allDone?' ✅':'');list.appendChild(hdr);
+    for(const m of missions){if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};const ms=S.missions[m.id];const pct=Math.min(100,(ms.p/m.g)*100);const done=ms.c,ready=!done&&ms.p>=m.g;const card=document.createElement('div');card.className='mc';if(done)card.style.opacity='.45';card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+'</div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(m.r)+' $CLK &nbsp;·&nbsp; '+fmt(ms.p)+'/'+fmt(m.g)+'</div></div>'+(done?'<div style="font-size:22px">✅</div>':'<button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>');list.appendChild(card);}
   }
 }
+function claimM(id){const m=MISS.find(x=>x.id===id);if(!m)return;const ms=S.missions[id];if(!ms||ms.c||ms.p<m.g)return;ms.c=true;addClk(m.r,'reward');upd();renderMiss();toast('🎉 Misión: +'+fmt(m.r)+' $CLK');rankBurst();forceSave();}
 
-function claimM(id){
-  const m=MISS.find(x=>x.id===id);if(!m)return;
-  const ms=S.missions[id];if(!ms||ms.c||ms.p<m.g)return;
-  ms.c=true;
-  // Use addClk — mission rewards go through single source of truth
-  addClk(m.r,'reward');
-  upd();renderMiss();
-  toast('🎉 Misión: +'+fmt(m.r)+' $CLK');
-  rankBurst();
-  forceSave(); // force immediate save after claim
-}
+function renderRef(){document.getElementById('refcode').textContent=S.refCode;document.getElementById('rcount').textContent=S.refs;document.getElementById('rearned').textContent=fmt(S.refEarned);}
+function copyCode(){if(navigator.clipboard)navigator.clipboard.writeText('¡Juega Crypto Click! Mi código: '+S.refCode+' 🪙 #CryptoClick $CLK');toast('📋 ¡Código copiado!');}
+function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(500,'ref');S.refs++;S.refEarned+=500;upd();renderRef();toast('🎉 Código válido! +500 $CLK');document.getElementById('refinp').value='';forceSave();}
+function renderLB(){}
 
-// ══════════════════════════════════
-// REFERRAL
-// ══════════════════════════════════
-function renderRef(){
-  document.getElementById('refcode').textContent=S.refCode;
-  document.getElementById('rcount').textContent=S.refs;
-  document.getElementById('rearned').textContent=fmt(S.refEarned);
-}
-function copyCode(){
-  if(navigator.clipboard)navigator.clipboard.writeText('¡Juega Crypto Click! Mi código: '+S.refCode+' 🪙 #CryptoClick $CLK');
-  toast('📋 ¡Código copiado!');
-}
-function subRef(){
-  const v=document.getElementById('refinp').value.trim().toUpperCase();
-  if(!v)return;
-  if(v===S.refCode){toast('❌ No puedes usar tu propio código');return}
-  const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');
-  if(used.includes(v)){toast('❌ Código ya usado');return}
-  used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));
-  addClk(500,'ref');
-  S.refs++;S.refEarned+=500;
-  upd();renderRef();toast('🎉 Código válido! +500 $CLK');
-  document.getElementById('refinp').value='';
-  forceSave();
-}
+function exportSave(){forceSave();const data=JSON.stringify(sanitize({...S,lastSave:Date.now()}));const code='CLK2-'+btoa(unescape(encodeURIComponent(data)));const box=document.getElementById('exportbox');box.style.display='block';box.textContent=code;if(navigator.clipboard){navigator.clipboard.writeText(code).then(()=>toast('📋 ¡Código copiado!')).catch(()=>toast('📋 Selecciónalo y cópialo'));}else{const range=document.createRange();range.selectNode(box);window.getSelection().removeAllRanges();window.getSelection().addRange(range);toast('📋 Selecciónalo y cópialo');}}
+function importSave(){const raw=document.getElementById('importinp').value.trim();if(!raw){toast('❌ Pega tu código primero');return}const isV1=raw.startsWith('CLK1-'),isV2=raw.startsWith('CLK2-');if(!isV1&&!isV2){toast('❌ Código inválido');return}try{const prefix=isV2?'CLK2-':'CLK1-';const json=decodeURIComponent(escape(atob(raw.slice(prefix.length))));const data=sanitize(JSON.parse(json));if(typeof data.clk==='undefined')throw new Error('bad');Object.assign(S,data);if(!S.refCode)S.refCode=genCode();if(!S.missions)S.missions={};if(!S.ups)S.ups={};recalc();upd();checkMiss();document.getElementById('importinp').value='';toast('✅ ¡Partida restaurada!');rankBurst();forceSave();setTimeout(()=>goTo('mine'),800);}catch(e){toast('❌ Código corrupto o inválido');}}
 
-// ══════════════════════════════════
-// LEADERBOARD — pantalla Comunidad (solo Telegram, no hay lista)
-// ══════════════════════════════════
-function renderLB(){
-  // La pantalla de Comunidad es la página de Telegram/Airdrop.
-  // No hay lista de jugadores que renderizar — función vacía por compatibilidad.
-}
+function goTo(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='referral')renderRef();if(n==='leaderboard')renderLB();if(n==='save'){document.getElementById('exportbox').style.display='none';document.getElementById('importinp').value='';}}
 
-// ══════════════════════════════════
-// EXPORT / IMPORT
-// ══════════════════════════════════
-function exportSave(){
-  forceSave();
-  const data=JSON.stringify(sanitize({...S,lastSave:Date.now()}));
-  const code='CLK2-'+btoa(unescape(encodeURIComponent(data)));
-  const box=document.getElementById('exportbox');
-  box.style.display='block';
-  box.textContent=code;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(code).then(()=>toast('📋 ¡Código copiado! Guárdalo en un lugar seguro')).catch(()=>toast('📋 Código generado, selecciónalo y cópialo'));
-  } else {
-    const range=document.createRange();range.selectNode(box);
-    window.getSelection().removeAllRanges();window.getSelection().addRange(range);
-    toast('📋 Código generado, selecciónalo y cópialo');
-  }
-}
-
-function importSave(){
-  const raw=document.getElementById('importinp').value.trim();
-  if(!raw){toast('❌ Pega tu código primero');return}
-  // Support both old CLK1- and new CLK2- codes
-  const isV1=raw.startsWith('CLK1-');
-  const isV2=raw.startsWith('CLK2-');
-  if(!isV1&&!isV2){toast('❌ Código inválido — debe empezar por CLK1- o CLK2-');return}
-  try{
-    const prefix=isV2?'CLK2-':'CLK1-';
-    const json=decodeURIComponent(escape(atob(raw.slice(prefix.length))));
-    const data=sanitize(JSON.parse(json));
-    if(typeof data.clk==='undefined')throw new Error('bad');
-    Object.assign(S,data);
-    if(!S.refCode)S.refCode=genCode();
-    if(!S.missions)S.missions={};
-    if(!S.ups)S.ups={};
-    recalc();upd();checkMiss();
-    document.getElementById('importinp').value='';
-    toast('✅ ¡Partida restaurada correctamente!');
-    rankBurst();
-    forceSave();
-    setTimeout(()=>goTo('mine'),800);
-  }catch(e){
-    toast('❌ Código corrupto o inválido, compruébalo');
-  }
-}
-
-// ══════════════════════════════════
-// NAV
-// ══════════════════════════════════
-function goTo(n){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('screen-'+n).classList.add('active');
-  document.getElementById('nav-'+n).classList.add('active');
-  if(n==='upgrades')renderUps();
-  if(n==='missions')renderMiss();
-  if(n==='referral')renderRef();
-  if(n==='leaderboard')renderLB();
-  if(n==='save'){
-    document.getElementById('exportbox').style.display='none';
-    document.getElementById('importinp').value='';
-  }
-}
-
-// ══════════════════════════════════
-// TOAST
-// ══════════════════════════════════
 let tTO=null;
-function toast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  if(tTO)clearTimeout(tTO);tTO=setTimeout(()=>t.classList.remove('show'),2800);
-}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(tTO)clearTimeout(tTO);tTO=setTimeout(()=>t.classList.remove('show'),2800);}
 
-// ══════════════════════════════════
-// LOADING
-// ══════════════════════════════════
 const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
-function runLoader(){
-  const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');
-  let p=0,ti=0;
-  const iv=setInterval(()=>{
-    p+=Math.random()*18+4;if(p>100)p=100;
-    bar.style.width=p+'%';
-    tip.textContent=TIPS[ti%TIPS.length];ti++;
-    if(p>=100){
-      clearInterval(iv);
-      setTimeout(()=>{
-        document.getElementById('loading').classList.add('hide');
-        setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);
-        if(localStorage.getItem(SAVE_KEY))toast('👋 ¡Bienvenido de nuevo, minero!');
-        else toast('🎉 ¡Bienvenido a Crypto Click! Empieza a minar $CLK');
-      },400);
-    }
-  },180);
-}
+function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(localStorage.getItem(SAVE_KEY))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
 
-// ══════════════════════════════════
-// INIT
-// ══════════════════════════════════
-function init(){
-  load();
-  recalc();
-  upd();
-  checkMiss();
-  document.addEventListener('dblclick',e=>e.preventDefault());
-  const cb=document.getElementById('coinbtn');
-  cb.addEventListener('touchstart',()=>{try{window.navigator.vibrate&&window.navigator.vibrate(15);}catch(e){}},{passive:true});
-  runLoader();
-}
+function init(){load();recalc();upd();checkMiss();document.addEventListener('dblclick',e=>e.preventDefault());const cb=document.getElementById('coinbtn');cb.addEventListener('touchstart',()=>{try{window.navigator.vibrate&&window.navigator.vibrate(15);}catch(e){}},{passive:true});runLoader();}
 init();
 </script>
 </body>
-  </html>
+</html>
