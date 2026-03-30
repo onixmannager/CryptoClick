@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Click — El Juego del Airdrop $CLK</title>
+<title>Crypto Alien Click — El Juego del Airdrop $CLK</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 
@@ -25,8 +25,6 @@
   --white:#F5F0FF;
   --muted:#6B6490;
   --border:rgba(255,215,0,0.08);
-
-  /* Alturas fijas: todo el layout se coordina con estas dos variables */
   --ticker-h: 40px;
   --nav-h: 65px;
 }
@@ -68,21 +66,14 @@ body::before{
 /* ── CANVAS ── */
 #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-/* ── TICKER — fixed en top:0 ── */
+/* ── TICKER ── */
 .ticker-bar{
-  position:fixed;
-  top:0;left:0;right:0;
-  z-index:1001;
-  height:var(--ticker-h);
-  background:var(--gold);
-  overflow:hidden;
+  position:fixed;top:0;left:0;right:0;z-index:1001;
+  height:var(--ticker-h);background:var(--gold);overflow:hidden;
 }
 .ticker-inner{
-  display:flex;
-  height:100%;
-  align-items:center;
-  animation:marqueeScroll 18s linear infinite;
-  white-space:nowrap;
+  display:flex;height:100%;align-items:center;
+  animation:marqueeScroll 18s linear infinite;white-space:nowrap;
 }
 .ticker-item{
   display:inline-flex;align-items:center;gap:16px;padding:0 28px;
@@ -91,17 +82,12 @@ body::before{
 }
 .ticker-sep{color:rgba(26,10,0,.3)}
 
-/* ── NAV — fixed justo debajo del ticker ── */
+/* ── NAV ── */
 nav{
-  position:fixed;
-  top:var(--ticker-h);   /* <-- clave: empieza donde termina el ticker */
-  left:0;right:0;
-  z-index:1000;
-  height:var(--nav-h);
-  padding:0 40px;
+  position:fixed;top:var(--ticker-h);left:0;right:0;z-index:1000;
+  height:var(--nav-h);padding:0 40px;
   display:flex;align-items:center;justify-content:space-between;
-  backdrop-filter:blur(20px);
-  background:rgba(5,4,9,0.6);
+  backdrop-filter:blur(20px);background:rgba(5,4,9,0.6);
   border-bottom:1px solid var(--border);
 }
 .nav-logo{
@@ -113,8 +99,7 @@ nav{
 .nav-links{display:flex;gap:32px;align-items:center}
 .nav-links a{
   color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;
-  letter-spacing:1px;text-transform:uppercase;transition:color .2s;
-  white-space:nowrap;
+  letter-spacing:1px;text-transform:uppercase;transition:color .2s;white-space:nowrap;
 }
 .nav-links a:hover{color:var(--gold)}
 .nav-cta{
@@ -123,32 +108,102 @@ nav{
   font-size:13px;font-weight:700;text-decoration:none;
   letter-spacing:1px;text-transform:uppercase;
   transition:transform .15s,box-shadow .15s;
-  box-shadow:0 0 20px rgba(255,215,0,.2);
-  white-space:nowrap;
-  flex-shrink:0;
+  box-shadow:0 0 20px rgba(255,215,0,.2);white-space:nowrap;flex-shrink:0;
 }
 .nav-cta:hover{transform:translateY(-2px);box-shadow:0 0 35px rgba(255,215,0,.4)}
 
-/* ── HERO — padding compensa ticker + nav ── */
-#hero{
-  position:relative;z-index:1;
-  min-height:100vh;
-  padding:calc(var(--ticker-h) + var(--nav-h) + 60px) 20px 60px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;
-  overflow:hidden;
+/* ══════════════════════════════════════════════════
+   IMAGE EFFECTS — acorde al tema dark/crypto/alien
+   ══════════════════════════════════════════════════ */
+
+/* ── HERO: alien principal en portada ── */
+.hero-alien-img {
+  display: block;
+  margin: 28px auto 0;
+  animation: heroFloat 5s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 30px rgba(255,215,0,0.45))
+    drop-shadow(0 0 80px rgba(255,107,53,0.2))
+    drop-shadow(0 0 140px rgba(255,60,172,0.1));
+  transition: filter .35s ease;
+}
+.hero-alien-img:hover {
+  filter:
+    drop-shadow(0 0 55px rgba(255,215,0,0.75))
+    drop-shadow(0 0 120px rgba(255,60,172,0.42))
+    drop-shadow(0 0 200px rgba(124,58,237,0.25));
+}
+@keyframes heroFloat {
+  0%,100% { transform: translateY(0px)   scale(1)    rotate(-1deg); }
+  30%      { transform: translateY(-14px) scale(1.03) rotate(1.2deg); }
+  65%      { transform: translateY(-8px)  scale(1.01) rotate(0deg); }
 }
 
-/* Anclas internas no quedan tapadas por la barra fija */
+/* ── AIRDROP SECTION: alien lateral con aura cyan/purple ── */
+.airdrop-visual img {
+  display: block;
+  max-width: 100%;
+  animation: airdropFloat 4.8s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 28px rgba(0,229,255,0.38))
+    drop-shadow(0 0 70px rgba(124,58,237,0.24))
+    drop-shadow(0 0 130px rgba(0,229,255,0.1));
+  transition: filter .35s ease;
+}
+.airdrop-visual img:hover {
+  filter:
+    drop-shadow(0 0 52px rgba(0,229,255,0.65))
+    drop-shadow(0 0 110px rgba(255,60,172,0.38))
+    drop-shadow(0 0 180px rgba(124,58,237,0.28));
+}
+@keyframes airdropFloat {
+  0%,100% { transform: translateY(0px)   rotate(0deg)    scale(1);    }
+  25%      { transform: translateY(-12px) rotate(1.8deg)  scale(1.02); }
+  55%      { transform: translateY(-20px) rotate(0deg)    scale(1.04); }
+  80%      { transform: translateY(-8px)  rotate(-1.5deg) scale(1.02); }
+}
+
+/* ── JUGAR SECTION: alien en tarjeta play — dorado intenso, clickeable ── */
+.jugar-alien-img {
+  display: block;
+  margin: 0 auto 28px;
+  animation: jugarPulse 3.8s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 22px rgba(255,215,0,0.5))
+    drop-shadow(0 0 55px rgba(255,107,53,0.3))
+    drop-shadow(0 0 110px rgba(255,215,0,0.12));
+  transition: filter .3s ease, transform .3s ease;
+  cursor: pointer;
+}
+.jugar-alien-img:hover {
+  filter:
+    drop-shadow(0 0 55px rgba(255,215,0,0.8))
+    drop-shadow(0 0 110px rgba(255,60,172,0.5))
+    drop-shadow(0 0 180px rgba(255,107,53,0.3));
+  transform: scale(1.1) rotate(3deg) !important;
+  animation-play-state: paused;
+}
+@keyframes jugarPulse {
+  0%,100% { transform: translateY(0px)   scale(1)    rotate(0deg);   }
+  20%      { transform: translateY(-10px) scale(1.04) rotate(-1.2deg); }
+  50%      { transform: translateY(-18px) scale(1.07) rotate(1.8deg);  }
+  80%      { transform: translateY(-7px)  scale(1.03) rotate(-0.6deg); }
+}
+
+/* ── HERO ── */
+#hero{
+  position:relative;z-index:1;min-height:100vh;
+  padding:calc(var(--ticker-h) + var(--nav-h) + 60px) 20px 60px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;overflow:hidden;
+}
 section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
 
 .hero-eyebrow{
   display:inline-flex;align-items:center;gap:8px;
-  border:1px solid rgba(255,215,0,.25);
-  border-radius:2px;padding:6px 16px;
-  font-family:'JetBrains Mono',monospace;
-  font-size:11px;letter-spacing:3px;color:var(--gold);
-  text-transform:uppercase;margin-bottom:32px;
+  border:1px solid rgba(255,215,0,.25);border-radius:2px;padding:6px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;
+  color:var(--gold);text-transform:uppercase;margin-bottom:32px;
   animation:fadeUp .6s ease both;
 }
 .hero-eyebrow span{
@@ -159,10 +214,8 @@ section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
 
 .hero-title{
   font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(72px,14vw,180px);
-  line-height:.9;letter-spacing:-2px;
-  animation:fadeUp .7s .1s ease both;
-  position:relative;
+  font-size:clamp(72px,14vw,180px);line-height:.9;letter-spacing:-2px;
+  animation:fadeUp .7s .1s ease both;position:relative;
 }
 .hero-title .line1{
   display:block;
@@ -175,19 +228,16 @@ section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   filter:drop-shadow(0 0 60px rgba(255,215,0,.3));
 }
-
 .hero-sub{
   max-width:560px;margin:28px auto 0;
   font-size:18px;line-height:1.7;color:rgba(245,240,255,.6);font-weight:400;
   animation:fadeUp .7s .2s ease both;
 }
 .hero-sub strong{color:var(--gold);font-weight:700}
-
 .hero-btns{
   display:flex;flex-wrap:wrap;gap:14px;justify-content:center;
   margin-top:44px;animation:fadeUp .7s .3s ease both;
 }
-
 .btn-primary{
   display:inline-flex;align-items:center;gap:10px;
   background:linear-gradient(135deg,var(--gold),var(--gold3));
@@ -195,8 +245,7 @@ section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
   font-size:16px;font-weight:700;text-decoration:none;
   letter-spacing:.5px;text-transform:uppercase;
   transition:transform .15s,box-shadow .2s;
-  box-shadow:0 8px 40px rgba(255,165,0,.3);
-  position:relative;overflow:hidden;
+  box-shadow:0 8px 40px rgba(255,165,0,.3);position:relative;overflow:hidden;
 }
 .btn-primary::after{
   content:'';position:absolute;inset:0;
@@ -205,7 +254,6 @@ section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
 }
 .btn-primary:hover::after{transform:translateX(200%)}
 .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 50px rgba(255,165,0,.45)}
-
 .btn-tg{
   display:inline-flex;align-items:center;gap:10px;
   background:rgba(0,136,204,.15);border:1px solid rgba(0,136,204,.4);
@@ -214,7 +262,6 @@ section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
   transition:transform .15s,background .2s,border-color .2s;
 }
 .btn-tg:hover{transform:translateY(-3px);background:rgba(0,136,204,.3);border-color:rgba(0,136,204,.8)}
-
 .btn-tg-grupo{
   display:inline-flex;align-items:center;gap:10px;
   background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);
@@ -223,18 +270,13 @@ section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
   transition:transform .15s,background .2s,border-color .2s;
 }
 .btn-tg-grupo:hover{transform:translateY(-3px);background:rgba(124,58,237,.3);border-color:rgba(124,58,237,.8)}
-
 .btn-icon{font-size:20px;line-height:1}
-
 .hero-stats{
   display:flex;flex-wrap:wrap;gap:0;justify-content:center;
   margin-top:64px;animation:fadeUp .7s .4s ease both;
   border:1px solid var(--border);border-radius:8px;overflow:hidden;
 }
-.hstat{
-  padding:20px 36px;text-align:center;
-  border-right:1px solid var(--border);
-}
+.hstat{padding:20px 36px;text-align:center;border-right:1px solid var(--border)}
 .hstat:last-child{border-right:none}
 .hstat-val{
   font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;
@@ -245,14 +287,11 @@ section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
 
 /* ── SCROLL MARQUEE ── */
 .marquee-wrap{
-  position:relative;z-index:1;
-  padding:20px 0;overflow:hidden;
+  position:relative;z-index:1;padding:20px 0;overflow:hidden;
   border-top:1px solid var(--border);border-bottom:1px solid var(--border);
   background:rgba(255,215,0,.02);
 }
-.marquee-track{
-  display:flex;gap:0;animation:marqueeScroll 22s linear infinite;white-space:nowrap;
-}
+.marquee-track{display:flex;gap:0;animation:marqueeScroll 22s linear infinite;white-space:nowrap;}
 .marquee-item{
   display:inline-flex;align-items:center;gap:20px;padding:0 32px;
   font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
@@ -265,17 +304,13 @@ section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
 /* ── SECTIONS ── */
 section{position:relative;z-index:1}
 .container{max-width:1140px;margin:0 auto;padding:0 24px}
-
 .section-label{
-  display:inline-block;
-  font-family:'JetBrains Mono',monospace;font-size:11px;
-  letter-spacing:3px;color:var(--gold);text-transform:uppercase;
-  margin-bottom:16px;
+  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:16px;
 }
 .section-title{
   font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(44px,7vw,88px);line-height:.95;letter-spacing:-1px;
-  margin-bottom:20px;
+  font-size:clamp(44px,7vw,88px);line-height:.95;letter-spacing:-1px;margin-bottom:20px;
 }
 .section-title em{
   font-style:normal;
@@ -291,7 +326,7 @@ section{position:relative;z-index:1}
 }
 .airdrop-visual{
   position:relative;display:flex;align-items:center;justify-content:center;
-  overflow:hidden; /* evita que los orbit rings desborden */
+  overflow:visible;
 }
 .coin-hero{
   width:260px;height:260px;border-radius:50%;
@@ -312,14 +347,10 @@ section{position:relative;z-index:1}
   background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);
 }
 .coin-label{position:absolute;z-index:3;font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,.92);letter-spacing:2px}
-
 @keyframes coinFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-18px) rotate(3deg)}}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
-.orbit-ring{
-  position:absolute;border-radius:50%;border:1px dashed;
-  animation:orbitSpin linear infinite;
-}
+.orbit-ring{position:absolute;border-radius:50%;border:1px dashed;animation:orbitSpin linear infinite;}
 .or1{width:340px;height:340px;border-color:rgba(255,215,0,.15);animation-duration:16s}
 .or2{width:420px;height:420px;border-color:rgba(255,60,172,.08);animation-duration:24s;animation-direction:reverse}
 .or3{width:500px;height:500px;border-color:rgba(0,229,255,.06);animation-duration:32s}
@@ -327,16 +358,12 @@ section{position:relative;z-index:1}
 
 .airdrop-features{display:flex;flex-direction:column;gap:28px}
 .af{
-  display:flex;gap:20px;align-items:flex-start;
-  padding:24px;border:1px solid var(--border);border-radius:8px;
-  background:rgba(255,215,0,.02);
+  display:flex;gap:20px;align-items:flex-start;padding:24px;
+  border:1px solid var(--border);border-radius:8px;background:rgba(255,215,0,.02);
   transition:border-color .3s,background .3s;
 }
 .af:hover{border-color:rgba(255,215,0,.2);background:rgba(255,215,0,.04)}
-.af-ico{
-  width:44px;height:44px;border-radius:8px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:22px;
-}
+.af-ico{width:44px;height:44px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;}
 .af-ico.gold{background:rgba(255,215,0,.12)}
 .af-ico.pink{background:rgba(255,60,172,.12)}
 .af-ico.cyan{background:rgba(0,229,255,.12)}
@@ -349,10 +376,7 @@ section{position:relative;z-index:1}
   display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
   margin-top:60px;border:1px solid var(--border);border-radius:10px;overflow:hidden;
 }
-.step{
-  padding:36px 28px;background:var(--card);position:relative;overflow:hidden;
-  transition:background .3s;
-}
+.step{padding:36px 28px;background:var(--card);position:relative;overflow:hidden;transition:background .3s;}
 .step:hover{background:var(--card2)}
 .step::before{
   content:'';position:absolute;top:0;left:0;right:0;height:2px;
@@ -360,28 +384,16 @@ section{position:relative;z-index:1}
   transform:scaleX(0);transition:transform .3s;transform-origin:left;
 }
 .step:hover::before{transform:scaleX(1)}
-.step-num{
-  font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;
-  color:rgba(255,215,0,.08);margin-bottom:16px;
-}
+.step-num{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:rgba(255,215,0,.08);margin-bottom:16px;}
 .step-ico{font-size:28px;margin-bottom:12px}
 .step h3{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--white)}
 .step p{font-size:13px;line-height:1.6;color:var(--muted)}
 
 /* ── ECONOMY ── */
 #economy{padding:100px 0}
-.economy-grid{
-  display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:center;margin-top:60px;
-}
-.eco-chart{
-  background:var(--card);border:1px solid var(--border);border-radius:12px;
-  padding:36px;position:relative;overflow:hidden;
-}
-.eco-chart::before{
-  content:'';position:absolute;top:-80px;right:-80px;
-  width:200px;height:200px;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,215,0,.06),transparent);
-}
+.economy-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:center;margin-top:60px;}
+.eco-chart{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:36px;position:relative;overflow:hidden;}
+.eco-chart::before{content:'';position:absolute;top:-80px;right:-80px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,0,.06),transparent);}
 .eco-title-sm{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
 .eco-bars{display:flex;flex-direction:column;gap:16px}
 .eco-bar-row{display:flex;align-items:center;gap:14px}
@@ -389,13 +401,8 @@ section{position:relative;z-index:1}
 .eco-bar-track{flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
 .eco-bar-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.34,1.56,.64,1)}
 .eco-bar-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);width:36px;text-align:right;flex-shrink:0}
-
 .eco-cards{display:flex;flex-direction:column;gap:20px}
-.eco-card{
-  padding:24px;border:1px solid var(--border);border-radius:8px;
-  background:rgba(255,215,0,.02);
-  transition:border-color .3s,transform .2s;
-}
+.eco-card{padding:24px;border:1px solid var(--border);border-radius:8px;background:rgba(255,215,0,.02);transition:border-color .3s,transform .2s;}
 .eco-card:hover{border-color:rgba(255,215,0,.18);transform:translateX(6px)}
 .eco-card-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .eco-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
@@ -405,24 +412,16 @@ section{position:relative;z-index:1}
 /* ── COMMUNITY CTA ── */
 #community{padding:100px 0}
 .community-box{
-  border:1px solid rgba(255,215,0,.15);border-radius:16px;
-  padding:80px 60px;text-align:center;
+  border:1px solid rgba(255,215,0,.15);border-radius:16px;padding:80px 60px;text-align:center;
   background:radial-gradient(ellipse at 50% 0%,rgba(255,215,0,.06) 0%,transparent 70%);
   position:relative;overflow:hidden;
 }
-.community-box::before{
-  content:'';position:absolute;inset:0;border-radius:16px;
-  background:linear-gradient(180deg,rgba(255,215,0,.03) 0%,transparent 50%);
-}
+.community-box::before{content:'';position:absolute;inset:0;border-radius:16px;background:linear-gradient(180deg,rgba(255,215,0,.03) 0%,transparent 50%);}
 .community-box .section-title{font-size:clamp(42px,6vw,80px)}
-.community-btns{
-  display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:44px;
-}
+.community-btns{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:44px;}
 .cbtn-big{
-  display:inline-flex;align-items:center;gap:14px;
-  padding:20px 32px;border-radius:8px;
-  font-size:16px;font-weight:700;text-decoration:none;
-  transition:transform .15s,box-shadow .2s;
+  display:inline-flex;align-items:center;gap:14px;padding:20px 32px;border-radius:8px;
+  font-size:16px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .2s;
 }
 .cbtn-big:hover{transform:translateY(-4px)}
 .cbtn-canal{background:linear-gradient(135deg,#0088cc,#006aaa);color:white;box-shadow:0 8px 40px rgba(0,136,204,.25)}
@@ -437,20 +436,10 @@ section{position:relative;z-index:1}
 
 /* ── ROADMAP ── */
 #roadmap{padding:100px 0}
-.roadmap-line{
-  position:relative;display:flex;flex-direction:column;gap:0;
-  margin-top:60px;padding-left:40px;
-}
-.roadmap-line::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:1px;
-  background:linear-gradient(180deg,var(--gold),var(--pink),transparent);
-}
+.roadmap-line{position:relative;display:flex;flex-direction:column;gap:0;margin-top:60px;padding-left:40px;}
+.roadmap-line::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--gold),var(--pink),transparent);}
 .rm-item{position:relative;padding:0 0 48px 40px}
-.rm-item::before{
-  content:'';position:absolute;left:-5px;top:8px;
-  width:10px;height:10px;border-radius:50%;
-  background:var(--gold);box-shadow:0 0 12px var(--gold);
-}
+.rm-item::before{content:'';position:absolute;left:-5px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px var(--gold);}
 .rm-item.done::before{background:var(--green);box-shadow:0 0 12px var(--green)}
 .rm-item.future::before{background:var(--muted);box-shadow:none;border:1px solid var(--muted)}
 .rm-phase{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
@@ -466,10 +455,7 @@ section{position:relative;z-index:1}
 #faq{padding:100px 0}
 .faq-list{margin-top:60px;display:flex;flex-direction:column;gap:2px}
 .faq-item{border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--card);margin-bottom:4px}
-.faq-q{
-  padding:22px 28px;display:flex;justify-content:space-between;align-items:center;
-  cursor:pointer;transition:background .2s;font-size:16px;font-weight:600;gap:12px;
-}
+.faq-q{padding:22px 28px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .2s;font-size:16px;font-weight:600;gap:12px;}
 .faq-q:hover{background:var(--card2)}
 .faq-chevron{font-size:18px;color:var(--gold);transition:transform .3s;line-height:1;flex-shrink:0}
 .faq-a{padding:0 28px;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;font-size:14px;line-height:1.7;color:var(--muted)}
@@ -477,18 +463,8 @@ section{position:relative;z-index:1}
 .faq-item.open .faq-chevron{transform:rotate(45deg)}
 
 /* ── FOOTER ── */
-footer{
-  position:relative;z-index:1;
-  border-top:1px solid var(--border);
-  padding:48px 0 32px;
-  text-align:center;
-}
-.footer-logo{
-  font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;
-  background:linear-gradient(90deg,var(--gold),var(--gold3));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  margin-bottom:12px;
-}
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:48px 0 32px;text-align:center;}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;background:linear-gradient(90deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
 .footer-sub{font-size:13px;color:var(--muted);margin-bottom:32px}
 .footer-links{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-bottom:32px}
 .footer-links a{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s}
@@ -502,10 +478,9 @@ footer{
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
-  :root{ --nav-h:60px }
+  :root{--nav-h:60px}
   nav{padding:0 20px}
   .nav-links{display:none}
-  /* logo + CTA quedan solos, bien alineados */
   .airdrop-grid,.economy-grid{grid-template-columns:1fr}
   .airdrop-visual{order:-1;height:300px}
   .steps-grid{grid-template-columns:1fr 1fr}
@@ -519,34 +494,21 @@ footer{
   .hstat:last-child{border-bottom:none}
   .community-box{padding:48px 24px}
 }
-
 @media(max-width:600px){
-  :root{
-    --ticker-h:36px;
-    --nav-h:54px;
-  }
+  :root{--ticker-h:36px;--nav-h:54px;}
   .ticker-item{font-size:10px;padding:0 12px;gap:8px}
-
-  /* Nav compacto: logo + CTA juntos sin desbordarse */
   nav{padding:0 14px;gap:12px}
   .nav-logo{font-size:20px;letter-spacing:2px}
   .nav-cta{padding:8px 12px;font-size:11px;letter-spacing:0}
-
   .hero-btns{flex-direction:column;align-items:center}
   .hero-btns a{width:100%;max-width:300px;justify-content:center}
-
   .steps-grid{grid-template-columns:1fr}
-
-  /* Orbit rings pequeños para no causar scroll horizontal */
   .or2{width:260px;height:260px}
   .or3{display:none}
-
   .community-box{padding:36px 16px}
   .community-btns{flex-direction:column;align-items:center}
   .cbtn-big{width:100%;max-width:340px;justify-content:center}
-
   .eco-bar-lbl{width:90px;font-size:11px}
-
   .faq-q{font-size:14px;padding:16px}
   .faq-a{font-size:13px}
   .faq-item.open .faq-a{padding:0 16px 16px}
@@ -584,7 +546,7 @@ footer{
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">₿ CRYPTO CLICK</div>
+  <div class="nav-logo">₿ CRYPTO ALIEN CLICK</div>
   <div class="nav-links">
     <a href="#airdrop">Airdrop</a>
     <a href="#howto">Cómo funciona</a>
@@ -601,9 +563,17 @@ footer{
     <span class="line1">MINA</span>
     <span class="line2">$CLK</span>
   </h1>
+
+  <!-- ── HERO IMAGE: flotar + glow dorado/naranja/rosa ── -->
+  <img
+    src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_044416658.png"
+    alt="Alien Coin"
+    class="hero-alien-img"
+    style="width:40%;height:40%;object-fit:contain;">
+
   <p class="hero-sub">
-    El juego de tap-to-earn donde <strong>tus tokens valen de verdad</strong>. 
-    Mina, sube de rango, invita amigos — y cuando lancemos en blockchain, 
+    El juego de tap-to-earn donde <strong>tus tokens valen de verdad</strong>.
+    Mina, sube de rango, invita amigos — y cuando lancemos en blockchain,
     cobra tu parte del <strong>Airdrop</strong>.
   </p>
   <div class="hero-btns">
@@ -612,22 +582,10 @@ footer{
     <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="btn-tg-grupo"><span class="btn-icon">👥</span> Grupo Comunidad</a>
   </div>
   <div class="hero-stats">
-    <div class="hstat">
-      <div class="hstat-val" id="stat-players">∞</div>
-      <div class="hstat-lbl">Mineros Activos</div>
-    </div>
-    <div class="hstat">
-      <div class="hstat-val">$CLK</div>
-      <div class="hstat-lbl">Token del Airdrop</div>
-    </div>
-    <div class="hstat">
-      <div class="hstat-val">100%</div>
-      <div class="hstat-lbl">Gratis para jugar</div>
-    </div>
-    <div class="hstat">
-      <div class="hstat-val">0€</div>
-      <div class="hstat-lbl">Sin inversión inicial</div>
-    </div>
+    <div class="hstat"><div class="hstat-val" id="stat-players">∞</div><div class="hstat-lbl">Mineros Activos</div></div>
+    <div class="hstat"><div class="hstat-val">$CLK</div><div class="hstat-lbl">Token del Airdrop</div></div>
+    <div class="hstat"><div class="hstat-val">100%</div><div class="hstat-lbl">Gratis para jugar</div></div>
+    <div class="hstat"><div class="hstat-val">0€</div><div class="hstat-lbl">Sin inversión inicial</div></div>
   </div>
 </section>
 
@@ -674,12 +632,15 @@ footer{
           </div>
         </div>
       </div>
+
+      <!-- ── AIRDROP IMAGE: flotar + glow cyan/purple ── -->
       <div class="airdrop-visual reveal">
-        <div class="orbit-ring or1"></div>
-        <div class="orbit-ring or2"></div>
-        <div class="orbit-ring or3"></div>
-        <div class="coin-hero"><span class="coin-label">CLK$</span></div>
+        <img
+          src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_053356494.png"
+          alt="Alien Coin"
+          style="width:70%;height:70%;object-fit:contain;">
       </div>
+
     </div>
   </div>
 </section>
@@ -739,7 +700,7 @@ footer{
       <div class="rm-item done reveal">
         <div class="rm-phase">Fase 1 · Completada</div>
         <div class="rm-title">Lanzamiento del juego</div>
-        <p class="rm-desc">Crypto Click disponible para todos los dispositivos sin instalación. Sistema de tap-to-earn, mejoras, misiones y referidos.</p>
+        <p class="rm-desc">Crypto Alien Click disponible para todos los dispositivos sin instalación. Sistema de tap-to-earn, mejoras, misiones y referidos.</p>
         <span class="rm-badge active">✅ EN VIVO</span>
       </div>
       <div class="rm-item reveal">
@@ -789,7 +750,14 @@ footer{
     <h2 class="section-title reveal">Empieza a <em>minar</em></h2>
     <p class="section-sub reveal" style="margin:0 auto 40px">El juego funciona 100% en el navegador, sin instalación, sin registro. Solo entra y empieza a acumular $CLK.</p>
     <div class="reveal" style="background:var(--card);border:1px solid rgba(255,215,0,.15);border-radius:16px;padding:60px 40px;max-width:600px;margin:0 auto">
-      <div style="font-size:80px;margin-bottom:20px;animation:coinFloat 4s ease-in-out infinite">🪙</div>
+
+      <!-- ── JUGAR IMAGE: pulse dorado intenso, se escala al hover ── -->
+      <img
+        src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_032954295.png"
+        alt="Alien Coin"
+        class="jugar-alien-img"
+        style="width:50%;height:50%;object-fit:contain;">
+
       <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px">CRYPTO CLICK</div>
       <p style="font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.6">Tap · Mina · Sube de rango · Cobra el airdrop</p>
       <a href="index.html" class="btn-primary" style="font-size:18px;padding:20px 48px">⛏️ &nbsp;ABRIR EL JUEGO</a>
@@ -805,7 +773,7 @@ footer{
     <h2 class="section-title reveal">FAQ</h2>
     <div class="faq-list reveal">
       <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Es gratis jugar? <span class="faq-chevron">+</span></div><div class="faq-a">Completamente gratis. No necesitas invertir ni un céntimo para jugar, acumular $CLK y participar en el airdrop. El juego se financia mediante colaboraciones publicitarias.</div></div>
-      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Cómo se financia el airdrop? <span class="faq-chevron">+</span></div><div class="faq-a">Los ingresos provienen de colaboraciones con marcas y proyectos crypto que pagan por aparecer en el ecosistema de Crypto Click. El 70% de esos ingresos se destina directamente a financiar el airdrop de los jugadores.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Cómo se financia el airdrop? <span class="faq-chevron">+</span></div><div class="faq-a">Los ingresos provienen de colaboraciones con marcas y proyectos crypto que pagan por aparecer en el ecosistema de Crypto Alien Click. El 70% de esos ingresos se destina directamente a financiar el airdrop de los jugadores.</div></div>
       <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Cuándo será el airdrop? <span class="faq-chevron">+</span></div><div class="faq-a">La fecha exacta se anunciará en el canal oficial de Telegram. Por eso es fundamental que te suscribas para no perderte el aviso. Sigue minando mientras tanto para acumular más $CLK.</div></div>
       <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Se guardan mis tokens? <span class="faq-chevron">+</span></div><div class="faq-a">Sí. Tu progreso se guarda automáticamente en tu dispositivo mediante localStorage. También puedes exportar un código de partida en la sección "Mi Partida" para transferirlo a otro dispositivo o navegador.</div></div>
       <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Tengo que suscribirme a Telegram para cobrar? <span class="faq-chevron">+</span></div><div class="faq-a">Sí. Para poder reclamar tu parte del airdrop es obligatorio estar suscrito al canal oficial de Telegram antes de la fecha de lanzamiento. Esta es la única forma que tenemos de verificar la participación activa de la comunidad.</div></div>
@@ -817,7 +785,7 @@ footer{
 <!-- FOOTER -->
 <footer>
   <div class="container">
-    <div class="footer-logo">₿ CRYPTO CLICK</div>
+    <div class="footer-logo">₿ CRYPTO ALIEN CLICK</div>
     <div class="footer-sub">El juego del Airdrop $CLK · Tap to earn · Play to earn</div>
     <div class="footer-links">
       <a href="#jugar">Jugar ahora</a>
@@ -826,7 +794,7 @@ footer{
       <a href="#faq">FAQ</a>
       <a href="#economy">Economía</a>
     </div>
-    <div class="footer-copy">© 2026 CRYPTO CLICK · $CLK TOKEN · TODOS LOS DERECHOS RESERVADOS</div>
+    <div class="footer-copy">© 2026 CRYPTO ALIEN CLICK · $CLK TOKEN · TODOS LOS DERECHOS RESERVADOS</div>
   </div>
 </footer>
 
@@ -835,14 +803,8 @@ footer{
 const cur=document.getElementById('cursor');
 const cur2=document.getElementById('cursor2');
 let mx=0,my=0,cx=0,cy=0;
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX;my=e.clientY;
-  cur.style.left=mx+'px';cur.style.top=my+'px';
-});
-setInterval(()=>{
-  cx+=(mx-cx)*.15;cy+=(my-cy)*.15;
-  cur2.style.left=cx+'px';cur2.style.top=cy+'px';
-},16);
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+setInterval(()=>{cx+=(mx-cx)*.15;cy+=(my-cy)*.15;cur2.style.left=cx+'px';cur2.style.top=cy+'px';},16);
 document.querySelectorAll('a,button').forEach(el=>{
   el.addEventListener('mouseenter',()=>{cur.style.width='28px';cur.style.height='28px';});
   el.addEventListener('mouseleave',()=>{cur.style.width='16px';cur.style.height='16px';});
