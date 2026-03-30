@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Crypto Click — $CLK</title>
+<title>Crypto Alien Click — $CLK</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -19,7 +19,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 /* LOADING */
 #loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s}
 #loading.hide{opacity:0;pointer-events:none}
-.ll{font-family:var(--fh);font-size:34px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 1.2s ease-in-out infinite}
+.ll{font-family:var(--fh);font-size:28px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 .lbw{width:200px;height:6px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden}
 .lb{height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#FF3CAC);border-radius:6px;transition:width .1s linear}
@@ -253,15 +253,32 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
 .cbtn-big.cbtn-juego{display:inline-flex;align-items:center;justify-content:center;padding:18px 32px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#FF6B35);color:#1a0a00;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 8px 40px rgba(255,165,0,.3);transition:all 0.2s ease}
 .cbtn-big.cbtn-juego:hover{transform:translateY(-3px);box-shadow:0 16px 50px rgba(255,165,0,.5)}
+
+
+/* Ocultar sección de skins completa */
+#skinsec {
+  display: none !important;
+}
+
+/* Por si acaso */
+#skingrid {
+  display: none !important;
+}
+
+
+
+
 </style>
 </head>
 <body>
 
+
+
 <div id="loading">
-  <div class="ll">₿ CRYPTO CLICK</div>
+  <div class="ll">₿ CRYPTO ALIEN CLICK</div>
   <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_044416658.png" 
-     alt="alien" 
-     style="width:170px; height:170px; animation:pulse 1s infinite; object-fit:contain;">
+       alt="alien" 
+       style="width:170px; height:170px; animation:pulse 1s infinite; object-fit:contain;">
   <div class="lbw"><div class="lb" id="lbar"></div></div>
   <div class="lt" id="ltip">INICIANDO BLOCKCHAIN...</div>
 </div>
@@ -272,7 +289,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 <div id="app">
 
   <div id="topbar">
-  <a href="landing.html" id="logo">₿ CRYPTO CLICK</a>
+  <a href="landing.html" id="logo">₿ CRYPTO ALIEN CLICK</a>
   <div id="rankpill">🐣 Crypto Noob</div>
   </div>
 
@@ -301,7 +318,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
           <div class="csheen"></div><div class="cglow"></div>
           <!-- ── CAMBIO: imagen alien en lugar de texto CLK$ ── -->
           <div class="csym">
-            <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_032954295.png" alt="alien">
+            <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_063514358.png" alt="alien">
           </div>
         </button>
       </div>
@@ -360,7 +377,13 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <input id="refinp" type="text" placeholder="Ej: ABC1234" maxlength="8">
       <button id="refgo" onclick="subRef()">✓</button>
     </div>
+    <center> <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_064302460.png" 
+       alt="alien" 
+       style="width:190px; height:190px; animation:pulse 1s infinite; object-fit:contain;"> 
+    </center>
   </div>
+ 
+  
 
   <!-- TELEGRAM CTA -->
   <div id="screen-leaderboard" class="screen">
@@ -431,6 +454,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
   <!-- SAVE/LOAD -->
   <div id="screen-save" class="screen">
+    
     <div class="sh">💾 Mi Partida</div>
     <div class="ss">Exporta tu progreso para usarlo en cualquier dispositivo o navegador</div>
 
@@ -507,13 +531,15 @@ const RANKS=[
   {name:'Satoshi',      minLvl:30, e:'⚡',tapB:60 },
   {name:'Blockchain God',minLvl:50,e:'🌌',tapB:100},
 ];
-const SKINS=[
+
+  const SKINS=[
   {id:0,ico:'🌟',name:'Original',cls:'s0',lvl:1 },
   {id:1,ico:'🔵',name:'Ice',     cls:'s1',lvl:3 },
   {id:2,ico:'💜',name:'Purple',  cls:'s2',lvl:6 },
   {id:3,ico:'💚',name:'Matrix',  cls:'s3',lvl:10},
   {id:4,ico:'❤️', name:'Ruby',   cls:'s4',lvl:15},
 ];
+
 const UPS=[
   {id:'gpu',   n:'Mining GPU',       i:'🖥️',d:'Procesador basico de tokens',        base:100,     pph:2,      max:50},
   {id:'asic',  n:'ASIC Rig',         i:'⚙️',d:'Hardware dedicado al minado',         base:500,     pph:12,     max:40},
