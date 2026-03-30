@@ -129,6 +129,26 @@ nav{
 }
 .nav-cta:hover{transform:translateY(-2px);box-shadow:0 0 35px rgba(255,215,0,.4)}
 
+
+/* ── Imagen flotante en airdrop ── */
+.airdrop-visual img {
+  position: relative;       /* para poder animarla */
+  z-index:1;               /* para que no tape otros elementos */
+  animation: floatSlow 6s ease-in-out infinite;
+  display:block;
+  max-width:100%;          /* que se ajuste al contenedor */
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25%       { transform: translateY(-8px) rotate(1deg); }
+  50%       { transform: translateY(-16px) rotate(2deg); }
+  75%       { transform: translateY(-8px) rotate(1deg); }
+}
+
+
+
+  
 /* ── HERO — padding compensa ticker + nav ── */
 #hero{
   position:relative;z-index:1;
