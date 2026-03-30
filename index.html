@@ -72,70 +72,34 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
 /* COIN */
 #coinsec{display:flex;flex-direction:column;align-items:center;padding:4px 16px 8px;position:relative}
-#coinout{position:relative;width:274px;height:274px;display:flex;align-items:center;justify-content:center}
+#coinout{position:relative;width:210px;height:210px;display:flex;align-items:center;justify-content:center}
 .or{position:absolute;border-radius:50%;pointer-events:none}
-.or1{width:274px;height:274px;border:1px dashed rgba(255,215,0,.18);animation:os 14s linear infinite}
-.or2{width:298px;height:298px;border:1px dashed rgba(6,182,212,.12);animation:os 22s linear infinite reverse}
-.or3{width:322px;height:322px;border:1px dashed rgba(255,60,172,.08);animation:os 30s linear infinite}
+.or1{width:220px;height:220px;border:1px dashed rgba(255,215,0,.18);animation:os 14s linear infinite}
+.or2{width:244px;height:244px;border:1px dashed rgba(6,182,212,.12);animation:os 22s linear infinite reverse}
+.or3{width:268px;height:268px;border:1px dashed rgba(255,60,172,.08);animation:os 30s linear infinite}
 @keyframes os{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
 .osat{position:absolute;border-radius:50%;pointer-events:none;font-size:12px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
 .os1{animation:osat1 14s linear infinite}
 .os2{animation:osat2 22s linear infinite reverse}
-@keyframes osat1{from{transform:rotate(0) translateX(134px) rotate(0)}to{transform:rotate(360deg) translateX(134px) rotate(-360deg)}}
-@keyframes osat2{from{transform:rotate(0) translateX(146px) rotate(0)}to{transform:rotate(360deg) translateX(146px) rotate(-360deg)}}
+@keyframes osat1{from{transform:rotate(0) translateX(110px) rotate(0)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
+@keyframes osat2{from{transform:rotate(0) translateX(122px) rotate(0)}to{transform:rotate(360deg) translateX(122px) rotate(-360deg)}}
 
-/* ── BOTÓN E IMAGEN MODIFICADOS ── */
-#coinbtn {
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  -webkit-user-select: none;
-  background: transparent !important;
-  box-shadow: none !important;
+#coinbtn{width:186px;height:186px;border-radius:50%;border:none;cursor:pointer;position:relative;overflow:hidden;transition:transform .07s ease,box-shadow .07s ease;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
+
+/* ── CAMBIO: fondo transparente para todas las skins ── */
+#coinbtn.s0,#coinbtn.s1,#coinbtn.s2,#coinbtn.s3,#coinbtn.s4{
+  background:transparent !important;
+  box-shadow:none !important;
 }
 
-/* Efecto de vibración al hacer clic */
-#coinbtn:active .csym img {
-  animation: shake 0.15s ease-in-out 0s 2;
-}
+#coinbtn:active{transform:scale(0.91)!important}
+.csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 3.5s ease-in-out infinite;pointer-events:none}
+@keyframes sheen{0%{transform:translateX(-100%) rotate(15deg)}55%{transform:translateX(450%) rotate(15deg)}100%{transform:translateX(450%) rotate(15deg)}}
 
-/* Animación de vibración */
-@keyframes shake {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(3px, -2px) rotate(1deg); }
-  50% { transform: translate(-2px, 3px) rotate(-1deg); }
-  75% { transform: translate(2px, -1px) rotate(0.5deg); }
-  100% { transform: translate(0, 0) rotate(0); }
-}
-
-/* La imagen del alien */
-.csym {
-  pointer-events: none;
-  user-select: none;
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-}
-.csym img {
-  width: 250px;
-  height: 250px;
-  object-fit: contain;
-  pointer-events: none;
-  display: block;
-  transition: all 0.05s ease;
-}
+/* ── CAMBIO: csym ahora es contenedor de imagen ── */
+.csym{pointer-events:none;user-select:none;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
+.csym img{width:186px;height:186px;transform: scale(1.3);object-fit:contain;pointer-events:none;display:block}
 
 .cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s}
 #coinbtn:active .cglow{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.15),transparent)}
@@ -289,7 +253,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
 .cbtn-big.cbtn-juego{display:inline-flex;align-items:center;justify-content:center;padding:18px 32px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#FF6B35);color:#1a0a00;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 8px 40px rgba(255,165,0,.3);transition:all 0.2s ease}
 .cbtn-big.cbtn-juego:hover{transform:translateY(-3px);box-shadow:0 16px 50px rgba(255,165,0,.5)}
-
 </style>
 </head>
 <body>
