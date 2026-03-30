@@ -293,14 +293,22 @@ section{position:relative;z-index:1}
   position:relative;display:flex;align-items:center;justify-content:center;
   overflow:hidden; /* evita que los orbit rings desborden */
 }
-.coin-hero{
-  width:260px;height:260px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);
-  box-shadow:0 0 80px rgba(255,165,0,.4),0 0 160px rgba(255,107,53,.2);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,.9);
-  letter-spacing:2px;animation:coinFloat 4s ease-in-out infinite;
-  position:relative;z-index:2;
+.coin-hero {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: transparent;       /* Fondo invisible */
+  box-shadow: none;             /* Sin sombra */
+  color: transparent;           /* Texto invisible */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  letter-spacing: 2px;
+  animation: coinFloat 4s ease-in-out infinite; /* Mantiene la animación */
+  position: relative;
+  z-index: 2;                   /* Sigue flotando por encima si quieres */
 }
 .coin-hero::before{
   content:'';position:absolute;inset:-3px;border-radius:50%;
