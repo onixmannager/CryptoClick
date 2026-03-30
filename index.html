@@ -244,6 +244,47 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 /* TOAST */
 #toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 #toast.show{opacity:1}
+
+
+  #logo {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  }
+
+
+
+
+  .cbtn-big.cbtn-juego {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 18px 32px;
+  border-radius: 8px;
+
+  background: linear-gradient(135deg, #FFD700, #FF6B35);
+  color: #1a0a00;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  text-decoration: none;   /* 🔥 quita subrayado */
+  cursor: pointer;
+
+  box-shadow: 0 8px 40px rgba(255,165,0,.3);
+  transition: all 0.2s ease;
+}
+
+.cbtn-big.cbtn-juego:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 50px rgba(255,165,0,.5);
+}
+
+
+
+
+  
 </style>
 </head>
 <body>
@@ -261,8 +302,8 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 <div id="app">
 
   <div id="topbar">
-    <div id="logo">₿ CRYPTO CLICK</div>
-    <div id="rankpill">🐣 Crypto Noob</div>
+  <a href="landing.html" id="logo">₿ CRYPTO CLICK</a>
+  <div id="rankpill">🐣 Crypto Noob</div>
   </div>
 
   <!-- MINE -->
@@ -360,6 +401,12 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <div style="font-family:var(--fh);font-size:22px;color:var(--yellow);margin-bottom:8px">¡AIRDROP DE $CLK!</div>
       <div style="font-size:13px;color:#c4b5fd;line-height:1.6;margin-bottom:6px">Todos los jugadores recibirán sus tokens <strong style="color:white">$CLK reales</strong> cuando lancemos en blockchain.</div>
       <div style="font-size:12px;color:var(--muted);font-weight:700">Tus tokens actuales = tu parte del airdrop 🎁</div>
+
+      <a href="landing.html" class="cbtn-big cbtn-juego" style="margin-top:20px; display:inline-block;">
+  Saber más
+    </a>
+
+      
     </div>
 
     <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,107,53,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center;margin-bottom:14px">
