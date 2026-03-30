@@ -139,6 +139,10 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 .csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 4s ease-in-out infinite;pointer-events:none;z-index:2}
 @keyframes sheen{0%{transform:translateX(-100%) rotate(15deg)}55%{transform:translateX(450%) rotate(15deg)}100%{transform:translateX(450%) rotate(15deg)}}
 
+
+.csheen { display: none !important; }
+  
+
 .cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s;z-index:3;pointer-events:none}
 #coinwrap.pressed .cglow{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.15),transparent)}
 .crip{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none;transform:translate(-50%,-50%);animation:rexp .55s ease-out forwards;z-index:4}
