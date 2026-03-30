@@ -85,25 +85,63 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 @keyframes osat1{from{transform:rotate(0) translateX(110px) rotate(0)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
 @keyframes osat2{from{transform:rotate(0) translateX(122px) rotate(0)}to{transform:rotate(360deg) translateX(122px) rotate(-360deg)}}
 
-#coinbtn{width:186px;height:186px;border-radius:50%;border:none;cursor:pointer;position:relative;overflow:hidden;transition:transform .07s ease,box-shadow .07s ease;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
-
-/* ── CAMBIO: fondo transparente para todas las skins ── */
-#coinbtn.s0,#coinbtn.s1,#coinbtn.s2,#coinbtn.s3,#coinbtn.s4{
-  background:transparent !important;
-  box-shadow:none !important;
+/* ── COIN BUTTON WRAPPER: handles scale, never clips ── */
+#coinwrap {
+  position: relative;
+  width: 186px;
+  height: 186px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform .07s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* This is what triggers the scale on tap */
+  user-select: none;
+  -webkit-user-select: none;
+}
+#coinwrap.pressed {
+  transform: scale(1.2);
 }
 
-#coinbtn:active{transform:scale(0.91)!important}
-.csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 3.5s ease-in-out infinite;pointer-events:none}
+/* ── COIN BUTTON: invisible, fills wrap, sits on top ── */
+#coinbtn{
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 10;
+  /* No overflow hidden here so ripple can show */
+}
+
+/* Coin image sits inside wrap, behind the button */
+.csym{
+  pointer-events: none;
+  user-select: none;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+.csym img{
+  width:186px;
+  height:186px;
+  transform: scale(1.3);
+  object-fit:contain;
+  pointer-events:none;
+  display:block;
+}
+
+.csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 3.5s ease-in-out infinite;pointer-events:none;z-index:2}
 @keyframes sheen{0%{transform:translateX(-100%) rotate(15deg)}55%{transform:translateX(450%) rotate(15deg)}100%{transform:translateX(450%) rotate(15deg)}}
 
-/* ── CAMBIO: csym ahora es contenedor de imagen ── */
-.csym{pointer-events:none;user-select:none;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
-.csym img{width:186px;height:186px;transform: scale(1.3);object-fit:contain;pointer-events:none;display:block}
-
-.cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s}
-#coinbtn:active .cglow{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.15),transparent)}
-.crip{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none;transform:translate(-50%,-50%);animation:rexp .55s ease-out forwards}
+.cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s;z-index:3;pointer-events:none}
+#coinwrap.pressed .cglow{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.15),transparent)}
+.crip{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none;transform:translate(-50%,-50%);animation:rexp .55s ease-out forwards;z-index:4}
 @keyframes rexp{0%{width:10px;height:10px;opacity:.8}100%{width:220px;height:220px;opacity:0}}
 .fn{position:fixed;pointer-events:none;z-index:9999;font-family:var(--fh);font-size:20px;color:var(--yellow);text-shadow:0 0 10px rgba(255,215,0,.7);animation:fup .95s ease-out forwards}
 @keyframes fup{0%{opacity:1;transform:translateY(0) scale(1)}60%{opacity:1;transform:translateY(-45px) scale(1.15)}100%{opacity:0;transform:translateY(-90px) scale(.75)}}
@@ -254,25 +292,12 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 .cbtn-big.cbtn-juego{display:inline-flex;align-items:center;justify-content:center;padding:18px 32px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#FF6B35);color:#1a0a00;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 8px 40px rgba(255,165,0,.3);transition:all 0.2s ease}
 .cbtn-big.cbtn-juego:hover{transform:translateY(-3px);box-shadow:0 16px 50px rgba(255,165,0,.5)}
 
-
 /* Ocultar sección de skins completa */
-#skinsec {
-  display: none !important;
-}
-
-/* Por si acaso */
-#skingrid {
-  display: none !important;
-}
-
-
-
-
+#skinsec { display: none !important; }
+#skingrid { display: none !important; }
 </style>
 </head>
 <body>
-
-
 
 <div id="loading">
   <div class="ll">₿ CRYPTO ALIEN CLICK</div>
@@ -314,13 +339,17 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
         <div class="or or1"></div><div class="or or2"></div><div class="or or3"></div>
         <div class="osat os1">⚡</div>
         <div class="osat os2">💎</div>
-        <button id="coinbtn" class="s0" ontouchstart="htap(event)" onclick="htap(event)">
-          <div class="csheen"></div><div class="cglow"></div>
-          <!-- ── CAMBIO: imagen alien en lugar de texto CLK$ ── -->
+
+        <!-- ── NEW STRUCTURE: wrap handles scale, button is invisible overlay ── -->
+        <div id="coinwrap">
+          <div class="csheen"></div>
+          <div class="cglow"></div>
           <div class="csym">
             <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_063514358.png" alt="alien">
           </div>
-        </button>
+          <button id="coinbtn" aria-label="Minar CLK"></button>
+        </div>
+
       </div>
       <div id="comboa">
         <div id="combopill">🔥 COMBO x<span id="cv">1</span></div>
@@ -377,13 +406,10 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <input id="refinp" type="text" placeholder="Ej: ABC1234" maxlength="8">
       <button id="refgo" onclick="subRef()">✓</button>
     </div>
-    <center> <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_064302460.png" 
+    <center><img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_064302460.png" 
        alt="alien" 
-       style="width:190px; height:190px; animation:pulse 1s infinite; object-fit:contain;"> 
-    </center>
+       style="width:190px; height:190px; animation:pulse 1s infinite; object-fit:contain;"></center>
   </div>
- 
-  
 
   <!-- TELEGRAM CTA -->
   <div id="screen-leaderboard" class="screen">
@@ -454,7 +480,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
   <!-- SAVE/LOAD -->
   <div id="screen-save" class="screen">
-    
     <div class="sh">💾 Mi Partida</div>
     <div class="ss">Exporta tu progreso para usarlo en cualquier dispositivo o navegador</div>
 
@@ -531,15 +556,13 @@ const RANKS=[
   {name:'Satoshi',      minLvl:30, e:'⚡',tapB:60 },
   {name:'Blockchain God',minLvl:50,e:'🌌',tapB:100},
 ];
-
-  const SKINS=[
+const SKINS=[
   {id:0,ico:'🌟',name:'Original',cls:'s0',lvl:1 },
   {id:1,ico:'🔵',name:'Ice',     cls:'s1',lvl:3 },
   {id:2,ico:'💜',name:'Purple',  cls:'s2',lvl:6 },
   {id:3,ico:'💚',name:'Matrix',  cls:'s3',lvl:10},
   {id:4,ico:'❤️', name:'Ruby',   cls:'s4',lvl:15},
 ];
-
 const UPS=[
   {id:'gpu',   n:'Mining GPU',       i:'🖥️',d:'Procesador basico de tokens',        base:100,     pph:2,      max:50},
   {id:'asic',  n:'ASIC Rig',         i:'⚙️',d:'Hardware dedicado al minado',         base:500,     pph:12,     max:40},
@@ -732,19 +755,25 @@ function upd(){
   document.getElementById('dailybadge').textContent=dr?'RECLAMAR':'✅ OK';
   if(dr){document.getElementById('dailysub').textContent='¡Reclama tu recompensa!';}
   else{const nxt=86400000-(Date.now()-S.lastDaily);const h=Math.floor(nxt/3600000),m=Math.floor((nxt%3600000)/60000);document.getElementById('dailysub').textContent='Vuelve en '+h+'h '+m+'m';}
-  document.getElementById('coinbtn').className=SKINS[S.skin]?SKINS[S.skin].cls:'s0';
 }
 
+/* ── TAP HANDLER: now on coinwrap, works everywhere on circle ── */
 let lastTap=0,combo=0,comboTO=null,tLock=false;
+
 function htap(e){
   e.preventDefault();
-  if(e.type==='touchstart')tLock=true;else if(e.type==='click'&&tLock){tLock=false;return}
-  if(S.energy<1){document.getElementById('noeov').classList.add('show');return}
+  if(e.type==='touchstart')tLock=true;
+  else if(e.type==='click'&&tLock){tLock=false;return;}
+
+  if(S.energy<1){document.getElementById('noeov').classList.add('show');return;}
   try{if(window.navigator&&window.navigator.vibrate)window.navigator.vibrate(15);}catch(err){}
-  const mult=isBoost()?2:1,earned=S.tapPow*mult;
+
+  const mult=isBoost()?2:1, earned=S.tapPow*mult;
   addClk(earned,'tap');S.totalTaps++;S.energy=Math.max(0,S.energy-1);
+
   const now=Date.now();
-  if(now-lastTap<500)combo++;else combo=1;lastTap=now;
+  if(now-lastTap<500)combo++;else combo=1;
+  lastTap=now;
   if(combo>S.maxCombo)S.maxCombo=combo;
   if(comboTO)clearTimeout(comboTO);
   comboTO=setTimeout(()=>{combo=0;document.getElementById('combopill').classList.remove('show');},1600);
@@ -752,35 +781,63 @@ function htap(e){
   document.getElementById('combopill').classList.toggle('show',combo>=3);
   if(combo===10){spawnBurst();showSfire();}
   if(combo>10&&combo%5===0)spawnBurst();
+
   S.xp+=1+Math.floor(combo/5);
   if(S.xp>=S.xpNeed){
     const pr=getRank().name;S.xp-=S.xpNeed;S.lvl++;S.xpNeed=Math.floor(500*Math.pow(1.18,S.lvl-1));recalc();
     const nr=getRank();const sk=SKINS.find(x=>x.lvl===S.lvl);if(sk)toast('🎨 Nueva skin "'+sk.name+'" desbloqueada!');if(nr.name!==pr)showRankup(nr);
   }
-  spawnFloat(e,'+'+fmt(earned));spawnRipple(e);if(combo>=5)spawnParts(getCenter(),combo);
+  spawnFloat(e,'+'+fmt(earned));
+  spawnRipple(e);
+  if(combo>=5)spawnParts(getCenter(),combo);
   checkMiss();upd();save();
 }
-function getCenter(){const r=document.getElementById('coinbtn').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+
+/* ── Scale animation on wrap ── */
+function setupCoinPress(){
+  const wrap=document.getElementById('coinwrap');
+  function pressOn(e){
+    // Only trigger if click is within the circle (not on outer rings)
+    wrap.classList.add('pressed');
+  }
+  function pressOff(){
+    wrap.classList.remove('pressed');
+  }
+  wrap.addEventListener('touchstart', e=>{pressOn(e); htap(e);}, {passive:false});
+  wrap.addEventListener('touchend', pressOff, {passive:true});
+  wrap.addEventListener('touchcancel', pressOff, {passive:true});
+  wrap.addEventListener('mousedown', pressOn);
+  wrap.addEventListener('mouseup', pressOff);
+  wrap.addEventListener('mouseleave', pressOff);
+  wrap.addEventListener('click', htap);
+}
+
+function getCenter(){const r=document.getElementById('coinwrap').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
 function spawnFloat(e,txt){
   const el=document.createElement('div');el.className='fn';el.textContent=txt;
-  const r=document.getElementById('coinbtn').getBoundingClientRect();
-  el.style.cssText='left:'+(r.left+r.width/2+(Math.random()-.5)*70)+'px;top:'+(r.top+r.height/2-10)+'px';
+  const r=document.getElementById('coinwrap').getBoundingClientRect();
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const radius=78+Math.random()*22;
+  const angle=Math.random()*Math.PI*2;
+  el.style.cssText='left:'+(cx+Math.cos(angle)*radius)+'px;top:'+(cy+Math.sin(angle)*radius)+'px';
   document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
 }
 function spawnRipple(e){
-  const btn=document.getElementById('coinbtn'),r=btn.getBoundingClientRect();
+  const wrap=document.getElementById('coinwrap'),r=wrap.getBoundingClientRect();
   const el=document.createElement('div');el.className='crip';
-  el.style.cssText='left:'+((e.touches?e.touches[0].clientX:e.clientX)-r.left)+'px;top:'+((e.touches?e.touches[0].clientY:e.clientY)-r.top)+'px';
-  btn.appendChild(el);setTimeout(()=>el.remove(),560);
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  el.style.cssText='left:'+(cx-r.left)+'px;top:'+(cy-r.top)+'px';
+  wrap.appendChild(el);setTimeout(()=>el.remove(),560);
 }
 function showSfire(){const el=document.getElementById('sfire');el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}
 
 const pCv=document.getElementById('pC'),pX=pCv.getContext('2d'),PARTS=[];
 function resPC(){pCv.width=window.innerWidth;pCv.height=window.innerHeight}
 resPC();window.addEventListener('resize',resPC);
-function spawnParts(pos,n){const cnt=Math.min(8+n,35);for(let i=0;i<cnt;i++){const a=Math.random()*Math.PI*2,sp=3+Math.random()*8;PARTS.push({x:pos.x,y:pos.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,dec:.016+Math.random()*.025,sz:3+Math.random()*6,col:PCOLS[Math.random()*PCOLS.length|0]});}}
-function spawnBurst(){const c=getCenter();for(let i=0;i<120;i++){const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;PARTS.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});}}
-function rankBurst(){for(let i=0;i<80;i++){const a=Math.random()*Math.PI*2,sp=5+Math.random()*12;PARTS.push({x:window.innerWidth/2,y:window.innerHeight*.4,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:.008+Math.random()*.015,sz:4+Math.random()*8,col:PCOLS[Math.random()*PCOLS.length|0]});}}
+function spawnParts(){}
+function spawnBurst(){}
+function rankBurst(){}
 function animP(){pX.clearRect(0,0,pCv.width,pCv.height);for(let i=PARTS.length-1;i>=0;i--){const p=PARTS[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.life-=p.dec;if(p.life<=0){PARTS.splice(i,1);continue}pX.globalAlpha=p.life;pX.fillStyle=p.col;pX.beginPath();pX.arc(p.x,p.y,p.sz*p.life,0,Math.PI*2);pX.fill();}pX.globalAlpha=1;requestAnimationFrame(animP);}
 animP();
 
@@ -849,8 +906,13 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
 function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(localStorage.getItem(SAVE_KEY))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
 
-function init(){load();recalc();upd();checkMiss();document.addEventListener('dblclick',e=>e.preventDefault());const cb=document.getElementById('coinbtn');cb.addEventListener('touchstart',()=>{try{window.navigator.vibrate&&window.navigator.vibrate(15);}catch(e){}},{passive:true});runLoader();}
+function init(){
+  load();recalc();upd();checkMiss();
+  document.addEventListener('dblclick',e=>e.preventDefault());
+  setupCoinPress();
+  runLoader();
+}
 init();
 </script>
 </body>
-</html>
+  </html>
