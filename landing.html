@@ -6,8 +6,10 @@
 <title>Crypto Click — El Juego del Airdrop $CLK</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+
 /* ── RESET & BASE ── */
 *{margin:0;padding:0;box-sizing:border-box}
+
 :root{
   --black:#050409;
   --deep:#0a0812;
@@ -23,6 +25,10 @@
   --white:#F5F0FF;
   --muted:#6B6490;
   --border:rgba(255,215,0,0.08);
+
+  /* Alturas fijas: todo el layout se coordina con estas dos variables */
+  --ticker-h: 40px;
+  --nav-h: 65px;
 }
 
 html{scroll-behavior:smooth}
@@ -50,7 +56,6 @@ body{
   transition:transform .35s ease;
   transform:translate(-50%,-50%);
 }
-body:hover #cursor{opacity:1}
 
 /* ── NOISE OVERLAY ── */
 body::before{
@@ -63,10 +68,37 @@ body::before{
 /* ── CANVAS ── */
 #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-/* ── NAV ── */
+/* ── TICKER — fixed en top:0 ── */
+.ticker-bar{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:1001;
+  height:var(--ticker-h);
+  background:var(--gold);
+  overflow:hidden;
+}
+.ticker-inner{
+  display:flex;
+  height:100%;
+  align-items:center;
+  animation:marqueeScroll 18s linear infinite;
+  white-space:nowrap;
+}
+.ticker-item{
+  display:inline-flex;align-items:center;gap:16px;padding:0 28px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+  color:#1a0a00;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;
+}
+.ticker-sep{color:rgba(26,10,0,.3)}
+
+/* ── NAV — fixed justo debajo del ticker ── */
 nav{
-  position:fixed;top:0;left:0;right:0;z-index:1000;
-  padding:20px 40px;
+  position:fixed;
+  top:var(--ticker-h);   /* <-- clave: empieza donde termina el ticker */
+  left:0;right:0;
+  z-index:1000;
+  height:var(--nav-h);
+  padding:0 40px;
   display:flex;align-items:center;justify-content:space-between;
   backdrop-filter:blur(20px);
   background:rgba(5,4,9,0.6);
@@ -76,11 +108,13 @@ nav{
   font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;
   background:linear-gradient(90deg,var(--gold),var(--gold3));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  flex-shrink:0;
 }
 .nav-links{display:flex;gap:32px;align-items:center}
 .nav-links a{
   color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;
   letter-spacing:1px;text-transform:uppercase;transition:color .2s;
+  white-space:nowrap;
 }
 .nav-links a:hover{color:var(--gold)}
 .nav-cta{
@@ -90,17 +124,23 @@ nav{
   letter-spacing:1px;text-transform:uppercase;
   transition:transform .15s,box-shadow .15s;
   box-shadow:0 0 20px rgba(255,215,0,.2);
+  white-space:nowrap;
+  flex-shrink:0;
 }
 .nav-cta:hover{transform:translateY(-2px);box-shadow:0 0 35px rgba(255,215,0,.4)}
 
-/* ── HERO ── */
+/* ── HERO — padding compensa ticker + nav ── */
 #hero{
   position:relative;z-index:1;
   min-height:100vh;
+  padding:calc(var(--ticker-h) + var(--nav-h) + 60px) 20px 60px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:120px 20px 60px;
+  text-align:center;
   overflow:hidden;
 }
+
+/* Anclas internas no quedan tapadas por la barra fija */
+section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
 
 .hero-eyebrow{
   display:inline-flex;align-items:center;gap:8px;
@@ -251,6 +291,7 @@ section{position:relative;z-index:1}
 }
 .airdrop-visual{
   position:relative;display:flex;align-items:center;justify-content:center;
+  overflow:hidden; /* evita que los orbit rings desborden */
 }
 .coin-hero{
   width:260px;height:260px;border-radius:50%;
@@ -283,11 +324,6 @@ section{position:relative;z-index:1}
 .or2{width:420px;height:420px;border-color:rgba(255,60,172,.08);animation-duration:24s;animation-direction:reverse}
 .or3{width:500px;height:500px;border-color:rgba(0,229,255,.06);animation-duration:32s}
 @keyframes orbitSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-
-.orbit-dot{
-  position:absolute;width:10px;height:10px;border-radius:50%;
-  top:50%;left:50%;transform:translateX(-50%) translateY(-50%);
-}
 
 .airdrop-features{display:flex;flex-direction:column;gap:28px}
 .af{
@@ -389,20 +425,11 @@ section{position:relative;z-index:1}
   transition:transform .15s,box-shadow .2s;
 }
 .cbtn-big:hover{transform:translateY(-4px)}
-.cbtn-canal{
-  background:linear-gradient(135deg,#0088cc,#006aaa);
-  color:white;box-shadow:0 8px 40px rgba(0,136,204,.25);
-}
+.cbtn-canal{background:linear-gradient(135deg,#0088cc,#006aaa);color:white;box-shadow:0 8px 40px rgba(0,136,204,.25)}
 .cbtn-canal:hover{box-shadow:0 16px 50px rgba(0,136,204,.45)}
-.cbtn-grupo{
-  background:linear-gradient(135deg,#7C3AED,#5B21B6);
-  color:white;box-shadow:0 8px 40px rgba(124,58,237,.25);
-}
+.cbtn-grupo{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:white;box-shadow:0 8px 40px rgba(124,58,237,.25)}
 .cbtn-grupo:hover{box-shadow:0 16px 50px rgba(124,58,237,.45)}
-.cbtn-juego{
-  background:linear-gradient(135deg,var(--gold),var(--gold3));
-  color:#1a0a00;box-shadow:0 8px 40px rgba(255,165,0,.25);
-}
+.cbtn-juego{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#1a0a00;box-shadow:0 8px 40px rgba(255,165,0,.25)}
 .cbtn-juego:hover{box-shadow:0 16px 50px rgba(255,165,0,.45)}
 .cbtn-icon{font-size:24px}
 .cbtn-text{text-align:left;line-height:1.2}
@@ -418,9 +445,7 @@ section{position:relative;z-index:1}
   content:'';position:absolute;left:0;top:0;bottom:0;width:1px;
   background:linear-gradient(180deg,var(--gold),var(--pink),transparent);
 }
-.rm-item{
-  position:relative;padding:0 0 48px 40px;
-}
+.rm-item{position:relative;padding:0 0 48px 40px}
 .rm-item::before{
   content:'';position:absolute;left:-5px;top:8px;
   width:10px;height:10px;border-radius:50%;
@@ -428,17 +453,11 @@ section{position:relative;z-index:1}
 }
 .rm-item.done::before{background:var(--green);box-shadow:0 0 12px var(--green)}
 .rm-item.future::before{background:var(--muted);box-shadow:none;border:1px solid var(--muted)}
-.rm-phase{
-  font-family:'JetBrains Mono',monospace;font-size:11px;
-  color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;
-}
+.rm-phase{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
 .rm-item.future .rm-phase{color:var(--muted)}
 .rm-title{font-size:20px;font-weight:700;margin-bottom:8px}
 .rm-desc{font-size:14px;line-height:1.6;color:var(--muted);max-width:480px}
-.rm-badge{
-  display:inline-block;margin-top:10px;padding:4px 12px;border-radius:3px;
-  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-}
+.rm-badge{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 .rm-badge.active{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.2)}
 .rm-badge.soon{background:rgba(255,215,0,.08);color:var(--gold);border:1px solid rgba(255,215,0,.15)}
 .rm-badge.future{background:rgba(107,100,144,.1);color:var(--muted);border:1px solid rgba(107,100,144,.2)}
@@ -446,20 +465,14 @@ section{position:relative;z-index:1}
 /* ── FAQ ── */
 #faq{padding:100px 0}
 .faq-list{margin-top:60px;display:flex;flex-direction:column;gap:2px}
-.faq-item{
-  border:1px solid var(--border);border-radius:6px;overflow:hidden;
-  background:var(--card);margin-bottom:4px;
-}
+.faq-item{border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--card);margin-bottom:4px}
 .faq-q{
   padding:22px 28px;display:flex;justify-content:space-between;align-items:center;
-  cursor:pointer;transition:background .2s;font-size:16px;font-weight:600;
+  cursor:pointer;transition:background .2s;font-size:16px;font-weight:600;gap:12px;
 }
 .faq-q:hover{background:var(--card2)}
-.faq-chevron{font-size:18px;color:var(--gold);transition:transform .3s;line-height:1}
-.faq-a{
-  padding:0 28px;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;
-  font-size:14px;line-height:1.7;color:var(--muted);
-}
+.faq-chevron{font-size:18px;color:var(--gold);transition:transform .3s;line-height:1;flex-shrink:0}
+.faq-a{padding:0 28px;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;font-size:14px;line-height:1.7;color:var(--muted)}
 .faq-item.open .faq-a{max-height:200px;padding:0 28px 22px}
 .faq-item.open .faq-chevron{transform:rotate(45deg)}
 
@@ -484,47 +497,60 @@ footer{
 
 /* ── ANIMATIONS ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-
 .reveal{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease}
 .reveal.visible{opacity:1;transform:translateY(0)}
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
-  nav{padding:16px 20px}
+  :root{ --nav-h:60px }
+  nav{padding:0 20px}
   .nav-links{display:none}
+  /* logo + CTA quedan solos, bien alineados */
   .airdrop-grid,.economy-grid{grid-template-columns:1fr}
   .airdrop-visual{order:-1;height:300px}
   .steps-grid{grid-template-columns:1fr 1fr}
   .coin-hero{width:200px;height:200px;font-size:38px}
+  .coin-label{font-size:38px}
   .or1{width:260px;height:260px}
   .or2{width:320px;height:320px}
   .or3{width:380px;height:380px}
-  .hero-stats{flex-direction:column;gap:0}
+  .hero-stats{flex-direction:column}
   .hstat{border-right:none;border-bottom:1px solid var(--border)}
   .hstat:last-child{border-bottom:none}
   .community-box{padding:48px 24px}
 }
+
 @media(max-width:600px){
+  :root{
+    --ticker-h:36px;
+    --nav-h:54px;
+  }
+  .ticker-item{font-size:10px;padding:0 12px;gap:8px}
+
+  /* Nav compacto: logo + CTA juntos sin desbordarse */
+  nav{padding:0 14px;gap:12px}
+  .nav-logo{font-size:20px;letter-spacing:2px}
+  .nav-cta{padding:8px 12px;font-size:11px;letter-spacing:0}
+
+  .hero-btns{flex-direction:column;align-items:center}
+  .hero-btns a{width:100%;max-width:300px;justify-content:center}
+
   .steps-grid{grid-template-columns:1fr}
+
+  /* Orbit rings pequeños para no causar scroll horizontal */
+  .or2{width:260px;height:260px}
+  .or3{display:none}
+
+  .community-box{padding:36px 16px}
   .community-btns{flex-direction:column;align-items:center}
   .cbtn-big{width:100%;max-width:340px;justify-content:center}
-  #hero{padding-top:90px}
-}
 
-/* ── TICKER ── */
-.ticker-bar{
-  position:relative;z-index:10;
-  background:var(--gold);padding:10px 0;overflow:hidden;
+  .eco-bar-lbl{width:90px;font-size:11px}
+
+  .faq-q{font-size:14px;padding:16px}
+  .faq-a{font-size:13px}
+  .faq-item.open .faq-a{padding:0 16px 16px}
 }
-.ticker-inner{
-  display:flex;animation:marqueeScroll 18s linear infinite;white-space:nowrap;
-}
-.ticker-item{
-  display:inline-flex;align-items:center;gap:16px;padding:0 28px;
-  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
-  color:#1a0a00;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;
-}
-.ticker-sep{color:rgba(26,10,0,.3)}
 </style>
 </head>
 <body>
@@ -546,7 +572,6 @@ footer{
     <div class="ticker-item">⚡ RECLAMA TUS TOKENS <span class="ticker-sep">·</span></div>
     <div class="ticker-item">🔥 ECONOMIA REAL <span class="ticker-sep">·</span></div>
     <div class="ticker-item">🎯 JUEGA · MINA · COBRA <span class="ticker-sep">·</span></div>
-    <!-- duplicated for seamless loop -->
     <div class="ticker-item">🪙 $CLK TOKEN <span class="ticker-sep">·</span></div>
     <div class="ticker-item">🚀 AIRDROP CONFIRMADO <span class="ticker-sep">·</span></div>
     <div class="ticker-item">💰 GANA MINANDO <span class="ticker-sep">·</span></div>
@@ -582,15 +607,9 @@ footer{
     cobra tu parte del <strong>Airdrop</strong>.
   </p>
   <div class="hero-btns">
-    <a href="#jugar" class="btn-primary">
-      <span class="btn-icon">⛏️</span> EMPEZAR A MINAR
-    </a>
-    <a href="https://t.me/Crypto_Click_News" target="_blank" class="btn-tg">
-      <span class="btn-icon">📢</span> Canal Telegram
-    </a>
-    <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="btn-tg-grupo">
-      <span class="btn-icon">👥</span> Grupo Comunidad
-    </a>
+    <a href="#jugar" class="btn-primary"><span class="btn-icon">⛏️</span> EMPEZAR A MINAR</a>
+    <a href="https://t.me/Crypto_Click_News" target="_blank" class="btn-tg"><span class="btn-icon">📢</span> Canal Telegram</a>
+    <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="btn-tg-grupo"><span class="btn-icon">👥</span> Grupo Comunidad</a>
   </div>
   <div class="hero-stats">
     <div class="hstat">
@@ -643,24 +662,15 @@ footer{
         <div class="airdrop-features reveal" style="margin-top:36px">
           <div class="af">
             <div class="af-ico gold">🏆</div>
-            <div>
-              <h3>Todos los mineros reciben su parte</h3>
-              <p>No importa cuándo empieces — cada $CLK acumulado cuenta para el reparto del airdrop. Más minas, más recibes.</p>
-            </div>
+            <div><h3>Todos los mineros reciben su parte</h3><p>No importa cuándo empieces — cada $CLK acumulado cuenta para el reparto del airdrop. Más minas, más recibes.</p></div>
           </div>
           <div class="af">
             <div class="af-ico pink">📣</div>
-            <div>
-              <h3>Suscripción a Telegram obligatoria</h3>
-              <p>Para poder reclamar tu parte del airdrop deberás estar suscrito al canal oficial antes del lanzamiento.</p>
-            </div>
+            <div><h3>Suscripción a Telegram obligatoria</h3><p>Para poder reclamar tu parte del airdrop deberás estar suscrito al canal oficial antes del lanzamiento.</p></div>
           </div>
           <div class="af">
             <div class="af-ico cyan">👥</div>
-            <div>
-              <h3>Referidos = más tokens</h3>
-              <p>Invita amigos con tu código único y gana 500 $CLK extra por cada uno. Además, sus misiones también te benefician.</p>
-            </div>
+            <div><h3>Referidos = más tokens</h3><p>Invita amigos con tu código único y gana 500 $CLK extra por cada uno. Además, sus misiones también te benefician.</p></div>
           </div>
         </div>
       </div>
@@ -680,30 +690,10 @@ footer{
     <div class="section-label reveal">⚡ Simple y gratuito</div>
     <h2 class="section-title reveal">Cómo <em>funciona</em></h2>
     <div class="steps-grid reveal">
-      <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-ico">⛏️</div>
-        <h3>Juega & Mina</h3>
-        <p>Toca la moneda para generar $CLK. Cuantos más tapes, más tokens acumulas. Gratis, sin registro, desde el navegador.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-ico">⚡</div>
-        <h3>Mejora tu minería</h3>
-        <p>Compra upgrades — GPUs, farms, protocolos DeFi — para generar CLK automáticamente incluso cuando no juegas.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <div class="step-ico">📡</div>
-        <h3>Únete a Telegram</h3>
-        <p>Suscríbete al canal oficial para recibir la fecha del lanzamiento. Es obligatorio para poder reclamar tu airdrop.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">04</div>
-        <div class="step-ico">💰</div>
-        <h3>Cobra tu airdrop</h3>
-        <p>En el lanzamiento en blockchain, todos los $CLK minados se convierten en tokens reales transferibles a tu wallet.</p>
-      </div>
+      <div class="step"><div class="step-num">01</div><div class="step-ico">⛏️</div><h3>Juega & Mina</h3><p>Toca la moneda para generar $CLK. Cuantos más tapes, más tokens acumulas. Gratis, sin registro, desde el navegador.</p></div>
+      <div class="step"><div class="step-num">02</div><div class="step-ico">⚡</div><h3>Mejora tu minería</h3><p>Compra upgrades — GPUs, farms, protocolos DeFi — para generar CLK automáticamente incluso cuando no juegas.</p></div>
+      <div class="step"><div class="step-num">03</div><div class="step-ico">📡</div><h3>Únete a Telegram</h3><p>Suscríbete al canal oficial para recibir la fecha del lanzamiento. Es obligatorio para poder reclamar tu airdrop.</p></div>
+      <div class="step"><div class="step-num">04</div><div class="step-ico">💰</div><h3>Cobra tu airdrop</h3><p>En el lanzamiento en blockchain, todos los $CLK minados se convierten en tokens reales transferibles a tu wallet.</p></div>
     </div>
   </div>
 </section>
@@ -717,58 +707,22 @@ footer{
         <h2 class="section-title reveal">Cómo se<br>genera el <em>valor</em></h2>
         <p class="section-sub reveal">La economía de $CLK no es humo — está respaldada por ingresos reales generados a través de colaboraciones publicitarias. Los anunciantes financian el ecosistema para que los jugadores cobren de verdad.</p>
         <div class="eco-cards reveal" style="margin-top:36px">
-          <div class="eco-card">
-            <div class="eco-card-head">
-              <div class="eco-dot" style="background:var(--gold)"></div>
-              <h3>Colaboraciones publicitarias</h3>
-            </div>
-            <p>Marcas y proyectos crypto pagan por aparecer en el ecosistema $CLK. Esos ingresos financian directamente el airdrop y el valor del token.</p>
-          </div>
-          <div class="eco-card">
-            <div class="eco-card-head">
-              <div class="eco-dot" style="background:var(--pink)"></div>
-              <h3>Distribución justa</h3>
-            </div>
-            <p>Los ingresos publicitarios se distribuyen proporcionalmente entre todos los mineros según los $CLK acumulados. Sin VCs, sin insiders — solo jugadores.</p>
-          </div>
-          <div class="eco-card">
-            <div class="eco-card-head">
-              <div class="eco-dot" style="background:var(--cyan)"></div>
-              <h3>Transparencia total</h3>
-            </div>
-            <p>Los contratos del airdrop serán públicos y verificables en blockchain. Cada wallet recibirá exactamente lo que le corresponde.</p>
-          </div>
+          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--gold)"></div><h3>Colaboraciones publicitarias</h3></div><p>Marcas y proyectos crypto pagan por aparecer en el ecosistema $CLK. Esos ingresos financian directamente el airdrop y el valor del token.</p></div>
+          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--pink)"></div><h3>Distribución justa</h3></div><p>Los ingresos publicitarios se distribuyen proporcionalmente entre todos los mineros según los $CLK acumulados. Sin VCs, sin insiders — solo jugadores.</p></div>
+          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--cyan)"></div><h3>Transparencia total</h3></div><p>Los contratos del airdrop serán públicos y verificables en blockchain. Cada wallet recibirá exactamente lo que le corresponde.</p></div>
         </div>
       </div>
       <div class="reveal">
         <div class="eco-chart">
           <div class="eco-title-sm">Distribución de ingresos publicitarios</div>
           <div class="eco-bars">
-            <div class="eco-bar-row">
-              <div class="eco-bar-lbl">Airdrop jugadores</div>
-              <div class="eco-bar-track"><div class="eco-bar-fill" data-w="70" style="background:linear-gradient(90deg,var(--gold),var(--gold3));width:0%"></div></div>
-              <div class="eco-bar-pct">70%</div>
-            </div>
-            <div class="eco-bar-row">
-              <div class="eco-bar-lbl">Liquidez del token</div>
-              <div class="eco-bar-track"><div class="eco-bar-fill" data-w="15" style="background:linear-gradient(90deg,var(--cyan),var(--purple));width:0%"></div></div>
-              <div class="eco-bar-pct">15%</div>
-            </div>
-            <div class="eco-bar-row">
-              <div class="eco-bar-lbl">Desarrollo</div>
-              <div class="eco-bar-track"><div class="eco-bar-fill" data-w="10" style="background:linear-gradient(90deg,var(--pink),var(--purple));width:0%"></div></div>
-              <div class="eco-bar-pct">10%</div>
-            </div>
-            <div class="eco-bar-row">
-              <div class="eco-bar-lbl">Operaciones</div>
-              <div class="eco-bar-track"><div class="eco-bar-fill" data-w="5" style="background:linear-gradient(90deg,var(--muted),#4a4770);width:0%"></div></div>
-              <div class="eco-bar-pct">5%</div>
-            </div>
+            <div class="eco-bar-row"><div class="eco-bar-lbl">Airdrop jugadores</div><div class="eco-bar-track"><div class="eco-bar-fill" data-w="70" style="background:linear-gradient(90deg,var(--gold),var(--gold3));width:0%"></div></div><div class="eco-bar-pct">70%</div></div>
+            <div class="eco-bar-row"><div class="eco-bar-lbl">Liquidez del token</div><div class="eco-bar-track"><div class="eco-bar-fill" data-w="15" style="background:linear-gradient(90deg,var(--cyan),var(--purple));width:0%"></div></div><div class="eco-bar-pct">15%</div></div>
+            <div class="eco-bar-row"><div class="eco-bar-lbl">Desarrollo</div><div class="eco-bar-track"><div class="eco-bar-fill" data-w="10" style="background:linear-gradient(90deg,var(--pink),var(--purple));width:0%"></div></div><div class="eco-bar-pct">10%</div></div>
+            <div class="eco-bar-row"><div class="eco-bar-lbl">Operaciones</div><div class="eco-bar-track"><div class="eco-bar-fill" data-w="5" style="background:linear-gradient(90deg,var(--muted),#4a4770);width:0%"></div></div><div class="eco-bar-pct">5%</div></div>
           </div>
           <div style="margin-top:28px;padding-top:22px;border-top:1px solid var(--border)">
-            <div style="font-size:12px;color:var(--muted);line-height:1.7">
-              ℹ️ Los porcentajes son orientativos y podrán ajustarse según el volumen de ingresos publicitarios generados antes del lanzamiento.
-            </div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.7">ℹ️ Los porcentajes son orientativos y podrán ajustarse según el volumen de ingresos publicitarios generados antes del lanzamiento.</div>
           </div>
         </div>
       </div>
@@ -820,18 +774,9 @@ footer{
         El airdrop se repartirá proporcionalmente entre todos los participantes suscritos al canal oficial. Cada $CLK que minas hoy es una fracción del token real de mañana.
       </p>
       <div class="community-btns">
-        <a href="#jugar" class="cbtn-big cbtn-juego">
-          <span class="cbtn-icon">⛏️</span>
-          <div class="cbtn-text">Empezar a minar<span>Juega gratis ahora mismo</span></div>
-        </a>
-        <a href="https://t.me/Crypto_Click_News" target="_blank" class="cbtn-big cbtn-canal">
-          <span class="cbtn-icon">📢</span>
-          <div class="cbtn-text">Canal de Noticias<span>Anuncios oficiales del airdrop</span></div>
-        </a>
-        <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="cbtn-big cbtn-grupo">
-          <span class="cbtn-icon">👥</span>
-          <div class="cbtn-text">Grupo Comunidad<span>Habla con otros mineros</span></div>
-        </a>
+        <a href="#jugar" class="cbtn-big cbtn-juego"><span class="cbtn-icon">⛏️</span><div class="cbtn-text">Empezar a minar<span>Juega gratis ahora mismo</span></div></a>
+        <a href="https://t.me/Crypto_Click_News" target="_blank" class="cbtn-big cbtn-canal"><span class="cbtn-icon">📢</span><div class="cbtn-text">Canal de Noticias<span>Anuncios oficiales del airdrop</span></div></a>
+        <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="cbtn-big cbtn-grupo"><span class="cbtn-icon">👥</span><div class="cbtn-text">Grupo Comunidad<span>Habla con otros mineros</span></div></a>
       </div>
     </div>
   </div>
@@ -843,18 +788,12 @@ footer{
     <div class="section-label reveal">⛏️ Juega ahora</div>
     <h2 class="section-title reveal">Empieza a <em>minar</em></h2>
     <p class="section-sub reveal" style="margin:0 auto 40px">El juego funciona 100% en el navegador, sin instalación, sin registro. Solo entra y empieza a acumular $CLK.</p>
-
-    <!-- Embed the game in an iframe or link — using a prominent CTA button here -->
     <div class="reveal" style="background:var(--card);border:1px solid rgba(255,215,0,.15);border-radius:16px;padding:60px 40px;max-width:600px;margin:0 auto">
       <div style="font-size:80px;margin-bottom:20px;animation:coinFloat 4s ease-in-out infinite">🪙</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px">CRYPTO CLICK</div>
       <p style="font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.6">Tap · Mina · Sube de rango · Cobra el airdrop</p>
-      <a href="index.html" class="btn-primary" style="font-size:18px;padding:20px 48px">
-        ⛏️ &nbsp;ABRIR EL JUEGO
-      </a>
-      <div style="margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px">
-        GRATIS · SIN REGISTRO · EN TU NAVEGADOR
-      </div>
+      <a href="index.html" class="btn-primary" style="font-size:18px;padding:20px 48px">⛏️ &nbsp;ABRIR EL JUEGO</a>
+      <div style="margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px">GRATIS · SIN REGISTRO · EN TU NAVEGADOR</div>
     </div>
   </div>
 </section>
@@ -865,42 +804,12 @@ footer{
     <div class="section-label reveal">❓ Preguntas frecuentes</div>
     <h2 class="section-title reveal">FAQ</h2>
     <div class="faq-list reveal">
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          ¿Es gratis jugar? <span class="faq-chevron">+</span>
-        </div>
-        <div class="faq-a">Completamente gratis. No necesitas invertir ni un céntimo para jugar, acumular $CLK y participar en el airdrop. El juego se financia mediante colaboraciones publicitarias.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          ¿Cómo se financia el airdrop? <span class="faq-chevron">+</span>
-        </div>
-        <div class="faq-a">Los ingresos provienen de colaboraciones con marcas y proyectos crypto que pagan por aparecer en el ecosistema de Crypto Click. El 70% de esos ingresos se destina directamente a financiar el airdrop de los jugadores.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          ¿Cuándo será el airdrop? <span class="faq-chevron">+</span>
-        </div>
-        <div class="faq-a">La fecha exacta se anunciará en el canal oficial de Telegram. Por eso es fundamental que te suscribas para no perderte el aviso. Sigue minando mientras tanto para acumular más $CLK.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          ¿Se guardan mis tokens? <span class="faq-chevron">+</span>
-        </div>
-        <div class="faq-a">Sí. Tu progreso se guarda automáticamente en tu dispositivo mediante localStorage. También puedes exportar un código de partida en la sección "Mi Partida" para transferirlo a otro dispositivo o navegador.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          ¿Tengo que suscribirme a Telegram para cobrar? <span class="faq-chevron">+</span>
-        </div>
-        <div class="faq-a">Sí. Para poder reclamar tu parte del airdrop es obligatorio estar suscrito al canal oficial de Telegram antes de la fecha de lanzamiento. Esta es la única forma que tenemos de verificar la participación activa de la comunidad.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          ¿Qué pasa si invito amigos? <span class="faq-chevron">+</span>
-        </div>
-        <div class="faq-a">Recibes 500 $CLK extra por cada amigo que use tu código de referido. Además, si ellos mismos invitan a más personas, la comunidad crece y el valor del ecosistema aumenta para todos.</div>
-      </div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Es gratis jugar? <span class="faq-chevron">+</span></div><div class="faq-a">Completamente gratis. No necesitas invertir ni un céntimo para jugar, acumular $CLK y participar en el airdrop. El juego se financia mediante colaboraciones publicitarias.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Cómo se financia el airdrop? <span class="faq-chevron">+</span></div><div class="faq-a">Los ingresos provienen de colaboraciones con marcas y proyectos crypto que pagan por aparecer en el ecosistema de Crypto Click. El 70% de esos ingresos se destina directamente a financiar el airdrop de los jugadores.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Cuándo será el airdrop? <span class="faq-chevron">+</span></div><div class="faq-a">La fecha exacta se anunciará en el canal oficial de Telegram. Por eso es fundamental que te suscribas para no perderte el aviso. Sigue minando mientras tanto para acumular más $CLK.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Se guardan mis tokens? <span class="faq-chevron">+</span></div><div class="faq-a">Sí. Tu progreso se guarda automáticamente en tu dispositivo mediante localStorage. También puedes exportar un código de partida en la sección "Mi Partida" para transferirlo a otro dispositivo o navegador.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Tengo que suscribirme a Telegram para cobrar? <span class="faq-chevron">+</span></div><div class="faq-a">Sí. Para poder reclamar tu parte del airdrop es obligatorio estar suscrito al canal oficial de Telegram antes de la fecha de lanzamiento. Esta es la única forma que tenemos de verificar la participación activa de la comunidad.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Qué pasa si invito amigos? <span class="faq-chevron">+</span></div><div class="faq-a">Recibes 500 $CLK extra por cada amigo que use tu código de referido. Además, si ellos mismos invitan a más personas, la comunidad crece y el valor del ecosistema aumenta para todos.</div></div>
     </div>
   </div>
 </section>
@@ -945,51 +854,20 @@ const ctx=canvas.getContext('2d');
 let W=0,H=0;
 function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
 resize();window.addEventListener('resize',resize);
-
 const STARS=[];
-for(let i=0;i<160;i++){
-  STARS.push({
-    x:Math.random(),y:Math.random(),
-    s:Math.random()*1.5+.3,
-    o:Math.random()*.6+.1,
-    sp:Math.random()*.0003+.00005,
-    col:Math.random()>.85?'255,215,0':Math.random()>.7?'255,60,172':'245,240,255'
-  });
-}
+for(let i=0;i<160;i++){STARS.push({x:Math.random(),y:Math.random(),s:Math.random()*1.5+.3,o:Math.random()*.6+.1,sp:Math.random()*.0003+.00005,col:Math.random()>.85?'255,215,0':Math.random()>.7?'255,60,172':'245,240,255'})}
 const NODES=[];
-for(let i=0;i<35;i++){
-  NODES.push({
-    x:Math.random()*100,y:Math.random()*100,
-    vx:(Math.random()-.5)*.06,vy:(Math.random()-.5)*.06,
-    s:Math.random()*2+1
-  });
-}
-
+for(let i=0;i<35;i++){NODES.push({x:Math.random()*100,y:Math.random()*100,vx:(Math.random()-.5)*.06,vy:(Math.random()-.5)*.06,s:Math.random()*2+1})}
 function drawBg(){
   ctx.clearRect(0,0,W,H);
-  // stars
-  STARS.forEach(s=>{
-    s.y-=s.sp;if(s.y<0)s.y=1;
-    ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.s,0,Math.PI*2);
-    ctx.fillStyle=`rgba(${s.col},${s.o})`;ctx.fill();
-  });
-  // nodes & connections
-  NODES.forEach(n=>{
-    n.x+=n.vx;n.y+=n.vy;
-    if(n.x<0||n.x>100)n.vx*=-1;
-    if(n.y<0||n.y>100)n.vy*=-1;
-  });
+  STARS.forEach(s=>{s.y-=s.sp;if(s.y<0)s.y=1;ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.s,0,Math.PI*2);ctx.fillStyle=`rgba(${s.col},${s.o})`;ctx.fill();});
+  NODES.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>100)n.vx*=-1;if(n.y<0||n.y>100)n.vy*=-1;});
   NODES.forEach((a,i)=>{
     NODES.slice(i+1).forEach(b=>{
-      const dx=(a.x-b.x)/100*W,dy=(a.y-b.y)/100*H;
-      const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<140){
-        ctx.beginPath();ctx.moveTo(a.x/100*W,a.y/100*H);ctx.lineTo(b.x/100*W,b.y/100*H);
-        ctx.strokeStyle=`rgba(255,215,0,${.04*(1-dist/140)})`;ctx.lineWidth=.5;ctx.stroke();
-      }
+      const dx=(a.x-b.x)/100*W,dy=(a.y-b.y)/100*H,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<140){ctx.beginPath();ctx.moveTo(a.x/100*W,a.y/100*H);ctx.lineTo(b.x/100*W,b.y/100*H);ctx.strokeStyle=`rgba(255,215,0,${.04*(1-dist/140)})`;ctx.lineWidth=.5;ctx.stroke();}
     });
-    ctx.beginPath();ctx.arc(a.x/100*W,a.y/100*H,a.s,0,Math.PI*2);
-    ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fill();
+    ctx.beginPath();ctx.arc(a.x/100*W,a.y/100*H,a.s,0,Math.PI*2);ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fill();
   });
   requestAnimationFrame(drawBg);
 }
@@ -997,64 +875,25 @@ drawBg();
 
 // ── SCROLL REVEAL ──
 const revels=document.querySelectorAll('.reveal');
-const io=new IntersectionObserver(entries=>{
-  entries.forEach((e,i)=>{
-    if(e.isIntersecting){
-      setTimeout(()=>e.target.classList.add('visible'),i*80);
-    }
-  });
-},{threshold:.12});
+const io=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*80);});},{threshold:.12});
 revels.forEach(r=>io.observe(r));
 
-// ── ECO BARS ANIMATION ──
-const barIO=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      e.target.querySelectorAll('.eco-bar-fill').forEach(b=>{
-        setTimeout(()=>{b.style.width=b.dataset.w+'%'},200);
-      });
-      barIO.unobserve(e.target);
-    }
-  });
-},{threshold:.3});
+// ── ECO BARS ──
+const barIO=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.querySelectorAll('.eco-bar-fill').forEach(b=>{setTimeout(()=>{b.style.width=b.dataset.w+'%'},200);});barIO.unobserve(e.target);}});},{threshold:.3});
 const ecoChart=document.querySelector('.eco-chart');
 if(ecoChart)barIO.observe(ecoChart);
 
 // ── FAQ ──
-function toggleFaq(el){
-  const item=el.parentElement;
-  const isOpen=item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(f=>f.classList.remove('open'));
-  if(!isOpen)item.classList.add('open');
-}
+function toggleFaq(el){const item=el.parentElement;const isOpen=item.classList.contains('open');document.querySelectorAll('.faq-item.open').forEach(f=>f.classList.remove('open'));if(!isOpen)item.classList.add('open');}
 
-// ── COUNTER ANIMATION ──
-function animateCounter(el,target,suffix=''){
-  let start=0;const dur=2000;const step=16;
-  const inc=target/(dur/step);
-  const iv=setInterval(()=>{
-    start+=inc;if(start>=target){start=target;clearInterval(iv);}
-    el.textContent=Math.floor(start).toLocaleString('es')+suffix;
-  },step);
-}
-const statIO=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      animateCounter(document.getElementById('stat-players'),12480,'+');
-      statIO.disconnect();
-    }
-  });
-},{threshold:.5});
+// ── COUNTER ──
+function animateCounter(el,target,suffix=''){let start=0;const inc=target/(2000/16);const iv=setInterval(()=>{start+=inc;if(start>=target){start=target;clearInterval(iv);}el.textContent=Math.floor(start).toLocaleString('es')+suffix;},16);}
+const statIO=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){animateCounter(document.getElementById('stat-players'),12480,'+');statIO.disconnect();}});},{threshold:.5});
 const heroStats=document.querySelector('.hero-stats');
 if(heroStats)statIO.observe(heroStats);
 
 // ── SMOOTH NAV ──
-document.querySelectorAll('a[href^="#"]').forEach(a=>{
-  a.addEventListener('click',e=>{
-    const t=document.querySelector(a.getAttribute('href'));
-    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}
-  });
-});
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}});});
 </script>
 </body>
-</html>
+  </html>
