@@ -895,7 +895,15 @@ function renderMiss(){
 function claimM(id){const m=MISS.find(x=>x.id===id);if(!m)return;const ms=S.missions[id];if(!ms||ms.c||ms.p<m.g)return;ms.c=true;addClk(m.r,'reward');upd();renderMiss();toast('🎉 Misión: +'+fmt(m.r)+' $CLK');rankBurst();forceSave();}
 
 function renderRef(){document.getElementById('refcode').textContent=S.refCode;document.getElementById('rcount').textContent=S.refs;document.getElementById('rearned').textContent=fmt(S.refEarned);}
-function copyCode(){if(navigator.clipboard)navigator.clipboard.writeText('¡Juega Crypto Click! Mi código: '+S.refCode+' 🪙 #CryptoClick $CLK');toast('📋 ¡Código copiado!');}
+function copyCode(){
+  const gameUrl = window.location.href;  // Captura la URL actual del juego
+  const text = '¡Juega Crypto Click! 🪙 Mi código: ' + S.refCode + '\nEnlace: ' + gameUrl;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(() => toast('📋 ¡Código y enlace copiados!')).catch(() => toast('📋 Copia manual: ' + text));
+  } else {
+    toast('📋 Copia manual: ' + text);
+  }
+}
 function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');document.getElementById('refinp').value='';forceSave();}
 function renderLB(){}
 
