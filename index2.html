@@ -257,11 +257,22 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 </head>
 <body>
 
+<style>
+  /* Ajuste del tamaño del título */
+  #loading .ll {
+    font-size: 28px; /* antes podría ser más grande, ahora más pequeño */
+    font-family: 'Bebas Neue', sans-serif; 
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+</style>
+
 <div id="loading">
   <div class="ll">₿ CRYPTO ALIEN CLICK</div>
   <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/BackgroundEraser_20260330_044416658.png" 
-     alt="alien" 
-     style="width:170px; height:170px; animation:pulse 1s infinite; object-fit:contain;">
+       alt="alien" 
+       style="width:170px; height:170px; animation:pulse 1s infinite; object-fit:contain;">
   <div class="lbw"><div class="lb" id="lbar"></div></div>
   <div class="lt" id="ltip">INICIANDO BLOCKCHAIN...</div>
 </div>
