@@ -19,7 +19,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 /* LOADING */
 #loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s}
 #loading.hide{opacity:0;pointer-events:none}
-.ll{font-family:var(--fh);font-size:34px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 1.2s ease-in-out infinite}
+.ll{font-family:var(--fh);font-size:28px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 .lbw{width:200px;height:6px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden}
 .lb{height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#FF3CAC);border-radius:6px;transition:width .1s linear}
@@ -257,16 +257,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 </head>
 <body>
 
-<style>
-  /* Ajuste del tamaño del título */
-  #loading .ll {
-    font-size: 28px; /* antes podría ser más grande, ahora más pequeño */
-    font-family: 'Bebas Neue', sans-serif; 
-    letter-spacing: 2px;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-</style>
+
 
 <div id="loading">
   <div class="ll">₿ CRYPTO ALIEN CLICK</div>
