@@ -299,6 +299,103 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 /* Ocultar sección de skins completa */
 #skinsec { display: none !important; }
 #skingrid { display: none !important; }
+
+
+/* DESKTOP OPTIMIZATION */
+body.desktop{padding:20px 20px 20px 112px;background:
+  radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 26%),
+  radial-gradient(circle at bottom right,rgba(6,182,212,.12),transparent 24%),
+  var(--bg)}
+body.desktop #app{max-width:1280px;padding:0 0 32px;min-height:calc(100vh - 40px)}
+body.desktop #topbar{position:sticky;top:0;z-index:120;padding:18px 22px 14px;margin:0 0 12px;border:1px solid var(--border);border-radius:22px;background:rgba(22,20,42,.72);backdrop-filter:blur(20px);box-shadow:0 18px 44px rgba(0,0,0,.28)}
+body.desktop #logo{font-size:24px}
+body.desktop #rankpill{font-size:12px;padding:8px 16px}
+body.desktop .screen{padding:0 6px 18px}
+body.desktop #screen-mine.active{display:grid;grid-template-columns:minmax(340px,460px) minmax(420px,1fr);grid-template-areas:
+  'bal coin'
+  'stats coin'
+  'xp coin'
+  'energy coin'
+  'daily coin';gap:18px 26px;align-items:start}
+body.desktop #screen-mine #bal-area{grid-area:bal;background:linear-gradient(135deg,rgba(22,20,42,.96),rgba(30,28,52,.92));border:1px solid var(--border);border-radius:24px;padding:20px 22px;box-shadow:0 18px 40px rgba(0,0,0,.22)}
+body.desktop #screen-mine #balnum{font-size:64px}
+body.desktop #screen-mine #ballabel{font-size:13px}
+body.desktop #screen-mine #perinfo{font-size:13px}
+body.desktop #screen-mine #srow{grid-area:stats;padding:0;gap:12px}
+body.desktop #screen-mine #xpa{grid-area:xp;padding:0}
+body.desktop #screen-mine #ensec{grid-area:energy;padding:0;background:linear-gradient(135deg,rgba(22,20,42,.9),rgba(30,28,52,.9));border:1px solid var(--border);border-radius:20px;padding:18px 18px 14px}
+body.desktop #screen-mine #dailysec{grid-area:daily;padding:0}
+body.desktop #screen-mine #coinsec{grid-area:coin;min-height:690px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:30px;padding:26px;background:linear-gradient(135deg,rgba(22,20,42,.94),rgba(37,35,66,.86));box-shadow:0 24px 60px rgba(0,0,0,.3)}
+body.desktop #screen-mine #coinout{width:420px;height:420px}
+body.desktop #screen-mine .or1{width:290px;height:290px}
+body.desktop #screen-mine .or2{width:340px;height:340px}
+body.desktop #screen-mine .or3{width:390px;height:390px}
+body.desktop #screen-mine .os1{font-size:15px}
+body.desktop #screen-mine .os2{font-size:16px}
+body.desktop #screen-mine #coinwrap{width:260px;height:260px;outline:none}
+body.desktop #screen-mine #coinwrap.pressed{transform:scale(1.12)}
+body.desktop #screen-mine .csym img{width:260px;height:260px}
+body.desktop #screen-mine #comboa{margin-top:14px;height:34px}
+body.desktop #screen-mine #combopill{font-size:18px;padding:7px 18px}
+body.desktop #screen-mine #boostpill{font-size:12px;padding:6px 14px}
+body.desktop #bnav{left:20px;top:20px;bottom:20px;transform:none;width:76px;max-width:none;height:auto;border:1px solid var(--border);border-radius:24px;background:rgba(11,10,20,.82);backdrop-filter:blur(18px);flex-direction:column;justify-content:center;padding:14px 8px;gap:8px;box-shadow:0 16px 40px rgba(0,0,0,.28)}
+body.desktop .nbtn{padding:10px 4px;font-size:9px;border-radius:16px;min-height:74px}
+body.desktop .nbtn.active{background:linear-gradient(135deg,rgba(255,215,0,.14),rgba(255,107,53,.08))}
+body.desktop .nicon{font-size:23px}
+body.desktop .ndot{top:8px;right:14px}
+body.desktop #upslist,body.desktop #misslist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+body.desktop .uc,body.desktop .mc{height:100%;min-height:98px;padding:14px 15px;border-radius:18px}
+body.desktop .uico{width:54px;height:54px;font-size:34px}
+body.desktop .uname,body.desktop .mname{font-size:14px}
+body.desktop .udesc{font-size:12px}
+body.desktop .mcbtn,body.desktop .ubtn{font-size:12px;padding:10px 13px}
+body.desktop .sh{font-size:30px;margin-bottom:6px}
+body.desktop .ss{font-size:13px;margin-bottom:18px}
+body.desktop #refbox,body.desktop .rs,body.desktop #screen-save > div,body.desktop #screen-leaderboard > div{box-shadow:0 16px 38px rgba(0,0,0,.18)}
+body.desktop #screen-referral .refstats{max-width:720px}
+body.desktop #screen-referral .refstats,body.desktop #screen-referral > div[style="display:flex;gap:8px"]{margin-left:auto;margin-right:auto}
+body.desktop #screen-referral > center img{width:230px !important;height:230px !important}
+body.desktop #screen-save{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-items:start}
+body.desktop #screen-save .sh,body.desktop #screen-save .ss{grid-column:1 / -1}
+body.desktop #screen-save > div:last-child{grid-column:1 / -1}
+body.desktop #screen-leaderboard > div{max-width:980px;margin-left:auto;margin-right:auto}
+body.desktop #dailybox{max-width:760px;border-radius:26px;padding:28px}
+body.desktop #noebox{max-width:560px;border-radius:24px;padding:28px}
+body.desktop #toast{bottom:24px;left:calc(50% + 46px)}
+body.desktop .fn{font-size:24px}
+body.desktop #coinwrap:focus-visible{box-shadow:0 0 0 4px rgba(6,182,212,.28),0 0 0 10px rgba(6,182,212,.12)}
+
+@media (hover:hover){
+  body.desktop .uc:hover,body.desktop .mc:hover,body.desktop .rs:hover,body.desktop #dailybtn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.16)}
+  body.desktop .ubtn:not(:disabled):hover,body.desktop .mcbtn:not(:disabled):hover,body.desktop #copybtn:hover,body.desktop #refgo:hover,body.desktop .obbtn:hover,body.desktop #dailyclaim:hover,body.desktop #dailyclose:hover,body.desktop #ruclose:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  body.desktop .nbtn:hover{color:var(--text);background:rgba(255,255,255,.05)}
+  body.desktop #coinwrap:hover{transform:translateY(-2px)}
+  body.desktop #coinwrap.pressed:hover{transform:scale(1.12)}
+}
+
+@media (max-width:1023px){
+  body{padding:0}
+}
+
+@media (min-width:1024px) and (max-width:1199px){
+  body.desktop{padding-left:100px}
+  body.desktop #screen-mine.active{grid-template-columns:minmax(320px,420px) minmax(360px,1fr);gap:16px 20px}
+  body.desktop #screen-mine #coinsec{min-height:620px}
+  body.desktop #screen-mine #coinout{width:360px;height:360px}
+  body.desktop #screen-mine .or1{width:260px;height:260px}
+  body.desktop #screen-mine .or2{width:300px;height:300px}
+  body.desktop #screen-mine .or3{width:340px;height:340px}
+  body.desktop #screen-mine #coinwrap,.desktop #screen-mine .csym img{width:220px;height:220px}
+}
+
+@media (min-width:1200px){
+  body.desktop #screen-referral,body.desktop #screen-leaderboard,body.desktop #screen-save{max-width:1080px;margin:0 auto}
+}
+
+@media (max-width:720px){
+  .screen{padding-bottom:18px}
+}
+
 </style>
 </head>
 <body>
@@ -395,7 +492,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <!-- REFERRAL -->
   <div id="screen-referral" class="screen">
     <div class="sh">👥 Amigos</div>
-    <div class="ss">Invita amigos · +500 $CLK por cada uno</div>
+    <div class="ss">Invita amigos · +50000 $CLK por cada uno</div>
     <div id="refbox">
       <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:2px">TU CÓDIGO ÚNICO</div>
       <div id="refcode">XXXXXXX</div>
@@ -895,8 +992,16 @@ function renderMiss(){
 function claimM(id){const m=MISS.find(x=>x.id===id);if(!m)return;const ms=S.missions[id];if(!ms||ms.c||ms.p<m.g)return;ms.c=true;addClk(m.r,'reward');upd();renderMiss();toast('🎉 Misión: +'+fmt(m.r)+' $CLK');rankBurst();forceSave();}
 
 function renderRef(){document.getElementById('refcode').textContent=S.refCode;document.getElementById('rcount').textContent=S.refs;document.getElementById('rearned').textContent=fmt(S.refEarned);}
-function copyCode(){if(navigator.clipboard)navigator.clipboard.writeText('¡Juega Crypto Click! Mi código: '+S.refCode+' 🪙 #CryptoClick $CLK');toast('📋 ¡Código copiado!');}
-function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(500,'ref');S.refs++;S.refEarned+=500;upd();renderRef();toast('🎉 Código válido! +500 $CLK');document.getElementById('refinp').value='';forceSave();}
+function copyCode(){
+  const gameUrl = window.location.href;  // Captura la URL actual del juego
+  const text = '¡Juega Crypto Click! 🪙 Mi código: ' + S.refCode + '\nEnlace: ' + gameUrl;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(() => toast('📋 ¡Código y enlace copiados!')).catch(() => toast('📋 Copia manual: ' + text));
+  } else {
+    toast('📋 Copia manual: ' + text);
+  }
+}
+function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');document.getElementById('refinp').value='';forceSave();}
 function renderLB(){}
 
 function exportSave(){forceSave();const data=JSON.stringify(sanitize({...S,lastSave:Date.now()}));const code='CLK2-'+btoa(unescape(encodeURIComponent(data)));const box=document.getElementById('exportbox');box.style.display='block';box.textContent=code;if(navigator.clipboard){navigator.clipboard.writeText(code).then(()=>toast('📋 ¡Código copiado!')).catch(()=>toast('📋 Selecciónalo y cópialo'));}else{const range=document.createRange();range.selectNode(box);window.getSelection().removeAllRanges();window.getSelection().addRange(range);toast('📋 Selecciónalo y cópialo');}}
@@ -910,13 +1015,60 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
 function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(localStorage.getItem(SAVE_KEY))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
 
+
+function updateViewportMode(){
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  const desktop = window.innerWidth >= 1024 && !coarse;
+  document.body.classList.toggle('desktop', desktop);
+  document.body.classList.toggle('touchmode', coarse);
+}
+
+function desktopTapEvent(){
+  const c=getCenter();
+  return {preventDefault(){},type:'click',clientX:c.x,clientY:c.y};
+}
+
+function setupDesktopUX(){
+  const wrap=document.getElementById('coinwrap');
+  if(!wrap)return;
+  wrap.setAttribute('tabindex','0');
+  wrap.setAttribute('role','button');
+  wrap.setAttribute('aria-label','Minar CLK');
+  wrap.setAttribute('title','Haz clic, pulsa Espacio o Enter para minar');
+  wrap.addEventListener('keydown',e=>{
+    if(e.repeat)return;
+    if(e.key===' '||e.key==='Enter'){
+      e.preventDefault();
+      wrap.classList.add('pressed');
+      htap(desktopTapEvent());
+    }
+  });
+  wrap.addEventListener('keyup',e=>{
+    if(e.key===' '||e.key==='Enter'){
+      e.preventDefault();
+      wrap.classList.remove('pressed');
+    }
+  });
+  document.addEventListener('keydown',e=>{
+    if(/input|textarea/i.test(document.activeElement?.tagName||''))return;
+    const keyMap={1:'mine',2:'upgrades',3:'missions',4:'referral',5:'leaderboard',6:'save'};
+    if(keyMap[e.key])goTo(keyMap[e.key]);
+    if(e.key==='Escape'){
+      ['noeov','ruov','dailyov'].forEach(id=>document.getElementById(id)?.classList.remove('show'));
+    }
+  });
+  updateViewportMode();
+  window.addEventListener('resize', updateViewportMode);
+}
+
 function init(){
   load();recalc();upd();checkMiss();
   document.addEventListener('dblclick',e=>e.preventDefault());
   setupCoinPress();
+  setupDesktopUX();
   runLoader();
 }
 init();
 </script>
 </body>
-          </html>
+</html>
