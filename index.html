@@ -603,9 +603,19 @@ window.loginWithGoogle = async function () {
     if (timedOut) return; // ya se mostró el mensaje de timeout, no lo pisamos
     loadEl.style.display = 'none';
     if (e && e.code === 'auth/popup-blocked') {
-      try { await signInWithRedirect(auth, provider); return; } catch (e2) {}
+      try {
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (e2) {
+        errEl.textContent = 'No se pudo iniciar sesión (' + (e2 && e2.code || 'error') + ').';
+        console.error('signInWithRedirect también falló:', e2);
+        return;
+      }
     }
-    errEl.textContent = 'No se pudo iniciar sesión. Intenta de nuevo.';
+    // Mostramos el código real (no solo un mensaje genérico) porque el motivo típico en móvil
+    // es auth/unauthorized-domain: el dominio desde el que se abre la app no está en la lista
+    // de "Dominios autorizados" de Firebase Auth (Authentication > Settings > Authorized domains).
+    errEl.textContent = 'No se pudo iniciar sesión (' + (e && e.code || 'error') + ').';
     console.error(e);
   }
 };
@@ -786,6 +796,7 @@ let _cloudSaving=false;
 let _lastCloudSave=0;
 let _cloudEverWorked=false;      // true en cuanto una escritura a Firestore tiene éxito alguna vez
 let _setupWarned=false;          // evita repetir el aviso de consola en cada intento fallido
+let _localSaveWarned=false;      // evita repetir el toast si localStorage.setItem sigue fallando
 const CLOUD_MIN_INTERVAL=300000; // ~300s (5min): mínima separación entre escrituras a Firestore (ahorra cuota del plan free)
 
 function warnFirestoreSetup(e){
@@ -800,7 +811,17 @@ function warnFirestoreSetup(e){
 }
 
 function localSaveNow(){
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));}catch(e){}
+  try{
+    localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));
+  }catch(e){
+    // Esto NO debería pasar en uso normal. Motivo típico: navegación privada de Safari/iOS
+    // (bloquea localStorage por completo) o almacenamiento lleno/deshabilitado por el navegador.
+    console.error('localStorage.setItem falló, el progreso no se está guardando ni siquiera localmente:',e);
+    if(!_localSaveWarned){
+      _localSaveWarned=true;
+      toast('⚠️ Tu navegador está bloqueando el guardado (¿modo privado?). Usa una pestaña normal.');
+    }
+  }
 }
 
 function setSyncPill(state){
@@ -927,6 +948,10 @@ async function loadCloud(uid){
     if(e && (e.code==='unavailable' || e.code==='not-found' || e.code==='permission-denied')){
       setSyncPill('setup');
       warnFirestoreSetup(e);
+    }else{
+      // Motivo distinto a los tres de arriba: red caída, timeout, o algo inesperado.
+      // Lo mostramos en pantalla porque en móvil nadie va a mirar la consola.
+      toast('⚠️ No se pudo cargar tu partida de la nube ('+(e&&e.code||e&&e.message||'error')+'). Usando local.');
     }
     loadLocal();
   }
@@ -1150,4 +1175,4 @@ window.startGameForUser=async function(user){
 };
 </script>
 </body>
-</html>
+  </html>
