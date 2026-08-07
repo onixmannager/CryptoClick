@@ -588,7 +588,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 <!-- ============ FIREBASE ============ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
   getRedirectResult, onAuthStateChanged, signOut
@@ -603,12 +602,10 @@ const firebaseConfig = {
   projectId: "crypto-alien",
   storageBucket: "crypto-alien.firebasestorage.app",
   messagingSenderId: "61542154571",
-  appId: "1:61542154571:web:bddd5100632abc9f09a8ce",
-  measurementId: "G-4M6FEFNBX8"
+  appId: "1:61542154571:web:bddd5100632abc9f09a8ce"
 };
 
 const fbApp = initializeApp(firebaseConfig);
-let analytics; try { analytics = getAnalytics(fbApp); } catch(e) { /* analytics puede fallar si el navegador bloquea trackers; no debe romper el juego */ }
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
@@ -620,9 +617,20 @@ window.loginWithGoogle = async function () {
   const loadEl = document.getElementById('login-loading');
   errEl.textContent = '';
   loadEl.style.display = 'block';
+
+  let timedOut = false;
+  const safetyTimer = setTimeout(() => {
+    timedOut = true;
+    loadEl.style.display = 'none';
+    errEl.textContent = 'Está tardando demasiado. Revisa tu conexión e inténtalo de nuevo.';
+  }, 15000);
+
   try {
     await signInWithPopup(auth, provider);
+    clearTimeout(safetyTimer);
   } catch (e) {
+    clearTimeout(safetyTimer);
+    if (timedOut) return; // ya se mostró el mensaje de timeout, no lo pisamos
     loadEl.style.display = 'none';
     if (e && e.code === 'auth/popup-blocked') {
       try { await signInWithRedirect(auth, provider); return; } catch (e2) {}
@@ -892,7 +900,8 @@ function loadLocal(){
 async function loadCloud(uid){
   const {db,doc,getDoc}=window.__fb;
   try{
-    const snap=await getDoc(doc(db,'saves',uid));
+    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
+    const snap=await Promise.race([getDoc(doc(db,'saves',uid)), timeout]);
     if(snap.exists()){
       const cloudRaw=snap.data().data;
       const cloudData=JSON.parse(cloudRaw);
@@ -908,7 +917,7 @@ async function loadCloud(uid){
       loadLocal();
     }
   }catch(e){
-    console.error('cloud load failed, usando local',e);
+    console.error('cloud load failed (o tardó demasiado), usando local',e);
     loadLocal();
   }
   if(!S.refCode)S.refCode=genCode();
