@@ -299,11 +299,42 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 /* Ocultar sección de skins completa */
 #skinsec { display: none !important; }
 #skingrid { display: none !important; }
+/* LOGIN SCREEN */
+#login-screen{position:fixed;inset:0;background:#0b0a14;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;text-align:center}
+#login-screen img{width:150px;height:150px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,215,0,.35))}
+#login-title{font-family:var(--fh);font-size:26px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#login-sub{font-size:13px;color:var(--muted);font-weight:700;max-width:300px;line-height:1.5}
+#googleBtn{display:flex;align-items:center;gap:10px;background:#fff;color:#1f1f1f;border:none;border-radius:30px;padding:13px 26px;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.35);transition:transform .15s}
+#googleBtn:active{transform:scale(.96)}
+#googleBtn svg{width:20px;height:20px}
+#login-error{font-size:12px;color:var(--red);font-weight:800;min-height:16px}
+#login-loading{font-size:12px;color:var(--cyan);font-weight:800;display:none}
+#syncpill{position:fixed;top:10px;right:10px;z-index:99997;font-size:9px;font-weight:800;letter-spacing:.5px;color:var(--muted);background:rgba(0,0,0,.35);padding:4px 9px;border-radius:20px;display:flex;align-items:center;gap:5px;opacity:.85;pointer-events:none}
+#syncpill .dot{width:6px;height:6px;border-radius:50%;background:var(--green);transition:background .3s}
+#syncpill.saving .dot{background:var(--yellow);animation:pulse 1s ease-in-out infinite}
+#syncpill.err .dot{background:var(--red)}
+#usermini{display:flex;align-items:center;gap:6px}
+#usermini img{width:22px;height:22px;border-radius:50%;border:1px solid var(--border)}
+#logoutBtn{background:none;border:none;color:var(--muted);font-size:9px;font-weight:800;text-decoration:underline;cursor:pointer;padding:2px}
 </style>
 </head>
 <body>
 
-<div id="loading">
+<div id="login-screen">
+  <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png" alt="alien">
+  <div id="login-title">₿ CRYPTO ALIEN CLICK</div>
+  <div id="login-sub">Inicia sesión con Google para guardar tu progreso en la nube y jugar desde cualquier dispositivo.</div>
+  <button id="googleBtn" onclick="loginWithGoogle()">
+    <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 36.4 26.7 37 24 37c-5.3 0-9.6-3.4-11.3-8.1l-6.5 5C9.5 40.6 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-0.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C40.9 36 45 30.5 45 24c0-1.2-.1-2.4-.4-3.5z"/></svg>
+    Continuar con Google
+  </button>
+  <div id="login-loading">🔄 Conectando...</div>
+  <div id="login-error"></div>
+</div>
+
+<div id="syncpill" style="display:none"><span class="dot"></span><span id="syncpilltxt">Guardado</span></div>
+
+<div id="loading" style="display:none">
   <div class="ll">₿ CRYPTO ALIEN CLICK</div>
   <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png" 
        alt="alien" 
@@ -315,11 +346,14 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 <div id="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <canvas id="pC"></canvas>
 
-<div id="app">
+<div id="app" style="display:none">
 
   <div id="topbar">
   <a href="landing.html" id="logo">₿ CRYPTO ALIEN CLICK</a>
-  <div id="rankpill">🐣 Crypto Noob</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div id="usermini"><img id="userpic" src="" alt=""><button id="logoutBtn" onclick="logoutUser()">Salir</button></div>
+    <div id="rankpill">🐣 Crypto Noob</div>
+  </div>
   </div>
 
   <!-- MINE -->
@@ -549,6 +583,79 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 <div id="sfire">🔥</div>
 <div id="toast"></div>
 
+<!-- ============ FIREBASE ============ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+  getRedirectResult, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+/* =========================================================
+   PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE
+   (Firebase Console → Configuración del proyecto → Tus apps → SDK config)
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  projectId: "TU_PROYECTO",
+  storageBucket: "TU_PROYECTO.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+const provider = new GoogleAuthProvider();
+
+window.__fb = { auth, db, doc, getDoc, setDoc, serverTimestamp, signOut };
+
+window.loginWithGoogle = async function () {
+  const errEl = document.getElementById('login-error');
+  const loadEl = document.getElementById('login-loading');
+  errEl.textContent = '';
+  loadEl.style.display = 'block';
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    loadEl.style.display = 'none';
+    if (e && e.code === 'auth/popup-blocked') {
+      try { await signInWithRedirect(auth, provider); return; } catch (e2) {}
+    }
+    errEl.textContent = 'No se pudo iniciar sesión. Intenta de nuevo.';
+    console.error(e);
+  }
+};
+
+window.logoutUser = async function () {
+  try { if (window.forceSaveCloud) await window.forceSaveCloud(); } catch (e) {}
+  await signOut(auth);
+  window.location.reload();
+};
+
+getRedirectResult(auth).catch(()=>{});
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('login-loading').style.display = 'none';
+    document.getElementById('loading').style.display = 'flex';
+    const pic = document.getElementById('userpic');
+    if (pic) pic.src = user.photoURL || '';
+    if (window.startGameForUser) window.startGameForUser(user);
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loading').style.display = 'none';
+    const l = document.getElementById('loading'); if (l) l.classList.remove('hide');
+  }
+});
+</script>
+
 <script>
 const RANKS=[
   {name:'Crypto Noob',  minLvl:1,  e:'🐣',tapB:0  },
@@ -693,14 +800,68 @@ const S=Object.assign({},DEFAULTS);
 
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<7;i++)r+=c[Math.random()*c.length|0];return r}
 
+/* ===== GUARDADO: localStorage instantáneo (siempre) + Firestore con throttle fuerte ===== */
 let _saveScheduled=false;
+let _dirtySinceCloud=false;      // true si hay cambios locales aún no subidos
+let _cloudSaving=false;
+let _lastCloudSave=0;
+const CLOUD_MIN_INTERVAL=110000; // ~110s: mínima separación entre escrituras a Firestore
+
+function localSaveNow(){
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));}catch(e){}
+}
+
+function setSyncPill(state){
+  const p=document.getElementById('syncpill'),t=document.getElementById('syncpilltxt');
+  if(!p)return;
+  p.style.display='flex';
+  p.classList.remove('saving','err');
+  if(state==='saving'){p.classList.add('saving');t.textContent='Guardando…';}
+  else if(state==='err'){p.classList.add('err');t.textContent='Sin conexión';}
+  else{t.textContent='Guardado';}
+}
+
+async function cloudSaveNow(force){
+  if(!window.__fbUser)return;
+  const now=Date.now();
+  if(!force){
+    if(_cloudSaving)return;
+    if(now-_lastCloudSave<CLOUD_MIN_INTERVAL)return;
+    if(!_dirtySinceCloud)return;
+  }
+  if(_cloudSaving && !force)return;
+  _cloudSaving=true;
+  setSyncPill('saving');
+  try{
+    const {db,doc,setDoc,serverTimestamp}=window.__fb;
+    const data=sanitize({...S,lastSave:Date.now()});
+    await setDoc(doc(db,'saves',window.__fbUser.uid),{
+      data:JSON.stringify(data),
+      updatedAt:serverTimestamp()
+    });
+    _lastCloudSave=Date.now();
+    _dirtySinceCloud=false;
+    setSyncPill('ok');
+  }catch(e){
+    console.error('cloud save failed',e);
+    setSyncPill('err');
+  }finally{
+    _cloudSaving=false;
+  }
+}
+window.forceSaveCloud=()=>cloudSaveNow(true);
+
 function save(){
+  // guardado local: barato, instantáneo, protege contra cierres inesperados
   if(_saveScheduled)return;_saveScheduled=true;
-  setTimeout(()=>{_saveScheduled=false;try{localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));}catch(e){}},800);
+  setTimeout(()=>{_saveScheduled=false;localSaveNow();_dirtySinceCloud=true;cloudSaveNow(false);},800);
 }
 function forceSave(){
   _saveScheduled=false;
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));}catch(e){}
+  localSaveNow();
+  _dirtySinceCloud=true;
+  // fuerza subida solo si ya pasó el intervalo mínimo, para no gastar cuota en cada click de compra
+  cloudSaveNow(false);
 }
 function sanitize(d){
   const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin'];
@@ -709,14 +870,46 @@ function sanitize(d){
   if(!d.ups||typeof d.ups!=='object')d.ups={};if(!d.missions||typeof d.missions!=='object')d.missions={};
   return d;
 }
-function load(){
+function applyLoadedData(raw){
+  const d=sanitize(JSON.parse(raw));Object.assign(S,d);
+  const offSec=Math.min((Date.now()-S.lastSave)/1000,86400);
+  if(offSec>5&&S.pph>0){const earned=S.pph/3600*offSec;addClk(earned,'offline');setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);}
+  S.energy=Math.min(S.eMax,S.energy+S.eRegen*offSec);
+}
+
+// Carga local (localStorage) - usada como respaldo instantáneo
+function loadLocal(){
   try{
-    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;
-    const d=sanitize(JSON.parse(raw));Object.assign(S,d);
-    const offSec=Math.min((Date.now()-S.lastSave)/1000,86400);
-    if(offSec>5&&S.pph>0){const earned=S.pph/3600*offSec;addClk(earned,'offline');setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);}
-    S.energy=Math.min(S.eMax,S.energy+S.eRegen*offSec);
-  }catch(e){}
+    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
+    applyLoadedData(raw);
+    return true;
+  }catch(e){return false;}
+}
+
+// Carga desde Firestore: 1 sola lectura por sesión de login.
+// Compara timestamps para usar el save más reciente entre nube y local.
+async function loadCloud(uid){
+  const {db,doc,getDoc}=window.__fb;
+  try{
+    const snap=await getDoc(doc(db,'saves',uid));
+    if(snap.exists()){
+      const cloudRaw=snap.data().data;
+      const cloudData=JSON.parse(cloudRaw);
+      const localRaw=localStorage.getItem(SAVE_KEY);
+      const localData=localRaw?JSON.parse(localRaw):null;
+      if(localData && localData.lastSave>cloudData.lastSave){
+        applyLoadedData(localRaw); // el local es más nuevo (offline recientemente)
+      }else{
+        applyLoadedData(cloudRaw);
+      }
+    }else{
+      // no hay save en la nube: usa local si existe (primera vez con login)
+      loadLocal();
+    }
+  }catch(e){
+    console.error('cloud load failed, usando local',e);
+    loadLocal();
+  }
   if(!S.refCode)S.refCode=genCode();
   if(!S.missions)S.missions={};if(!S.ups)S.ups={};
 }
@@ -851,9 +1044,15 @@ setInterval(()=>{
   if(S.pph>0)addClk(S.pph/3600*dt,'passive');
   upd();save();checkMiss();
 },1000);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)forceSave();});
-window.addEventListener('beforeunload',forceSave);
-window.addEventListener('pagehide',forceSave);
+
+// Intento periódico de subir a la nube (respeta el throttle interno de 110s)
+setInterval(()=>{ if(window.__fbUser) cloudSaveNow(false); }, 30000);
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); }
+});
+window.addEventListener('beforeunload',()=>{ localSaveNow(); });
+window.addEventListener('pagehide',()=>{ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); });
 
 function showRankup(r){document.getElementById('ruemoji').textContent=r.e;document.getElementById('runame').textContent=r.name;document.getElementById('rubonus').textContent='+'+r.tapB+' poder de tap desbloqueado';document.getElementById('ruov').classList.add('show');rankBurst();}
 
@@ -918,13 +1117,19 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
 function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(localStorage.getItem(SAVE_KEY))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
 
-function init(){
-  load();recalc();upd();checkMiss();
+let _gameStarted=false;
+window.startGameForUser=async function(user){
+  if(_gameStarted)return; // evita doble init si onAuthStateChanged dispara más de una vez
+  _gameStarted=true;
+  window.__fbUser=user;
+  await loadCloud(user.uid);
+  recalc();upd();checkMiss();
   document.addEventListener('dblclick',e=>e.preventDefault());
   setupCoinPress();
+  document.getElementById('app').style.display='';
   runLoader();
-}
-init();
+  setSyncPill('ok');
+};
 </script>
 </body>
           </html>
