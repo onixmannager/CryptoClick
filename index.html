@@ -906,8 +906,13 @@ async function loadCloud(uid){
       // y haría perder progreso local más reciente frente a una nube corrupta).
       const cloudTime=(typeof cloudData.lastSave==='number')?cloudData.lastSave:0;
       const localTime=(localData && typeof localData.lastSave==='number')?localData.lastSave:0;
-      if(localData && localTime>cloudTime){
-        applyLoadedData(localRaw); // el local es más nuevo (offline recientemente)
+      // Un save "vacío" (0 taps, 0 totalClk) es el estado inicial recién creado en este dispositivo,
+      // no una partida real. Su lastSave es "ahora mismo" por definición, así que compararlo por
+      // timestamp contra la nube casi siempre lo haría ganar y borraría visualmente el progreso real.
+      // Por eso: si el local no tiene progreso real, la nube gana siempre que exista.
+      const localHasProgress=localData && ((localData.totalClk||0)>0 || (localData.totalTaps||0)>0);
+      if(localHasProgress && localTime>cloudTime){
+        applyLoadedData(localRaw); // el local es más nuevo Y tiene progreso real (offline recientemente)
       }else{
         applyLoadedData(cloudRaw);
       }
@@ -1145,4 +1150,4 @@ window.startGameForUser=async function(user){
 };
 </script>
 </body>
-          </html>
+</html>
