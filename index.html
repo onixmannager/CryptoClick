@@ -816,7 +816,7 @@ let _cloudSaving=false;
 let _lastCloudSave=0;
 let _cloudEverWorked=false;      // true en cuanto una escritura a Firestore tiene éxito alguna vez
 let _setupWarned=false;          // evita repetir el aviso de consola en cada intento fallido
-const CLOUD_MIN_INTERVAL=180000; // ~180s: mínima separación entre escrituras a Firestore (ahorra cuota del plan free)
+const CLOUD_MIN_INTERVAL=300000; // ~300s (5min): mínima separación entre escrituras a Firestore (ahorra cuota del plan free)
 
 function warnFirestoreSetup(e){
   if(_setupWarned)return;_setupWarned=true;
