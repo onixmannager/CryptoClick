@@ -588,6 +588,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 <!-- ============ FIREBASE ============ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
   getRedirectResult, onAuthStateChanged, signOut
@@ -596,20 +597,18 @@ import {
   getFirestore, doc, getDoc, setDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-/* =========================================================
-   PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE
-   (Firebase Console → Configuración del proyecto → Tus apps → SDK config)
-   ========================================================= */
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyAEVcDHhKSyPd4n_U-DXzJI7lskY7BTiyI",
+  authDomain: "crypto-alien.firebaseapp.com",
+  projectId: "crypto-alien",
+  storageBucket: "crypto-alien.firebasestorage.app",
+  messagingSenderId: "61542154571",
+  appId: "1:61542154571:web:bddd5100632abc9f09a8ce",
+  measurementId: "G-4M6FEFNBX8"
 };
 
 const fbApp = initializeApp(firebaseConfig);
+let analytics; try { analytics = getAnalytics(fbApp); } catch(e) { /* analytics puede fallar si el navegador bloquea trackers; no debe romper el juego */ }
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
