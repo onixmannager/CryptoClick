@@ -518,35 +518,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
     </div>
   </div>
 
-  <!-- SAVE/LOAD -->
-  <div id="screen-save" class="screen">
-    <div class="sh">💾 Mi Partida</div>
-    <div class="ss">Exporta tu progreso para usarlo en cualquier dispositivo o navegador</div>
-
-    <div style="background:var(--card);border:1px solid rgba(255,215,0,.2);border-radius:18px;padding:18px;margin-bottom:12px">
-      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:10px">📤 EXPORTAR PARTIDA</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Genera un código con toda tu partida. Cópialo y guárdalo donde quieras (notas, email, etc.)</div>
-      <button onclick="exportSave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:12px;font-family:var(--fh);font-size:17px;color:#1a0a00;cursor:pointer;margin-bottom:10px">📋 Generar y copiar código</button>
-      <div id="exportbox" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;word-break:break-all;font-size:10px;color:var(--cyan);font-family:monospace;line-height:1.5;max-height:80px;overflow-y:auto"></div>
-    </div>
-
-    <div style="background:var(--card);border:1px solid rgba(139,92,246,.25);border-radius:18px;padding:18px;margin-bottom:12px">
-      <div style="font-size:11px;color:var(--purple);font-weight:800;letter-spacing:2px;margin-bottom:10px">📥 IMPORTAR PARTIDA</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Pega aquí tu código para restaurar tu progreso. <strong style="color:var(--red)">¡Sustituirá la partida actual!</strong></div>
-      <textarea id="importinp" placeholder="Pega tu código aquí..." style="width:100%;height:80px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;color:white;font-family:monospace;font-size:11px;resize:none;outline:none;line-height:1.5"></textarea>
-      <button onclick="importSave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;font-family:var(--fh);font-size:17px;color:white;cursor:pointer;margin-top:8px">✅ Restaurar partida</button>
-    </div>
-
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px">
-      <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px">💡 CÓMO FUNCIONA</div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <div style="font-size:12px;color:rgba(255,255,255,.7)">1. Pulsa <strong style="color:var(--yellow)">Generar código</strong> en el dispositivo actual</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.7)">2. Copia y envíate el código por WhatsApp, email o notas</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.7)">3. En el nuevo dispositivo, pégalo en <strong style="color:var(--purple)">Importar</strong></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.7)">4. ¡Tu partida estará exactamente igual! 🎉</div>
-      </div>
-    </div>
-  </div>
 
 </div>
 
@@ -556,7 +527,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
   <button class="nbtn" id="nav-referral" onclick="goTo('referral')"><span class="nicon">👥</span>AMIGOS</button>
   <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">📡</span>COMUNIDAD</button>
-  <button class="nbtn" id="nav-save" onclick="goTo('save')"><span class="nicon">💾</span>PARTIDA</button>
 </nav>
 
 <!-- OVERLAYS -->
@@ -1152,10 +1122,7 @@ function copyCode(){
 function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');document.getElementById('refinp').value='';forceSave();}
 function renderLB(){}
 
-function exportSave(){forceSave();const data=JSON.stringify(sanitize({...S,lastSave:Date.now()}));const code='CLK2-'+btoa(unescape(encodeURIComponent(data)));const box=document.getElementById('exportbox');box.style.display='block';box.textContent=code;if(navigator.clipboard){navigator.clipboard.writeText(code).then(()=>toast('📋 ¡Código copiado!')).catch(()=>toast('📋 Selecciónalo y cópialo'));}else{const range=document.createRange();range.selectNode(box);window.getSelection().removeAllRanges();window.getSelection().addRange(range);toast('📋 Selecciónalo y cópialo');}}
-function importSave(){const raw=document.getElementById('importinp').value.trim();if(!raw){toast('❌ Pega tu código primero');return}const isV1=raw.startsWith('CLK1-'),isV2=raw.startsWith('CLK2-');if(!isV1&&!isV2){toast('❌ Código inválido');return}try{const prefix=isV2?'CLK2-':'CLK1-';const json=decodeURIComponent(escape(atob(raw.slice(prefix.length))));const data=sanitize(JSON.parse(json));if(typeof data.clk==='undefined')throw new Error('bad');Object.assign(S,data);if(!S.refCode)S.refCode=genCode();if(!S.missions)S.missions={};if(!S.ups)S.ups={};recalc();upd();checkMiss();document.getElementById('importinp').value='';toast('✅ ¡Partida restaurada!');rankBurst();forceSave();setTimeout(()=>goTo('mine'),800);}catch(e){toast('❌ Código corrupto o inválido');}}
-
-function goTo(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='referral')renderRef();if(n==='leaderboard')renderLB();if(n==='save'){document.getElementById('exportbox').style.display='none';document.getElementById('importinp').value='';}}
+function goTo(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='referral')renderRef();if(n==='leaderboard')renderLB();}
 
 let tTO=null;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(tTO)clearTimeout(tTO);tTO=setTimeout(()=>t.classList.remove('show'),2800);}
