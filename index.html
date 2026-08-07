@@ -814,7 +814,20 @@ let _saveScheduled=false;
 let _dirtySinceCloud=false;      // true si hay cambios locales aún no subidos
 let _cloudSaving=false;
 let _lastCloudSave=0;
-const CLOUD_MIN_INTERVAL=110000; // ~110s: mínima separación entre escrituras a Firestore
+let _cloudEverWorked=false;      // true en cuanto una escritura a Firestore tiene éxito alguna vez
+let _setupWarned=false;          // evita repetir el aviso de consola en cada intento fallido
+const CLOUD_MIN_INTERVAL=180000; // ~180s: mínima separación entre escrituras a Firestore (ahorra cuota del plan free)
+
+function warnFirestoreSetup(e){
+  if(_setupWarned)return;_setupWarned=true;
+  console.warn(
+    '%c[CryptoClick] La partida NO se está guardando en Firestore.',
+    'color:#EF4444;font-weight:bold;font-size:13px',
+    '\nCódigo de error:', e&&e.code,
+    '\n\nEsto casi siempre significa que en la consola de Firebase (console.firebase.google.com → proyecto → Build → Firestore Database) todavía no has pulsado "Crear base de datos", o que las Reglas de seguridad no están publicadas.',
+    '\nMientras tanto el progreso del jugador sigue a salvo en localStorage, así que no se pierde nada — pero no viaja entre dispositivos hasta que actives Firestore.'
+  );
+}
 
 function localSaveNow(){
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));}catch(e){}
@@ -826,7 +839,8 @@ function setSyncPill(state){
   p.style.display='flex';
   p.classList.remove('saving','err');
   if(state==='saving'){p.classList.add('saving');t.textContent='Guardando…';}
-  else if(state==='err'){p.classList.add('err');t.textContent='Sin conexión';}
+  else if(state==='err'){p.classList.add('err');t.textContent='Guardado local';}
+  else if(state==='setup'){p.classList.add('err');t.textContent='Nube no configurada';}
   else{t.textContent='Guardado';}
 }
 
@@ -850,10 +864,19 @@ async function cloudSaveNow(force){
     });
     _lastCloudSave=Date.now();
     _dirtySinceCloud=false;
+    _cloudEverWorked=true;
     setSyncPill('ok');
   }catch(e){
-    console.error('cloud save failed',e);
-    setSyncPill('err');
+    // El progreso YA está a salvo en localStorage (localSaveNow se llama siempre antes que esto).
+    // Solo la copia en la nube falló: lo más común es que Firestore Database no exista todavía
+    // en la consola de Firebase, o que las reglas de seguridad no estén publicadas.
+    console.error('cloud save failed:',e && e.code, e);
+    if(!_cloudEverWorked && (e && (e.code==='unavailable' || e.code==='not-found' || e.code==='permission-denied'))){
+      setSyncPill('setup');
+      warnFirestoreSetup(e);
+    }else{
+      setSyncPill('err');
+    }
   }finally{
     _cloudSaving=false;
   }
@@ -903,21 +926,33 @@ async function loadCloud(uid){
     const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
     const snap=await Promise.race([getDoc(doc(db,'saves',uid)), timeout]);
     if(snap.exists()){
+      _cloudEverWorked=true; // pudimos leer la nube, así que sí está configurada
       const cloudRaw=snap.data().data;
       const cloudData=JSON.parse(cloudRaw);
       const localRaw=localStorage.getItem(SAVE_KEY);
       const localData=localRaw?JSON.parse(localRaw):null;
-      if(localData && localData.lastSave>cloudData.lastSave){
+      // lastSave puede faltar si el documento se editó a mano o viene de una versión vieja;
+      // en ese caso lo tratamos como 0 para no comparar undefined>undefined (que siempre da false
+      // y haría perder progreso local más reciente frente a una nube corrupta).
+      const cloudTime=(typeof cloudData.lastSave==='number')?cloudData.lastSave:0;
+      const localTime=(localData && typeof localData.lastSave==='number')?localData.lastSave:0;
+      if(localData && localTime>cloudTime){
         applyLoadedData(localRaw); // el local es más nuevo (offline recientemente)
       }else{
         applyLoadedData(cloudRaw);
       }
     }else{
-      // no hay save en la nube: usa local si existe (primera vez con login)
+      // no hay save en la nube todavía (usuario nuevo o Firestore recién creado): usa local si existe
       loadLocal();
     }
   }catch(e){
-    console.error('cloud load failed (o tardó demasiado), usando local',e);
+    // Motivo típico: Firestore Database no existe aún en la consola de Firebase, o las reglas
+    // de seguridad no están publicadas. El juego sigue funcionando con el guardado local.
+    console.error('cloud load failed (o tardó demasiado), usando local. code:',e&&e.code,e);
+    if(e && (e.code==='unavailable' || e.code==='not-found' || e.code==='permission-denied')){
+      setSyncPill('setup');
+      warnFirestoreSetup(e);
+    }
     loadLocal();
   }
   if(!S.refCode)S.refCode=genCode();
@@ -1055,8 +1090,9 @@ setInterval(()=>{
   upd();save();checkMiss();
 },1000);
 
-// Intento periódico de subir a la nube (respeta el throttle interno de 110s)
-setInterval(()=>{ if(window.__fbUser) cloudSaveNow(false); }, 30000);
+// Intento periódico de subir a la nube. Alineado con CLOUD_MIN_INTERVAL: no tiene sentido
+// comprobar más seguido que el propio throttle, eso solo desperdicia ciclos sin ahorrar cuota.
+setInterval(()=>{ if(window.__fbUser) cloudSaveNow(false); }, CLOUD_MIN_INTERVAL);
 
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); }
