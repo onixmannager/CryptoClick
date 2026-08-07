@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cada partida vive en saves/{uid}. Solo el usuario dueño de ese uid
+    // (autenticado con el mismo Google Auth que usa la app) puede leer o
+    // escribir su propio documento. Nadie puede tocar el de otro.
+    match /saves/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Todo lo demás, denegado por defecto.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
