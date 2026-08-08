@@ -391,13 +391,13 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
   /* Ambient desktop backdrop: a deep starfield so the game reads as a
      console sitting in space, not a phone screen stretched wide. */
+  html{background-position:center center;background-size:cover}
   body{
     min-height:100vh;
     background:
       radial-gradient(ellipse 1200px 800px at 12% -10%, rgba(139,92,246,.16), transparent 60%),
       radial-gradient(ellipse 1000px 700px at 100% 10%, rgba(255,60,172,.10), transparent 55%),
-      radial-gradient(ellipse 900px 900px at 50% 120%, rgba(6,182,212,.10), transparent 55%),
-      var(--bg);
+      radial-gradient(ellipse 900px 900px at 50% 120%, rgba(6,182,212,.10), transparent 55%);
   }
   #blobs{opacity:1.4}
   #pC{z-index:9998}
