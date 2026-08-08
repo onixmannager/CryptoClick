@@ -1283,7 +1283,13 @@ let _setupWarned=false;          // evita repetir el aviso de consola en cada in
 let _localSaveWarned=false;      // evita repetir el toast si localStorage.setItem sigue fallando
 let _appReadyForSave=false;      // evita guardar una partida vacia antes de terminar la carga inicial
 let _cloudWritesEnabled=false;   // solo se activa tras una lectura fiable de Firestore
-const CLOUD_MIN_INTERVAL=300000; // ~300s (5min): mínima separación entre escrituras a Firestore (ahorra cuota del plan free)
+// ANTES: 300000 (5 min). Con 5 min de ventana, cambiar de dispositivo antes de que pase ese
+// tiempo hace que el segundo dispositivo descargue un save viejo de Firestore, siga jugando
+// desde ahí, y al re-sincronizar el que tenga el timestamp más nuevo SOBRESCRIBE por completo
+// al otro (no hay merge/suma de $CLK). Eso es lo que el jugador percibe como "otra cuenta con
+// números distintos". Bajarlo a 20s reduce esa ventana de forma drástica sin gastar cuota real,
+// porque cloudSaveNow ya no escribe si no hubo cambios (_dirtySinceCloud).
+const CLOUD_MIN_INTERVAL=20000;  // ~20s: mínima separación entre escrituras a Firestore
 
 function warnFirestoreSetup(e){
   if(_setupWarned)return;_setupWarned=true;
@@ -1436,6 +1442,42 @@ function sanitize(d){
   if(typeof d.uid!=='string')d.uid='';
   return d;
 }
+// Fusiona dos saves del MISMO uid (nube + local) cuando ambos tienen progreso real y no está
+// claro cuál es "el más nuevo de verdad" (llegaron cerca en el tiempo desde dos dispositivos).
+// En vez del modelo anterior "el timestamp más alto se queda con todo y el otro se descarta
+// entero" (que es la causa real de que los números no coincidan entre dispositivos: cada uno
+// pierde silenciosamente el progreso que hizo el otro), esto toma el MÁXIMO de cada contador
+// acumulativo. Como en este juego esos campos solo crecen con el juego normal (jamás bajan
+// salvo por gasto de $CLK, que ya está reflejado en el propio total al momento de guardar),
+// quedarse con el mayor de los dos nunca "inventa" progreso que no se ganó en ningún dispositivo.
+function mergeStates(a,b){
+  const base=(a.lastSave||0)>=(b.lastSave||0)?{...a}:{...b};
+  const other=base===a?b:a;
+  // 'xp' va ligado al 'lvl' de la MISMA partida que lo produjo (100 xp en nivel 2 no es
+  // comparable con 100 xp en nivel 5), así que no se puede tomar como máximo independiente:
+  // primero se decide qué lado tiene el nivel más alto, y de ahí se hereda su par lvl+xp juntos.
+  const maxFields=['clk','totalClk','totalTaps','maxCombo','upsCount','refs','refEarned','dStreak','dailyDay'];
+  for(const k of maxFields){
+    const av=typeof a[k]==='number'?a[k]:0, bv=typeof b[k]==='number'?b[k]:0;
+    base[k]=Math.max(av,bv);
+  }
+  // El lado con mayor 'lvl' aporta su 'lvl' Y su 'xp' juntos (son del mismo momento de esa
+  // partida). xpNeed se deriva del lvl con la misma fórmula que al subir de nivel (500*1.18^(lvl-1))
+  // en vez de heredarse de cualquiera de los dos lados, para que siempre quede coherente con el
+  // lvl final aunque ese lvl no exista literal en ninguno de los dos saves originales.
+  const aLvl=typeof a.lvl==='number'?a.lvl:1, bLvl=typeof b.lvl==='number'?b.lvl:1;
+  if(aLvl>=bLvl){base.lvl=aLvl;base.xp=typeof a.xp==='number'?a.xp:0;}
+  else{base.lvl=bLvl;base.xp=typeof b.xp==='number'?b.xp:0;}
+  base.xpNeed=Math.floor(500*Math.pow(1.18,base.lvl-1));
+  // Mejoras: por cada mejora, el nivel más alto comprado en cualquiera de los dos dispositivos.
+  const ups={...(a.ups||{})};
+  for(const id in (b.ups||{}))ups[id]=Math.max(ups[id]||0,b.ups[id]||0);
+  base.ups=ups;
+  // Misiones completadas en cualquiera de los dos lados quedan completadas.
+  base.missions={...(a.missions||{}),...(b.missions||{})};
+  base.lastSave=Date.now();
+  return base;
+}
 function applyLoadedData(raw){
   const d=sanitize(JSON.parse(raw));Object.assign(S,d);
   const now=Date.now();
@@ -1482,9 +1524,15 @@ async function loadCloud(uid){
       // timestamp contra la nube casi siempre lo haría ganar y borraría visualmente el progreso real.
       // Por eso: si el local no tiene progreso real, la nube gana siempre que exista.
       const localHasProgress=hasRealProgress(localData);
-      if(localHasProgress && localTime>cloudTime){
+      const cloudHasProgress=hasRealProgress(cloudData);
+      if(localHasProgress && cloudHasProgress){
+        // AMBOS lados tienen progreso real: en vez de que el timestamp más alto se quede con
+        // todo (y borre en silencio el progreso hecho en el otro dispositivo, que es la causa
+        // de que "los números no coincidan"), se fusionan tomando lo mejor de cada uno.
+        applyLoadedData(JSON.stringify(sanitize(mergeStates(cloudData,localData))));
+      }else if(localHasProgress && localTime>cloudTime){
         applyLoadedData(userLocal.raw); // el local del mismo usuario es mas nuevo y tiene progreso real
-      }else if(!hasRealProgress(cloudData) && legacyLocal && legacyLocal.legacy && hasRealProgress(legacyLocal.data)){
+      }else if(!cloudHasProgress && legacyLocal && legacyLocal.legacy && hasRealProgress(legacyLocal.data)){
         applyLoadedData(legacyLocal.raw);
       }else{
         applyLoadedData(cloudRaw);
@@ -2194,7 +2242,11 @@ window.startGameForUser=async function(user){
   _appReadyForSave=true;
   localSaveNow();
   _dirtySinceCloud=true;
-  cloudSaveNow(false);
+  // Forzado (true), no cloudSaveNow(false): justo después de cargar es cuando loadCloud ya
+  // decidió qué copia gana (local o nube). Publicar esa decisión en Firestore de inmediato,
+  // sin esperar CLOUD_MIN_INTERVAL, es lo que evita que un segundo dispositivo que se conecte
+  // segundos después descargue una versión vieja y arranque una línea de progreso paralela.
+  cloudSaveNow(true);
   document.addEventListener('dblclick',e=>e.preventDefault());
   setupCoinPress();
   AlienSprite.init();
