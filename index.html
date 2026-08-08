@@ -2,10 +2,24 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Crypto Alien Click — $CLK</title>
-<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png">
+
+<!-- PWA: manifest + iconos locales -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0b0a14">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
+<!-- iOS: comportamiento como app instalada -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crypto Click">
+
+<!-- Android/Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1783,5 +1797,15 @@ window.startGameForUser=async function(user){
   if(!S.alias)setTimeout(()=>document.getElementById('aliasov').classList.add('show'),1600);
 };
 </script>
+<!-- PWA: registro del service worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .catch((err) => console.warn('SW registration failed:', err));
+  });
+}
+</script>
+
 </body>
   </html>
