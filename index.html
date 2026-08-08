@@ -6,11 +6,11 @@
 <title>Crypto Alien Click — $CLK</title>
 
 <!-- PWA: manifest + iconos locales -->
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b0a14">
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
 <!-- iOS: comportamiento como app instalada -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2025,7 +2025,8 @@ window.startGameForUser=async function(user){
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' })
+      .then((registration) => registration.update())
       .catch((err) => console.warn('SW registration failed:', err));
   });
 }
