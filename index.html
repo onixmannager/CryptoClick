@@ -30,7 +30,8 @@
   --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none;scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
 /* LOADING */
 #loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s}
@@ -372,8 +373,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 #syncpill.saving .dot{background:var(--yellow);animation:pulse 1s ease-in-out infinite}
 #syncpill.err .dot{background:var(--red)}
 #usermini{display:flex;align-items:center;gap:6px}
-#usermini img{width:22px;height:22px;border-radius:50%;border:1px solid var(--border)}
-#logoutBtn{background:none;border:none;color:var(--muted);font-size:9px;font-weight:800;text-decoration:underline;cursor:pointer;padding:2px}
+#logoutBtn{background:none;border:none;color:var(--muted);font-size:12px;font-weight:800;text-decoration:underline;cursor:pointer;padding:4px 6px}
 #muteBtn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,border-color .2s;flex-shrink:0}
 #muteBtn:active{transform:scale(.88)}
 #muteBtn.off{opacity:.5;border-color:var(--border)}
@@ -645,7 +645,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <a href="landing.html" id="logo">₿ CRYPTO ALIEN CLICK</a>
   <div id="usermini">
     <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
-    <img id="userpic" src="" alt=""><button id="logoutBtn" onclick="logoutUser()">Salir</button>
+    <button id="logoutBtn" onclick="logoutUser()">Salir</button>
   </div>
   </div>
 
