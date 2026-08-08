@@ -1490,6 +1490,28 @@ function fmt(n){n=Math.floor(n);if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1
 function getRank(){let r=RANKS[0];for(const x of RANKS)if(S.lvl>=x.minLvl)r=x;return r}
 function upCost(u){return Math.floor(u.base*Math.pow(1.5,S.ups[u.id]||0))}
 function isBoost(){return Date.now()<S.boostEnd}
+function upgradeSortValue(u){
+  const l=S.ups[u.id]||0,cost=upCost(u),maxed=l>=u.max,can=!maxed&&S.clk>=cost;
+  return {can,maxed,cost};
+}
+function sortUpgradesForUser(a,b){
+  const A=upgradeSortValue(a),B=upgradeSortValue(b);
+  if(A.can!==B.can)return A.can?-1:1;
+  if(A.maxed!==B.maxed)return A.maxed?1:-1;
+  return A.cost-B.cost;
+}
+function catHasBuyable(cat){return UPS.some(u=>cat.test(u)&&upgradeSortValue(u).can);}
+function catHasReadyMission(cat){return MISS.some(m=>m.t===cat.key&&misProgress(m,misState(m))>=misGoal(m,misState(m).lvl));}
+function missionSortValue(m){
+  const ms=misState(m),goal=misGoal(m,ms.lvl),p=misProgress(m,ms),pct=goal>0?p/goal:0;
+  return {ready:p>=goal,pct,lvl:ms.lvl};
+}
+function sortMissionsForUser(a,b){
+  const A=missionSortValue(a),B=missionSortValue(b);
+  if(A.ready!==B.ready)return A.ready?-1:1;
+  if(A.pct!==B.pct)return B.pct-A.pct;
+  return A.lvl-B.lvl;
+}
 
 /* ===== PERIODOS DE RANKING: semana ISO y mes calendario, con reset 100% en el cliente =====
    No hay cron ni servidor: cada save guarda un "ancla" (marca de cuándo empezó su periodo
@@ -1800,8 +1822,9 @@ function renderUps(){
     {key:'rB',  label:'💨 REGENERACIÓN',       col:'var(--green)',  test:u=>!!u.rB  },
     {key:'bMin',label:'🚀 BOOSTS TEMPORALES',  col:'var(--orange)', test:u=>!!u.bMin},
   ];
+  cats.sort((a,b)=>(catHasBuyable(b)?1:0)-(catHasBuyable(a)?1:0));
   for(const cat of cats){
-    const ups=UPS.filter(cat.test);if(!ups.length)continue;
+    const ups=UPS.filter(cat.test).sort(sortUpgradesForUser);if(!ups.length)continue;
     const allMaxed=ups.every(u=>(S.ups[u.id]||0)>=u.max);
     const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label+(allMaxed?' ✅':'');list.appendChild(hdr);
     for(const u of ups){
@@ -1868,8 +1891,9 @@ function checkMiss(){
 function renderMiss(){
   checkMiss();const list=document.getElementById('misslist');list.innerHTML='';
   const cats=[{key:'taps',label:'👆 TAPS',col:'var(--cyan)'},{key:'clk',label:'💰 $CLK ACUMULADO',col:'var(--yellow)'},{key:'lvl',label:'📈 NIVEL',col:'var(--purple)'},{key:'ups',label:'⚡ MEJORAS',col:'var(--orange)'},{key:'combo',label:'🔥 COMBO',col:'var(--pink)'},{key:'dstreak',label:'📅 RACHA DIARIA',col:'var(--green)'},{key:'refs',label:'👥 REFERIDOS',col:'var(--blue)'}];
+  cats.sort((a,b)=>(catHasReadyMission(b)?1:0)-(catHasReadyMission(a)?1:0));
   for(const cat of cats){
-    const missions=MISS.filter(m=>m.t===cat.key);
+    const missions=MISS.filter(m=>m.t===cat.key).sort(sortMissionsForUser);
     const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label;list.appendChild(hdr);
     for(const m of missions){
       const ms=misState(m),goal=misGoal(m,ms.lvl),reward=misReward(m,ms.lvl),p=misProgress(m,ms);
