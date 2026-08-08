@@ -6,7 +6,7 @@
 //  - Fuentes e imágenes externas (fonts.googleapis, raw.githubusercontent, etc.):
 //    stale-while-revalidate -> respuesta instantánea desde cache + actualización en segundo plano.
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL_CACHE = `cryptoclick-shell-${VERSION}`;
 const ASSET_CACHE = `cryptoclick-assets-${VERSION}`;
 
@@ -103,6 +103,33 @@ async function cacheFirst(request) {
   }
 }
 
+// Rutas que representan el app shell instalable (index.html / raíz).
+// Solo estas deben usar el fallback offline "sirve index.html cacheado".
+const SHELL_NAV_PATHS = new Set(['/', '/index.html']);
+
+async function navigateNetworkFirst(request, url) {
+  // Páginas que NO son el shell (landing, privacidad, términos, etc.):
+  // red primero, para respetar la URL real que el usuario pidió.
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) {
+      const cache = await caches.open(SHELL_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (err) {
+    // Sin red: si esta URL exacta ya se visitó antes y quedó en cache, se sirve.
+    const cache = await caches.open(SHELL_CACHE);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    // Último recurso: nunca dejar ERR_FAILED en blanco. Se ofrece el shell
+    // del juego (index.html) para que al menos algo cargue, en vez de nada.
+    const shellFallback = await cache.match('/index.html');
+    if (shellFallback) return shellFallback;
+    throw err;
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return; // no interceptar POST/PUT (escrituras a Firestore, etc.)
@@ -114,9 +141,16 @@ self.addEventListener('fetch', (event) => {
     return; // dejar pasar tal cual, sin respondWith -> comportamiento normal del navegador
   }
 
-  // 2) Navegación (abrir la app / recargar): app shell cache-first con fallback offline.
+  // 2) Navegación del usuario (abrir una URL, tocar un link, recargar).
   if (request.mode === 'navigate') {
-    event.respondWith(cacheFirst(new Request('/index.html')));
+    if (SHELL_NAV_PATHS.has(url.pathname)) {
+      // Es el juego instalable (index.html / raíz): cache-first, abre instantáneo y offline.
+      event.respondWith(cacheFirst(new Request('/index.html')));
+    } else {
+      // Cualquier otra página (landing, privacidad, términos...): red primero,
+      // para que sirva la URL real pedida y no siempre index.html.
+      event.respondWith(navigateNetworkFirst(request, url));
+    }
     return;
   }
 
