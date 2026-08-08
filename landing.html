@@ -2,2034 +2,805 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Crypto Alien Click — $CLK</title>
-
-<!-- PWA: manifest + iconos locales -->
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#0b0a14">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Alien Click — Juego Tap to Earn $CLK</title>
+<meta name="theme-color" content="#050409">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-
-<!-- iOS: comportamiento como app instalada -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Crypto Click">
-
-<!-- Android/Chrome -->
-<meta name="mobile-web-app-capable" content="yes">
-
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+
+/* ── RESET & BASE ── */
+*{margin:0;padding:0;box-sizing:border-box}
+
 :root{
-  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;--card3:#252342;
-  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
-  --blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--red:#EF4444;
-  --text:#fff;--muted:#6B68A0;--border:rgba(255,255,255,0.07);
-  --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
+  --black:#050409;
+  --deep:#0a0812;
+  --card:#0f0d1a;
+  --card2:#161326;
+  --gold:#FFD700;
+  --gold2:#FFA500;
+  --gold3:#FF6B35;
+  --pink:#FF3CAC;
+  --purple:#7C3AED;
+  --cyan:#00E5FF;
+  --green:#00FF88;
+  --white:#F5F0FF;
+  --muted:#6B6490;
+  --border:rgba(255,215,0,0.08);
+  --ticker-h: 40px;
+  --nav-h: 65px;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none}
 
-/* LOADING */
-#loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s}
-#loading.hide{opacity:0;pointer-events:none}
-.ll{font-family:var(--fh);font-size:28px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 1.2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
-.lbw{width:200px;height:6px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden}
-.lb{height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#FF3CAC);border-radius:6px;transition:width .1s linear}
-.lt{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px}
+html{scroll-behavior:smooth}
+body{
+  background:var(--black);
+  color:var(--white);
+  font-family:'Space Grotesk',sans-serif;
+  overflow-x:hidden;
+  cursor:none;
+}
 
-/* BG BLOBS */
-#blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.16;animation:blobF 10s ease-in-out infinite alternate}
-.b1{width:500px;height:500px;background:#8B5CF6;top:-150px;left:-150px}
-.b2{width:400px;height:400px;background:#FF3CAC;bottom:-100px;right:-100px;animation-delay:-4s}
-.b3{width:300px;height:300px;background:#06B6D4;top:40%;left:60%;animation-delay:-7s}
-@keyframes blobF{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,30px) scale(1.1)}}
+/* ── CUSTOM CURSOR ── */
+#cursor{
+  position:fixed;width:16px;height:16px;
+  background:var(--gold);border-radius:50%;
+  pointer-events:none;z-index:99999;
+  mix-blend-mode:difference;
+  transition:transform .15s ease,width .2s,height .2s;
+  transform:translate(-50%,-50%);
+}
+#cursor2{
+  position:fixed;width:40px;height:40px;
+  border:1px solid rgba(255,215,0,.4);border-radius:50%;
+  pointer-events:none;z-index:99998;
+  transition:transform .35s ease;
+  transform:translate(-50%,-50%);
+}
 
-/* PARTICLES */
-#pC{position:fixed;inset:0;pointer-events:none;z-index:9998}
+/* ── NOISE OVERLAY ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:.5;
+}
 
-/* APP */
-#app{position:relative;z-index:1;max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding-bottom:82px}
+/* ── CANVAS ── */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-/* TOPBAR */
-#topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
-#logo{font-family:var(--fh);font-size:20px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-#rankpill{display:inline-block;background:linear-gradient(135deg,var(--purple),var(--blue));border-radius:20px;padding:6px 16px;font-size:13px;font-weight:800;letter-spacing:.5px;box-shadow:0 0 16px rgba(139,92,246,.5);transition:background .5s;margin-top:6px}
+/* ── TICKER ── */
+.ticker-bar{
+  position:fixed;top:0;left:0;right:0;z-index:1001;
+  height:var(--ticker-h);background:var(--gold);overflow:hidden;
+}
+.ticker-inner{
+  display:flex;height:100%;align-items:center;
+  animation:marqueeScroll 18s linear infinite;white-space:nowrap;
+}
+.ticker-item{
+  display:inline-flex;align-items:center;gap:16px;padding:0 28px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+  color:#1a0a00;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;
+}
+.ticker-sep{color:rgba(26,10,0,.3)}
 
-/* BALANCE */
-#bal-area{text-align:center;padding:4px 16px 8px}
-#balnum{font-family:var(--fh);font-size:46px;background:linear-gradient(135deg,#FFD700,#FF6B35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:1px;transition:transform .1s}
-#balnum.bump{transform:scale(1.05)}
-#ballabel{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:3px;margin-top:2px}
-#perinfo{font-size:11px;color:var(--cyan);margin-top:3px;font-weight:700}
+/* ── NAV ── */
+nav{
+  position:fixed;top:var(--ticker-h);left:0;right:0;z-index:1000;
+  height:var(--nav-h);padding:0 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(20px);background:rgba(5,4,9,0.6);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;
+  background:linear-gradient(90deg,var(--gold),var(--gold3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  flex-shrink:0;
+}
+.nav-links{display:flex;gap:32px;align-items:center}
+.nav-links a{
+  color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;
+  letter-spacing:1px;text-transform:uppercase;transition:color .2s;white-space:nowrap;
+}
+.nav-links a:hover{color:var(--gold)}
+.nav-cta{
+  background:linear-gradient(135deg,var(--gold),var(--gold3));
+  color:#1a0a00;padding:10px 24px;border-radius:6px;
+  font-size:13px;font-weight:700;text-decoration:none;
+  letter-spacing:1px;text-transform:uppercase;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 0 20px rgba(255,215,0,.2);white-space:nowrap;flex-shrink:0;
+}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 0 35px rgba(255,215,0,.4)}
 
-/* STATS */
-#srow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 8px}
-.sc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:7px 6px;text-align:center;position:relative;overflow:hidden}
-.sc::before{content:'';position:absolute;inset:0;opacity:0;border-radius:14px}
-.sc.fl::before{animation:fcard .4s ease-out forwards}
-@keyframes fcard{0%{opacity:.3}100%{opacity:0}}
-.sc.yc::before{background:radial-gradient(circle,rgba(255,215,0,.3),transparent)}
-.sc.cc2::before{background:radial-gradient(circle,rgba(6,182,212,.3),transparent)}
-.sc.pc::before{background:radial-gradient(circle,rgba(255,60,172,.3),transparent)}
-.sl{font-size:9px;color:var(--muted);font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
-.sv{font-family:var(--fh);font-size:15px}
-.cy{color:var(--yellow)}.cc{color:var(--cyan)}.cp{color:var(--pink)}
+/* ══════════════════════════════════════════════════
+   IMAGE EFFECTS — acorde al tema dark/crypto/alien
+   ══════════════════════════════════════════════════ */
 
-/* XP */
-#xpa{padding:0 16px 8px}
-#xpr{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:800;margin-bottom:4px}
-#xpw{height:8px;background:var(--card2);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
-#xpb{height:100%;background:linear-gradient(90deg,var(--purple),var(--pink));border-radius:8px;transition:width .4s cubic-bezier(.34,1.56,.64,1)}
+/* ── HERO: alien principal en portada ── */
+.hero-alien-img {
+  display: block;
+  margin: 28px auto 0;
+  animation: heroFloat 5s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 30px rgba(255,215,0,0.45))
+    drop-shadow(0 0 80px rgba(255,107,53,0.2))
+    drop-shadow(0 0 140px rgba(255,60,172,0.1));
+  transition: filter .35s ease;
+}
+.hero-alien-img:hover {
+  filter:
+    drop-shadow(0 0 55px rgba(255,215,0,0.75))
+    drop-shadow(0 0 120px rgba(255,60,172,0.42))
+    drop-shadow(0 0 200px rgba(124,58,237,0.25));
+}
+@keyframes heroFloat {
+  0%,100% { transform: translateY(0px)   scale(1)    rotate(-1deg); }
+  30%      { transform: translateY(-14px) scale(1.03) rotate(1.2deg); }
+  65%      { transform: translateY(-8px)  scale(1.01) rotate(0deg); }
+}
 
-/* COIN */
-#coinsec{display:flex;flex-direction:column;align-items:center;padding:4px 16px 8px;position:relative}
-#coinout{position:relative;width:210px;height:210px;display:flex;align-items:center;justify-content:center}
-.or{position:absolute;border-radius:50%;pointer-events:none}
-.or1{width:220px;height:220px;border:1px dashed rgba(255,215,0,.18);animation:os 14s linear infinite}
-.or2{width:244px;height:244px;border:1px dashed rgba(6,182,212,.12);animation:os 22s linear infinite reverse}
-.or3{width:268px;height:268px;border:1px dashed rgba(255,60,172,.08);animation:os 30s linear infinite}
-@keyframes os{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+/* ── AIRDROP SECTION: alien lateral con aura cyan/purple ── */
+.airdrop-visual img {
+  display: block;
+  max-width: 100%;
+  animation: airdropFloat 4.8s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 28px rgba(0,229,255,0.38))
+    drop-shadow(0 0 70px rgba(124,58,237,0.24))
+    drop-shadow(0 0 130px rgba(0,229,255,0.1));
+  transition: filter .35s ease;
+}
+.airdrop-visual img:hover {
+  filter:
+    drop-shadow(0 0 52px rgba(0,229,255,0.65))
+    drop-shadow(0 0 110px rgba(255,60,172,0.38))
+    drop-shadow(0 0 180px rgba(124,58,237,0.28));
+}
+@keyframes airdropFloat {
+  0%,100% { transform: translateY(0px)   rotate(0deg)    scale(1);    }
+  25%      { transform: translateY(-12px) rotate(1.8deg)  scale(1.02); }
+  55%      { transform: translateY(-20px) rotate(0deg)    scale(1.04); }
+  80%      { transform: translateY(-8px)  rotate(-1.5deg) scale(1.02); }
+}
 
-.osat{position:absolute;border-radius:50%;pointer-events:none;font-size:12px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
-.os1{animation:osat1 14s linear infinite}
-.os2{animation:osat2 22s linear infinite reverse}
-@keyframes osat1{from{transform:rotate(0) translateX(110px) rotate(0)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
-@keyframes osat2{from{transform:rotate(0) translateX(122px) rotate(0)}to{transform:rotate(360deg) translateX(122px) rotate(-360deg)}}
-
-/* ── COIN BUTTON WRAPPER: handles scale, never clips ── */
-#coinwrap {
-  position: relative;
-  width: 186px;
-  height: 186px;
-  border-radius: 50%;
+/* ── JUGAR SECTION: alien en tarjeta play — dorado intenso, clickeable ── */
+.jugar-alien-img {
+  display: block;
+  margin: 0 auto 28px;
+  animation: jugarPulse 3.8s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 22px rgba(255,215,0,0.5))
+    drop-shadow(0 0 55px rgba(255,107,53,0.3))
+    drop-shadow(0 0 110px rgba(255,215,0,0.12));
+  transition: filter .3s ease, transform .3s ease;
   cursor: pointer;
-  transition: transform .07s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* This is what triggers the scale on tap */
-  user-select: none;
-  -webkit-user-select: none;
 }
-#coinwrap.pressed {
-  transform: scale(1.2);
+.jugar-alien-img:hover {
+  filter:
+    drop-shadow(0 0 55px rgba(255,215,0,0.8))
+    drop-shadow(0 0 110px rgba(255,60,172,0.5))
+    drop-shadow(0 0 180px rgba(255,107,53,0.3));
+  transform: scale(1.1) rotate(3deg) !important;
+  animation-play-state: paused;
 }
-
-/* ── COIN BUTTON: invisible, fills wrap, sits on top ── */
-#coinbtn{
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  z-index: 10;
-  /* No overflow hidden here so ripple can show */
+@keyframes jugarPulse {
+  0%,100% { transform: translateY(0px)   scale(1)    rotate(0deg);   }
+  20%      { transform: translateY(-10px) scale(1.04) rotate(-1.2deg); }
+  50%      { transform: translateY(-18px) scale(1.07) rotate(1.8deg);  }
+  80%      { transform: translateY(-7px)  scale(1.03) rotate(-0.6deg); }
 }
 
-/* Coin image sits inside wrap, behind the button */
-.csym{
-  pointer-events: none;
-  user-select: none;
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
+/* ── HERO ── */
+#hero{
+  position:relative;z-index:1;min-height:100vh;
+  padding:calc(var(--ticker-h) + var(--nav-h) + 60px) 20px 60px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;overflow:hidden;
 }
-.csym img{
-  width:186px;
-  height:186px;
-  transform: scale(1.3);
-  object-fit:contain;
-  pointer-events:none;
+section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
+
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(255,215,0,.25);border-radius:2px;padding:6px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;
+  color:var(--gold);text-transform:uppercase;margin-bottom:32px;
+  animation:fadeUp .6s ease both;
+}
+.hero-eyebrow span{
+  width:6px;height:6px;border-radius:50%;background:var(--gold);
+  animation:blink 1.2s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+.hero-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(72px,14vw,180px);line-height:.9;letter-spacing:-2px;
+  animation:fadeUp .7s .1s ease both;position:relative;
+}
+.hero-title .line1{
   display:block;
+  background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.6) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-
-.csheen{position:absolute;top:-60%;left:-60%;width:55%;height:210%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:sheen 4s ease-in-out infinite;pointer-events:none;z-index:2}
-@keyframes sheen{0%{transform:translateX(-100%) rotate(15deg)}55%{transform:translateX(450%) rotate(15deg)}100%{transform:translateX(450%) rotate(15deg)}}
-
-
-.csheen { display: none !important; }
-  
-
-.cglow{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .15s;z-index:3;pointer-events:none}
-#coinwrap.pressed .cglow{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.15),transparent)}
-.crip{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none;transform:translate(-50%,-50%);animation:rexp .55s ease-out forwards;z-index:4}
-@keyframes rexp{0%{width:10px;height:10px;opacity:.8}100%{width:220px;height:220px;opacity:0}}
-.fn{position:fixed;pointer-events:none;z-index:9999;font-family:var(--fh);font-size:20px;color:var(--yellow);text-shadow:0 0 10px rgba(255,215,0,.7);animation:fup .95s ease-out forwards}
-@keyframes fup{0%{opacity:1;transform:translateY(0) scale(1)}60%{opacity:1;transform:translateY(-45px) scale(1.15)}100%{opacity:0;transform:translateY(-90px) scale(.75)}}
-
-/* MINING BAR — progreso del minado pasivo (pph), se llena solo sin necesidad de tap */
-#miningsec{width:100%;max-width:260px;margin-top:8px}
-#mininghead{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-#miningtitle{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:1px;display:flex;align-items:center;gap:5px}
-#miningtitle .mdot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:mdotpulse 1.4s ease-in-out infinite}
-@keyframes mdotpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
-#miningsec.idle #miningtitle .mdot{background:var(--muted);box-shadow:none;animation:none}
-#miningpct{font-size:11px;font-weight:800;color:var(--cyan)}
-#miningtrack{height:10px;background:var(--card2);border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative}
-#miningfill{height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--cyan));border-radius:8px;transition:width .3s linear;position:relative}
-#miningfill::after{content:'';position:absolute;right:0;top:0;width:14px;height:100%;background:rgba(255,255,255,.35);border-radius:8px;filter:blur(3px)}
-#miningsec.idle #miningfill{background:var(--muted)}
-#miningsub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;text-align:center}
-/* pequeño destello de moneda cuando se completa un ciclo de minado automático */
-#miningpop{position:absolute;font-family:var(--fh);font-size:13px;color:var(--cyan);text-shadow:0 0 8px rgba(6,182,212,.7);pointer-events:none;opacity:0;left:50%;top:-4px;transform:translate(-50%,0)}
-#miningpop.go{animation:miningpop .9s ease-out forwards}
-@keyframes miningpop{0%{opacity:0;transform:translate(-50%,0) scale(.8)}25%{opacity:1;transform:translate(-50%,-6px) scale(1)}100%{opacity:0;transform:translate(-50%,-26px) scale(.9)}}
-
-/* COMBO */
-#comboa{height:28px;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px}
-#combopill{background:linear-gradient(135deg,var(--orange),var(--pink));border-radius:20px;padding:4px 14px;font-family:var(--fh);font-size:15px;color:white;opacity:0;transform:scale(.8);transition:opacity .2s,transform .2s;box-shadow:0 0 16px rgba(255,107,53,.5)}
-#combopill.show{opacity:1;transform:scale(1)}
-#boostpill{background:linear-gradient(135deg,#FFD700,#FF6B35);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:800;color:#1a0a00;opacity:0;transition:opacity .3s}
-#boostpill.show{opacity:1}
-
-/* ENERGY */
-#ensec{padding:0 16px 10px}
-#enhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-#entitle{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1px}
-#encount{font-size:12px;font-weight:800;color:var(--cyan)}
-#entrack{height:12px;background:var(--card2);border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative}
-#enfill{height:100%;background:linear-gradient(90deg,#1D4ED8,var(--cyan));border-radius:8px;transition:width .4s ease;position:relative}
-#enfill::after{content:'';position:absolute;right:0;top:0;width:16px;height:100%;background:rgba(255,255,255,.35);border-radius:8px;filter:blur(3px)}
-#enregen{font-size:10px;color:var(--muted);margin-top:3px;font-weight:700}
-
-/* DAILY */
-#dailysec{padding:0 16px 10px}
-#dailybtn{width:100%;padding:11px;background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid rgba(255,215,0,.2);border-radius:16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .3s,transform .1s;font-family:var(--fb)}
-#dailybtn:active{transform:scale(.98)}
-#dailybtn.ready{border-color:rgba(255,215,0,.6);box-shadow:0 0 20px rgba(255,215,0,.15)}
-.dbicon{font-size:28px;flex-shrink:0}
-.dbinfo{flex:1;text-align:left}
-.dbtitle{font-size:13px;font-weight:800;color:var(--yellow)}
-.dbsub{font-size:11px;color:var(--muted);font-weight:700}
-.dbbadge{background:linear-gradient(135deg,var(--yellow),var(--orange));border-radius:10px;padding:6px 12px;font-size:12px;font-weight:800;color:#1a0a00;flex-shrink:0}
-
-/* SCREENS */
-.screen{display:none;padding:0 16px 16px}
-.screen.active{display:block}
-.sh{font-family:var(--fh);font-size:24px;background:linear-gradient(135deg,var(--yellow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px}
-.ss{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:14px}
-
-/* UPGRADES */
-.uc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;transition:border-color .25s,transform .1s}
-.uc:active{transform:scale(.98)}
-.uc.canbuy{border-color:rgba(255,215,0,.35)}
-.uc.maxed{opacity:.45}
-.uico{font-size:30px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:var(--card2);border-radius:12px;flex-shrink:0}
-.uinfo{flex:1}
-.uname{font-weight:800;font-size:13px;margin-bottom:1px}
-.udesc{font-size:11px;color:var(--muted);margin-bottom:3px}
-.ulvl{font-size:10px;color:var(--cyan);font-weight:700}
-.ulvlb{height:3px;background:var(--card2);border-radius:3px;margin-top:4px;overflow:hidden}
-.ulvlf{height:100%;background:linear-gradient(90deg,var(--purple),var(--pink));border-radius:3px;transition:width .4s}
-.ubtn{background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;color:#1a0a00;flex-shrink:0;transition:opacity .2s,transform .1s;white-space:nowrap}
-.ubtn:disabled{opacity:.35;cursor:not-allowed;background:var(--card2);color:var(--muted)}
-.ubtn:not(:disabled):active{transform:scale(.93)}
-
-/* SKINS */
-#skinsec{margin-top:8px}
-.skintitle{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:2px;margin-bottom:8px}
-#skingrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.skinitem{aspect-ratio:1;border-radius:14px;border:2px solid var(--border);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;transition:border-color .25s,transform .1s;position:relative;gap:2px}
-.skinitem.active{border-color:var(--yellow);box-shadow:0 0 14px rgba(255,215,0,.4)}
-.skinitem.locked{opacity:.35;cursor:not-allowed}
-.skinitem:not(.locked):active{transform:scale(.92)}
-.skinlbl{font-size:8px;font-weight:800;color:var(--muted)}
-
-/* MISSIONS */
-.mc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 13px;margin-bottom:9px;display:flex;align-items:center;gap:11px}
-.micon{font-size:26px;flex-shrink:0}
-.minfo{flex:1}
-.mname{font-weight:800;font-size:13px;margin-bottom:3px}
-.mpw{height:5px;background:var(--card2);border-radius:5px;overflow:hidden;margin-bottom:3px}
-.mpb{height:100%;background:linear-gradient(90deg,var(--purple),var(--pink));border-radius:5px;transition:width .4s}
-.mrwd{font-size:10px;color:var(--yellow);font-weight:700}
-.mcbtn{background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:10px;padding:8px 11px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;color:#001a0a;flex-shrink:0;transition:opacity .2s}
-.mcbtn:disabled{opacity:.3;cursor:not-allowed;background:var(--card2);color:var(--muted)}
-
-/* REFERRAL */
-#refbox{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;text-align:center;margin-bottom:12px}
-#refcode{font-family:var(--fh);font-size:30px;color:var(--yellow);letter-spacing:5px;margin:10px 0;text-shadow:0 0 20px rgba(255,215,0,.4)}
-#copybtn{background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;padding:11px 28px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:14px;color:white;transition:transform .1s}
-#copybtn:active{transform:scale(.95)}
-.refstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.rs{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
-.rsv{font-family:var(--fh);font-size:22px;color:var(--green)}
-.rsl{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
-#refinp{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:white;font-family:var(--fb);font-size:13px;outline:none}
-#refinp:focus{border-color:rgba(255,215,0,.4)}
-#refgo{background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:10px;padding:10px 14px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:13px;color:#001a0a}
-
-/* LEADERBOARD */
-.lr{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
-.lr.top1{border-color:rgba(255,215,0,.5);box-shadow:0 0 16px rgba(255,215,0,.15)}
-.lr.top2{border-color:rgba(192,192,192,.4)}
-.lr.top3{border-color:rgba(205,127,50,.4)}
-.lr.me{border-color:var(--cyan);box-shadow:0 0 16px rgba(6,182,212,.2)}
-.lp{font-family:var(--fh);font-size:18px;width:30px;text-align:center;flex-shrink:0}
-.lname{flex:1;font-weight:800;font-size:13px}
-.lscore{font-family:var(--fh);font-size:13px;color:var(--yellow)}
-.lrbadge{font-size:10px;background:var(--card2);border-radius:6px;padding:2px 6px;color:var(--muted);font-weight:700;margin-top:2px}
-
-#lbtabs{display:flex;gap:6px;margin-bottom:8px}
-.lbtab{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 4px;font-family:var(--fb);font-weight:800;font-size:11px;color:var(--muted);cursor:pointer;transition:border-color .2s,color .2s}
-.lbtab.active{border-color:rgba(255,215,0,.5);color:var(--yellow);background:rgba(255,215,0,.08)}
-#lbme{background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(139,92,246,.1));border:1px solid rgba(6,182,212,.35);border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
-#lbme .lp{color:var(--cyan)}
-.lbempty{text-align:center;padding:24px 16px;color:var(--muted);font-size:12px;font-weight:700;line-height:1.6}
-
-/* NAV */
-#bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(11,10,20,.97);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;z-index:100;padding:6px 0 10px}
-.nbtn{flex:1;background:none;border:none;cursor:pointer;padding:6px 1px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-family:var(--fb);font-size:8px;font-weight:800;letter-spacing:.2px;transition:color .2s;position:relative}
-.nbtn.active{color:var(--yellow)}
-.nicon{font-size:19px}
-.ndot{width:7px;height:7px;background:var(--pink);border-radius:50%;position:absolute;top:3px;right:calc(50% - 14px);box-shadow:0 0 6px var(--pink)}
-
-/* OVERLAYS */
-#noeov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center}
-#noeov.show{display:flex}
-#noebox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease}
-@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
-#noebox h3{font-family:var(--fh);font-size:22px;color:var(--orange);margin-bottom:8px}
-#noebox p{color:var(--muted);font-size:13px;margin-bottom:16px}
-.obbtn{width:100%;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
-
-#ruov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;align-items:center;justify-content:center}
-#ruov.show{display:flex}
-#rubox{text-align:center;padding:32px 24px;animation:popin .55s cubic-bezier(.175,.885,.32,1.275)}
-@keyframes popin{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
-#ruemoji{font-size:80px;display:block;margin-bottom:6px;animation:bounce 1s ease-in-out infinite}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-#rutitle{font-family:var(--fh);font-size:32px;color:var(--yellow);margin-bottom:4px}
-#runame{font-family:var(--fh);font-size:20px;color:var(--cyan);margin-bottom:6px}
-#rubonus{font-size:13px;color:var(--muted);margin-bottom:22px}
-#ruclose{background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;padding:14px 44px;cursor:pointer;font-family:var(--fh);font-size:20px;color:#1a0a00;box-shadow:0 4px 20px rgba(255,107,53,.4)}
-
-#dailyov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;align-items:flex-end;justify-content:center}
-#dailyov.show{display:flex}
-#dailybox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease}
-#dailybox h3{font-family:var(--fh);font-size:24px;color:var(--yellow);margin-bottom:6px}
-#dailybox p{color:var(--muted);font-size:13px;margin-bottom:18px}
-#dailygrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:18px}
-.dday{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:6px 2px;text-align:center;font-size:9px;font-weight:800;color:var(--muted)}
-.dday.done{border-color:var(--green);color:var(--green);background:rgba(16,185,129,.1)}
-.dday.today{border-color:var(--yellow);color:var(--yellow);background:rgba(255,215,0,.1);animation:pulse .8s ease-in-out infinite}
-.dday .ddv{font-family:var(--fh);font-size:13px;color:inherit;margin-bottom:1px}
-#dailyclaim{width:100%;padding:14px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:20px;color:#1a0a00;cursor:pointer;box-shadow:0 4px 20px rgba(255,215,0,.3)}
-#dailyclaim:disabled{opacity:.4;cursor:not-allowed}
-#dailyclose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
-
-/* ALIAS (ranking) */
-#aliasov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:900;align-items:center;justify-content:center;padding:24px}
-#aliasov.show{display:flex}
-#aliasbox{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:26px 22px;width:100%;max-width:380px;text-align:center;animation:popin .45s cubic-bezier(.175,.885,.32,1.275)}
-#aliasbox .aic{font-size:44px;margin-bottom:8px}
-#aliasbox h3{font-family:var(--fh);font-size:21px;color:var(--yellow);margin-bottom:6px}
-#aliasbox p{color:var(--muted);font-size:12.5px;margin-bottom:16px;line-height:1.5}
-#aliasinp{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;color:white;font-family:var(--fb);font-weight:800;font-size:15px;text-align:center;outline:none;margin-bottom:6px}
-#aliasinp:focus{border-color:rgba(255,215,0,.5)}
-#aliaserr{font-size:11px;color:var(--red);font-weight:800;min-height:14px;margin-bottom:10px}
-#aliasgo{width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:17px;color:#1a0a00;cursor:pointer}
-#aliasskip{width:100%;padding:10px;background:none;border:none;font-family:var(--fb);font-weight:700;font-size:11px;color:var(--muted);text-decoration:underline;cursor:pointer;margin-top:8px}
-
-/* STREAK FIRE */
-#sfire{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;opacity:0;pointer-events:none;z-index:9997}
-#sfire.show{animation:firepop .6s ease-out forwards}
-@keyframes firepop{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(-50%,-60%) scale(1.5);opacity:0}}
-
-/* TOAST */
-#toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
-#toast.show{opacity:1}
-
-#logo{text-decoration:none;color:inherit;cursor:pointer}
-
-.cbtn-big.cbtn-juego{display:inline-flex;align-items:center;justify-content:center;padding:18px 32px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#FF6B35);color:#1a0a00;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 8px 40px rgba(255,165,0,.3);transition:all 0.2s ease}
-.cbtn-big.cbtn-juego:hover{transform:translateY(-3px);box-shadow:0 16px 50px rgba(255,165,0,.5)}
-
-/* Ocultar sección de skins completa */
-#skinsec { display: none !important; }
-#skingrid { display: none !important; }
-/* LOGIN SCREEN */
-#login-screen{position:fixed;inset:0;background:#0b0a14;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;text-align:center}
-#login-screen img{width:150px;height:150px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,215,0,.35))}
-#login-title{font-family:var(--fh);font-size:26px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-#login-sub{font-size:13px;color:var(--muted);font-weight:700;max-width:300px;line-height:1.5}
-#googleBtn{display:flex;align-items:center;gap:10px;background:#fff;color:#1f1f1f;border:none;border-radius:30px;padding:13px 26px;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.35);transition:transform .15s}
-#googleBtn:active{transform:scale(.96)}
-#googleBtn svg{width:20px;height:20px}
-#login-error{font-size:12px;color:var(--red);font-weight:800;min-height:16px}
-#login-loading{font-size:12px;color:var(--cyan);font-weight:800;display:none}
-#syncpill{display:none !important;position:fixed;top:10px;right:10px;z-index:99997;font-size:9px;font-weight:800;letter-spacing:.5px;color:var(--muted);background:rgba(0,0,0,.35);padding:4px 9px;border-radius:20px;align-items:center;gap:5px;opacity:.85;pointer-events:none}
-#syncpill .dot{width:6px;height:6px;border-radius:50%;background:var(--green);transition:background .3s}
-#syncpill.saving .dot{background:var(--yellow);animation:pulse 1s ease-in-out infinite}
-#syncpill.err .dot{background:var(--red)}
-#usermini{display:flex;align-items:center;gap:6px}
-#usermini img{width:22px;height:22px;border-radius:50%;border:1px solid var(--border)}
-#logoutBtn{background:none;border:none;color:var(--muted);font-size:9px;font-weight:800;text-decoration:underline;cursor:pointer;padding:2px}
-#muteBtn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,border-color .2s;flex-shrink:0}
-#muteBtn:active{transform:scale(.88)}
-#muteBtn.off{opacity:.5;border-color:var(--border)}
-
-/* ══════════════════════════════════════════════════════════════════
-   DESKTOP — "Mining Station" shell.
-   Everything above this line is the untouched mobile/APK layout.
-   Below 901px none of this applies; the game renders exactly as before.
-   ══════════════════════════════════════════════════════════════════ */
-@media (min-width:901px){
-
-  html,body{overflow-y:auto}
-
-  /* Ambient desktop backdrop: a deep starfield so the game reads as a
-     console sitting in space, not a phone screen stretched wide. */
-  body{
-    min-height:100vh;
-    background:
-      radial-gradient(ellipse 1200px 800px at 12% -10%, rgba(139,92,246,.16), transparent 60%),
-      radial-gradient(ellipse 1000px 700px at 100% 10%, rgba(255,60,172,.10), transparent 55%),
-      radial-gradient(ellipse 900px 900px at 50% 120%, rgba(6,182,212,.10), transparent 55%),
-      var(--bg);
-  }
-  #blobs{opacity:1.4}
-  #pC{z-index:9998}
-
-  /* Turn <body> into the two-pane desktop frame: a game console on the
-     left, a vertical command rail on the right. #app and #bnav are
-     already adjacent siblings in the DOM, so this is layout-only —
-     no markup or script changes required. Centered vertically so the
-     console sits balanced in the middle of a typical monitor instead
-     of pinned to the top with dead space below; on shorter viewports
-     where a screen's content runs taller than the window, flexbox
-     still lets it scroll naturally from the top. */
-  body{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:28px;
-    padding:40px;
-    min-height:100vh;
-    box-sizing:border-box;
-  }
-
-  #login-screen{position:fixed}
-
-  /* ── GAME CONSOLE ───────────────────────────────────────────── */
-  #app{
-    order:1;
-    position:relative;
-    max-width:560px;
-    width:560px;
-    min-height:0;
-    margin:0;
-    padding-bottom:26px;
-    background:linear-gradient(180deg,rgba(255,255,255,.025),transparent 220px),var(--card);
-    border:1px solid var(--border);
-    border-radius:28px;
-    box-shadow:0 30px 90px -20px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.02) inset,0 1px 0 rgba(255,255,255,.05) inset;
-    overflow:hidden;
-    animation:consoleIn .5s cubic-bezier(.16,1,.3,1);
-  }
-  @keyframes consoleIn{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
-
-  /* subtle top bezel light so the console reads as a physical panel */
-  #app::before{
-    content:'';position:absolute;top:0;left:16px;right:16px;height:1px;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
-    pointer-events:none;
-  }
-
-  #topbar{padding:20px 22px 10px}
-  #logo{font-size:19px}
-
-  #bal-area{padding:6px 22px 10px}
-  #balnum{font-size:50px}
-  #srow{padding:0 22px 10px}
-  #xpa{padding:0 22px 10px}
-  #coinsec{padding:6px 22px 10px}
-  #ensec{padding:0 22px 12px}
-  #dailysec{padding:0 22px 4px}
-  .screen{padding:0 22px 20px}
-
-  /* the coin is the signature element — give it real room to breathe.
-     #coinout's rings and orbiting satellites use hardcoded-pixel
-     @keyframes (translateX radii matched to their exact mobile size),
-     so it's scaled as one unit here rather than resized directly —
-     that keeps every ring and orbit radius perfectly proportional
-     without touching the animations themselves. */
-  #coinout{transform:scale(1.18);margin:14px 0}
-  #coinwrap{cursor:pointer}
-  #coinwrap:hover{transform:scale(1.035)}
-  #coinwrap:hover .cglow{opacity:.6;background:radial-gradient(circle,rgba(255,255,255,.12),transparent)}
-  #coinwrap.pressed{transform:scale(1.16)}
-  #coinbtn{cursor:pointer}
-
-  /* the mobile ring opacities (.08–.18) were tuned for a phone held
-     close; scaled up and viewed from further away on a desktop
-     monitor they nearly vanish, so the orbiting-satellite motif
-     needs more contrast here to actually read as rings */
-  .or1{border-color:rgba(255,215,0,.32)}
-  .or2{border-color:rgba(6,182,212,.24)}
-  .or3{border-color:rgba(255,60,172,.16)}
-  .osat{font-size:15px}
-
-  /* two-column grids reclaim the extra width on list-heavy screens
-     instead of just stretching single cards edge to edge */
-  #upslist,#misslist{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-content:start}
-  .uc,.mc{margin-bottom:0}
-  #upslist > div:not(.uc),#misslist > div:not(.mc){grid-column:1 / -1}
-  #skingrid{grid-template-columns:repeat(5,1fr)}
-  .refstats{grid-template-columns:1fr 1fr}
-
-  /* pointer affordances everywhere something is clickable — the whole
-     point of a desktop pass is that hover exists and should say so */
-  .ubtn:not(:disabled),.mcbtn:not(:disabled),#copybtn,#refgo,#dailyclaim:not(:disabled),
-  #ruclose,.obbtn,#aliasgo,#aliasskip,.lbtab,.skinitem:not(.locked),#dailybtn,
-  #googleBtn,#logoutBtn,.nbtn,#logo{cursor:pointer}
-
-  .uc{transition:border-color .2s,transform .12s,background .2s}
-  .uc.canbuy:hover{transform:translateY(-2px);background:var(--card2)}
-  .ubtn:not(:disabled):hover{filter:brightness(1.08);transform:translateY(-1px)}
-  .mcbtn:not(:disabled):hover{filter:brightness(1.08)}
-  .lbtab:hover{color:var(--text)}
-  .skinitem:not(.locked):hover{transform:translateY(-2px);border-color:rgba(255,215,0,.4)}
-  #dailybtn:hover{border-color:rgba(255,215,0,.4)}
-  #copybtn:hover,#refgo:hover{filter:brightness(1.08);transform:translateY(-1px)}
-  a.cbtn-big.cbtn-juego,a[href^="https://t.me"]{transition:transform .2s,box-shadow .2s,filter .2s}
-  a[href^="https://t.me"]:hover{transform:translateY(-2px);filter:brightness(1.06)}
-
-  /* ── COMMAND RAIL: the mobile bottom nav re-cast as a vertical
-     sidebar. Same six buttons, same onclick handlers, same #nav-*
-     ids — only the CSS shape changes. Fixed to the viewport (not
-     sticky-in-flex) so it stays reachable even when a screen like
-     Mejoras runs taller than the window and the console scrolls
-     past it — a sidebar that vanishes on scroll defeats the point
-     of moving navigation off a thumb-reachable bottom bar. ────── */
-  #bnav{
-    position:fixed;
-    top:50%;
-    left:calc(50% + 280px + 28px);
-    bottom:auto;
-    right:auto;
-    transform:translateY(-50%);
-    width:104px;
-    max-width:104px;
-    flex-direction:column;
-    align-items:stretch;
-    gap:6px;
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:24px;
-    padding:16px 10px;
-    backdrop-filter:none;
-    box-shadow:0 30px 90px -20px rgba(0,0,0,.65);
-    animation:consoleIn .5s cubic-bezier(.16,1,.3,1) .05s backwards;
-    z-index:50;
-  }
-  .nbtn{
-    flex:none;
-    flex-direction:column;
-    gap:5px;
-    padding:12px 4px;
-    border-radius:14px;
-    font-size:9px;
-    letter-spacing:.4px;
-    transition:background .18s,color .18s;
-  }
-  .nbtn:hover{background:var(--card2);color:var(--text)}
-  .nbtn.active{background:linear-gradient(135deg,rgba(255,215,0,.14),rgba(255,107,53,.1));color:var(--yellow)}
-  .nicon{font-size:21px}
-  .ndot{top:8px;right:14px}
-
-  /* ── OVERLAYS: center as real dialogs instead of mobile bottom
-     sheets that would otherwise slam edge-to-edge across a wide
-     viewport. ──────────────────────────────────────────────────── */
-  #noeov,#dailyov{align-items:center}
-  #noebox,#dailybox{
-    max-width:380px;
-    border-radius:24px;
-    animation:popin .4s cubic-bezier(.175,.885,.32,1.275);
-  }
-  #aliasbox{max-width:400px}
-
-  /* login screen: give the centered card a console frame too, so the
-     very first thing a desktop player sees already looks intentional */
-  #login-screen{
-    background:
-      radial-gradient(ellipse 1200px 800px at 12% -10%, rgba(139,92,246,.16), transparent 60%),
-      radial-gradient(ellipse 1000px 700px at 100% 10%, rgba(255,60,172,.10), transparent 55%),
-      #0b0a14;
-  }
-  #login-screen > *{position:relative;z-index:1}
-  #login-screen::before{
-    content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-    width:420px;height:520px;background:var(--card);border:1px solid var(--border);
-    border-radius:28px;box-shadow:0 30px 90px -20px rgba(0,0,0,.65);
-  }
-  #googleBtn:hover{filter:brightness(.96);transform:translateY(-1px)}
-
-  /* narrower desktop windows (tablets in landscape, split-screen) fall
-     back gracefully toward the app-shaped console before the sidebar
-     would get cramped */
-  @media (max-width:1100px){
-    body{padding:28px 20px}
-    #bnav{width:88px;max-width:88px;left:calc(50% + 280px + 20px)}
-    .nbtn{font-size:8px}
-  }
+.hero-title .line2{
+  display:block;
+  background:linear-gradient(135deg,var(--gold),var(--gold3),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 60px rgba(255,215,0,.3));
 }
+.hero-sub{
+  max-width:560px;margin:28px auto 0;
+  font-size:18px;line-height:1.7;color:rgba(245,240,255,.6);font-weight:400;
+  animation:fadeUp .7s .2s ease both;
+}
+.hero-sub strong{color:var(--gold);font-weight:700}
+.hero-btns{
+  display:flex;flex-wrap:wrap;gap:14px;justify-content:center;
+  margin-top:44px;animation:fadeUp .7s .3s ease both;
+}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--gold),var(--gold3));
+  color:#1a0a00;padding:18px 36px;border-radius:6px;
+  font-size:16px;font-weight:700;text-decoration:none;
+  letter-spacing:.5px;text-transform:uppercase;
+  transition:transform .15s,box-shadow .2s;
+  box-shadow:0 8px 40px rgba(255,165,0,.3);position:relative;overflow:hidden;
+}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.2) 50%,transparent 60%);
+  transform:translateX(-100%);transition:transform .5s;
+}
+.btn-primary:hover::after{transform:translateX(200%)}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 50px rgba(255,165,0,.45)}
+.btn-tg{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(0,136,204,.15);border:1px solid rgba(0,136,204,.4);
+  color:#fff;padding:18px 28px;border-radius:6px;
+  font-size:15px;font-weight:600;text-decoration:none;
+  transition:transform .15s,background .2s,border-color .2s;
+}
+.btn-tg:hover{transform:translateY(-3px);background:rgba(0,136,204,.3);border-color:rgba(0,136,204,.8)}
+.btn-tg-grupo{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);
+  color:#fff;padding:18px 28px;border-radius:6px;
+  font-size:15px;font-weight:600;text-decoration:none;
+  transition:transform .15s,background .2s,border-color .2s;
+}
+.btn-tg-grupo:hover{transform:translateY(-3px);background:rgba(124,58,237,.3);border-color:rgba(124,58,237,.8)}
+.btn-icon{font-size:20px;line-height:1}
+.hero-stats{
+  display:flex;flex-wrap:wrap;gap:0;justify-content:center;
+  margin-top:64px;animation:fadeUp .7s .4s ease both;
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+}
+.hstat{padding:20px 36px;text-align:center;border-right:1px solid var(--border)}
+.hstat:last-child{border-right:none}
+.hstat-val{
+  font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;
+  background:linear-gradient(135deg,var(--gold),var(--gold3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hstat-lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:2px;margin-top:2px}
 
-/* ═══════════════════ CANJEAR (airdrops de terceros) ═══════════════════
-   Sección puramente informativa: ningún canje ni conexión de wallet
-   ocurre dentro de la app — solo se explica y se redirige fuera. */
-.rdintro{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 15px;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,.75);line-height:1.55}
-.rdintro b{color:var(--yellow)}
-.rdcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 13px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
-.rdico{font-size:28px;flex-shrink:0;width:44px;height:44px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center}
-.rdinfo{flex:1;min-width:0}
-.rdname{font-weight:800;font-size:13px;margin-bottom:2px;display:flex;align-items:center;gap:6px}
-.rdstatus{font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:20px;text-transform:uppercase}
-.rdstatus.live{background:rgba(16,185,129,.18);color:var(--green)}
-.rdstatus.soon{background:rgba(255,215,0,.16);color:var(--yellow)}
-.rddesc{font-size:11px;color:var(--muted);line-height:1.4}
-.rdbtn{background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:10px;padding:9px 13px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;color:white;flex-shrink:0;white-space:nowrap}
-.rdfoot{text-align:center;font-size:10px;color:var(--muted);margin-top:6px;padding:0 6px;line-height:1.5}
+/* ── SCROLL MARQUEE ── */
+.marquee-wrap{
+  position:relative;z-index:1;padding:20px 0;overflow:hidden;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:rgba(255,215,0,.02);
+}
+.marquee-track{display:flex;gap:0;animation:marqueeScroll 22s linear infinite;white-space:nowrap;}
+.marquee-item{
+  display:inline-flex;align-items:center;gap:20px;padding:0 32px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  color:var(--gold);letter-spacing:2px;text-transform:uppercase;
+  border-right:1px solid rgba(255,215,0,.1);flex-shrink:0;
+}
+.marquee-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.5}
+@keyframes marqueeScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* overlay de aviso, mismo esqueleto visual que #noeov/#noebox */
-#redeemov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center}
-#redeemov.show{display:flex}
-#redeembox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:left;animation:sup .3s ease}
-#redeembox h3{font-family:var(--fh);font-size:19px;color:var(--yellow);margin-bottom:10px;text-align:center}
-#redeembox p{color:rgba(255,255,255,.75);font-size:12.5px;margin-bottom:10px;line-height:1.55}
-#redeembox .rdwarn{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);border-radius:12px;padding:10px 12px;font-size:11.5px;color:#ffd8bd;margin-bottom:14px;line-height:1.5}
-#redeemgo{width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;color:white;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px}
-#redeemcancel{width:100%;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
+/* ── SECTIONS ── */
+section{position:relative;z-index:1}
+.container{max-width:1140px;margin:0 auto;padding:0 24px}
+.section-label{
+  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:16px;
+}
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(44px,7vw,88px);line-height:.95;letter-spacing:-1px;margin-bottom:20px;
+}
+.section-title em{
+  font-style:normal;
+  background:linear-gradient(135deg,var(--gold),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.section-sub{font-size:17px;line-height:1.7;color:rgba(245,240,255,.55);max-width:560px}
+
+/* ── AIRDROP SECTION ── */
+#airdrop{padding:120px 0 100px}
+.airdrop-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:60px;
+}
+.airdrop-visual{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  overflow:visible;
+}
+.coin-hero{
+  width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);
+  box-shadow:0 0 80px rgba(255,165,0,.4),0 0 160px rgba(255,107,53,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,.9);
+  letter-spacing:2px;animation:coinFloat 4s ease-in-out infinite;
+  position:relative;z-index:2;
+}
+.coin-hero::before{
+  content:'';position:absolute;inset:-3px;border-radius:50%;
+  background:conic-gradient(var(--gold),var(--gold3),var(--pink),var(--gold));
+  z-index:-1;animation:spin 8s linear infinite;
+}
+.coin-hero::after{
+  content:'';position:absolute;inset:3px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);
+}
+.coin-label{position:absolute;z-index:3;font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,.92);letter-spacing:2px}
+@keyframes coinFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-18px) rotate(3deg)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+.orbit-ring{position:absolute;border-radius:50%;border:1px dashed;animation:orbitSpin linear infinite;}
+.or1{width:340px;height:340px;border-color:rgba(255,215,0,.15);animation-duration:16s}
+.or2{width:420px;height:420px;border-color:rgba(255,60,172,.08);animation-duration:24s;animation-direction:reverse}
+.or3{width:500px;height:500px;border-color:rgba(0,229,255,.06);animation-duration:32s}
+@keyframes orbitSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+.airdrop-features{display:flex;flex-direction:column;gap:28px}
+.af{
+  display:flex;gap:20px;align-items:flex-start;padding:24px;
+  border:1px solid var(--border);border-radius:8px;background:rgba(255,215,0,.02);
+  transition:border-color .3s,background .3s;
+}
+.af:hover{border-color:rgba(255,215,0,.2);background:rgba(255,215,0,.04)}
+.af-ico{width:44px;height:44px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.af-ico.gold{background:rgba(255,215,0,.12)}
+.af-ico.pink{background:rgba(255,60,172,.12)}
+.af-ico.cyan{background:rgba(0,229,255,.12)}
+.af h3{font-size:16px;font-weight:700;margin-bottom:6px;color:var(--white)}
+.af p{font-size:14px;line-height:1.6;color:var(--muted)}
+
+/* ── HOW IT WORKS ── */
+#howto{padding:100px 0;background:linear-gradient(180deg,transparent,rgba(124,58,237,.04),transparent)}
+.steps-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
+  margin-top:60px;border:1px solid var(--border);border-radius:10px;overflow:hidden;
+}
+.step{padding:36px 28px;background:var(--card);position:relative;overflow:hidden;transition:background .3s;}
+.step:hover{background:var(--card2)}
+.step::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold3));
+  transform:scaleX(0);transition:transform .3s;transform-origin:left;
+}
+.step:hover::before{transform:scaleX(1)}
+.step-num{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:rgba(255,215,0,.08);margin-bottom:16px;}
+.step-ico{font-size:28px;margin-bottom:12px}
+.step h3{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--white)}
+.step p{font-size:13px;line-height:1.6;color:var(--muted)}
+
+/* ── ECONOMY ── */
+#economy{padding:100px 0}
+.economy-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:center;margin-top:60px;}
+.eco-chart{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:36px;position:relative;overflow:hidden;}
+.eco-chart::before{content:'';position:absolute;top:-80px;right:-80px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,0,.06),transparent);}
+.eco-title-sm{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
+.eco-bars{display:flex;flex-direction:column;gap:16px}
+.eco-bar-row{display:flex;align-items:center;gap:14px}
+.eco-bar-lbl{font-size:13px;font-weight:600;color:rgba(245,240,255,.8);width:160px;flex-shrink:0}
+.eco-bar-track{flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
+.eco-bar-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.34,1.56,.64,1)}
+.eco-bar-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);width:36px;text-align:right;flex-shrink:0}
+.eco-cards{display:flex;flex-direction:column;gap:20px}
+.eco-card{padding:24px;border:1px solid var(--border);border-radius:8px;background:rgba(255,215,0,.02);transition:border-color .3s,transform .2s;}
+.eco-card:hover{border-color:rgba(255,215,0,.18);transform:translateX(6px)}
+.eco-card-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.eco-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.eco-card h3{font-size:15px;font-weight:700}
+.eco-card p{font-size:13px;line-height:1.6;color:var(--muted)}
+
+/* ── COMMUNITY CTA ── */
+#community{padding:100px 0}
+.community-box{
+  border:1px solid rgba(255,215,0,.15);border-radius:16px;padding:80px 60px;text-align:center;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,215,0,.06) 0%,transparent 70%);
+  position:relative;overflow:hidden;
+}
+.community-box::before{content:'';position:absolute;inset:0;border-radius:16px;background:linear-gradient(180deg,rgba(255,215,0,.03) 0%,transparent 50%);}
+.community-box .section-title{font-size:clamp(42px,6vw,80px)}
+.community-btns{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:44px;}
+.cbtn-big{
+  display:inline-flex;align-items:center;gap:14px;padding:20px 32px;border-radius:8px;
+  font-size:16px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .2s;
+}
+.cbtn-big:hover{transform:translateY(-4px)}
+.cbtn-canal{background:linear-gradient(135deg,#0088cc,#006aaa);color:white;box-shadow:0 8px 40px rgba(0,136,204,.25)}
+.cbtn-canal:hover{box-shadow:0 16px 50px rgba(0,136,204,.45)}
+.cbtn-grupo{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:white;box-shadow:0 8px 40px rgba(124,58,237,.25)}
+.cbtn-grupo:hover{box-shadow:0 16px 50px rgba(124,58,237,.45)}
+.cbtn-juego{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#1a0a00;box-shadow:0 8px 40px rgba(255,165,0,.25)}
+.cbtn-juego:hover{box-shadow:0 16px 50px rgba(255,165,0,.45)}
+.cbtn-icon{font-size:24px}
+.cbtn-text{text-align:left;line-height:1.2}
+.cbtn-text span{display:block;font-size:12px;opacity:.7;font-weight:500;margin-top:2px;letter-spacing:.5px}
+
+/* ── FAQ ── */
+#faq{padding:100px 0}
+.faq-list{margin-top:60px;display:flex;flex-direction:column;gap:2px}
+.faq-item{border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--card);margin-bottom:4px}
+.faq-q{padding:22px 28px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .2s;font-size:16px;font-weight:600;gap:12px;}
+.faq-q:hover{background:var(--card2)}
+.faq-chevron{font-size:18px;color:var(--gold);transition:transform .3s;line-height:1;flex-shrink:0}
+.faq-a{padding:0 28px;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;font-size:14px;line-height:1.7;color:var(--muted)}
+.faq-item.open .faq-a{max-height:200px;padding:0 28px 22px}
+.faq-item.open .faq-chevron{transform:rotate(45deg)}
+
+/* ── FOOTER ── */
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:48px 0 32px;text-align:center;}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;background:linear-gradient(90deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
+.footer-sub{font-size:13px;color:var(--muted);margin-bottom:32px}
+.footer-links{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-bottom:32px}
+.footer-links a{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--gold)}
+.footer-copy{font-size:12px;color:rgba(107,100,144,.5);font-family:'JetBrains Mono',monospace}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  :root{--nav-h:60px}
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .airdrop-grid,.economy-grid{grid-template-columns:1fr}
+  .airdrop-visual{order:-1;height:300px}
+  .steps-grid{grid-template-columns:1fr 1fr}
+  .coin-hero{width:200px;height:200px;font-size:38px}
+  .coin-label{font-size:38px}
+  .or1{width:260px;height:260px}
+  .or2{width:320px;height:320px}
+  .or3{width:380px;height:380px}
+  .hero-stats{flex-direction:column}
+  .hstat{border-right:none;border-bottom:1px solid var(--border)}
+  .hstat:last-child{border-bottom:none}
+  .community-box{padding:48px 24px}
+}
+@media(max-width:600px){
+  :root{--ticker-h:36px;--nav-h:54px;}
+  .ticker-item{font-size:10px;padding:0 12px;gap:8px}
+  nav{padding:0 14px;gap:12px}
+  .nav-logo{font-size:20px;letter-spacing:2px}
+  .nav-cta{padding:8px 12px;font-size:11px;letter-spacing:0}
+  .hero-btns{flex-direction:column;align-items:center}
+  .hero-btns a{width:100%;max-width:300px;justify-content:center}
+  .steps-grid{grid-template-columns:1fr}
+  .or2{width:260px;height:260px}
+  .or3{display:none}
+  .community-box{padding:36px 16px}
+  .community-btns{flex-direction:column;align-items:center}
+  .cbtn-big{width:100%;max-width:340px;justify-content:center}
+  .eco-bar-lbl{width:90px;font-size:11px}
+  .faq-q{font-size:14px;padding:16px}
+  .faq-a{font-size:13px}
+  .faq-item.open .faq-a{padding:0 16px 16px}
+}
 </style>
 </head>
 <body>
 
-<div id="login-screen">
-  <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png" alt="alien">
-  <div id="login-title">₿ CRYPTO ALIEN CLICK</div>
-  <div id="login-sub">Inicia sesión con Google para guardar tu progreso en la nube y jugar desde cualquier dispositivo.</div>
-  <button id="googleBtn" onclick="loginWithGoogle()">
-    <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 36.4 26.7 37 24 37c-5.3 0-9.6-3.4-11.3-8.1l-6.5 5C9.5 40.6 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-0.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C40.9 36 45 30.5 45 24c0-1.2-.1-2.4-.4-3.5z"/></svg>
-    Continuar con Google
-  </button>
-  <div id="login-loading">🔄 Conectando...</div>
-  <div id="login-error"></div>
+<!-- CUSTOM CURSOR -->
+<div id="cursor"></div>
+<div id="cursor2"></div>
+
+<!-- BACKGROUND CANVAS -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-inner" id="ticker">
+    <div class="ticker-item">🪙 $CLK TOKEN <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">🎮 JUEGO GRATIS <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">⛏️ MINA Y ACUMULA <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">📡 ÚNETE AL CANAL <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">🔄 CANJEABLE EN PROYECTOS ALIADOS <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">🎯 JUEGA · MINA · CANJEA <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">🪙 $CLK TOKEN <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">🎮 JUEGO GRATIS <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">⛏️ MINA Y ACUMULA <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">📡 ÚNETE AL CANAL <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">🔄 CANJEABLE EN PROYECTOS ALIADOS <span class="ticker-sep">·</span></div>
+    <div class="ticker-item">🎯 JUEGA · MINA · CANJEA <span class="ticker-sep">·</span></div>
+  </div>
 </div>
 
-<div id="syncpill" style="display:none"><span class="dot"></span><span id="syncpilltxt">Guardado</span></div>
-
-<div id="loading" style="display:none">
-  <div class="ll">₿ CRYPTO ALIEN CLICK</div>
-  <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png" 
-       alt="alien" 
-       style="width:170px; height:170px; animation:pulse 1s infinite; object-fit:contain;">
-  <div class="lbw"><div class="lb" id="lbar"></div></div>
-  <div class="lt" id="ltip">INICIANDO BLOCKCHAIN...</div>
-</div>
-
-<div id="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
-<canvas id="pC"></canvas>
-
-<div id="app" style="display:none">
-
-  <div id="topbar">
-  <a href="landing.html" id="logo">₿ CRYPTO ALIEN CLICK</a>
-  <div id="usermini">
-    <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
-    <img id="userpic" src="" alt=""><button id="logoutBtn" onclick="logoutUser()">Salir</button>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">₿ CRYPTO ALIEN CLICK</div>
+  <div class="nav-links">
+    <a href="#airdrop">Canje</a>
+    <a href="#howto">Cómo funciona</a>
+    <a href="#economy">Proyectos aliados</a>
+    <a href="#community">Comunidad</a>
   </div>
-  </div>
-
-  <!-- MINE -->
-  <div id="screen-mine" class="screen active">
-    <div id="bal-area">
-      <div id="balnum">0</div>
-      <div id="ballabel">$CLK TOKENS</div>
-      <div id="rankpill">🐣 Crypto Noob</div>
-      <div id="perinfo">+<span id="pertap">1</span>/tap · <span id="perhour">0</span>/hora</div>
-    </div>
-    <div id="srow">
-      <div class="sc yc"><div class="sl">NIVEL</div><div class="sv cy" id="svlvl">1</div></div>
-      <div class="sc cc2"><div class="sl">TAPS</div><div class="sv cc" id="svtaps">0</div></div>
-      <div class="sc pc"><div class="sl">COMBO MAX</div><div class="sv cp" id="svcombo">0🔥</div></div>
-    </div>
-    <div id="xpa">
-      <div id="xpr"><span id="xplabel">Nivel 1 · 0/500 XP</span><span id="xppct">0%</span></div>
-      <div id="xpw"><div id="xpb" style="width:0%"></div></div>
-    </div>
-    <div id="coinsec">
-      <div id="coinout">
-        <div class="or or1"></div><div class="or or2"></div><div class="or or3"></div>
-        <div class="osat os1">⚡</div>
-        <div class="osat os2">💎</div>
-
-        <!-- ── NEW STRUCTURE: wrap handles scale, button is invisible overlay ── -->
-        <div id="coinwrap">
-          <div class="csheen"></div>
-          <div class="cglow"></div>
-          <div class="csym">
-            <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_063514358.png" alt="alien">
-          </div>
-          <button id="coinbtn" aria-label="Minar CLK"></button>
-        </div>
-
-      </div>
-      <div id="comboa">
-        <div id="combopill">🔥 COMBO x<span id="cv">1</span></div>
-        <div id="boostpill">⚡ x2 BOOST</div>
-      </div>
-      <div id="miningsec">
-        <div id="mininghead">
-          <div id="miningtitle"><span class="mdot"></span>MINANDO EN SEGUNDO PLANO</div>
-          <div id="miningpct">0%</div>
-        </div>
-        <div id="miningtrack"><div id="miningfill"><div id="miningpop">+0</div></div></div>
-        <div id="miningsub">Sigue minando aunque no toques la pantalla</div>
-      </div>
-    </div>
-    <div id="ensec">
-      <div id="enhead"><div id="entitle">⚡ ENERGÍA</div><div id="encount"><span id="ecur">120</span>/<span id="emax">120</span></div></div>
-      <div id="entrack"><div id="enfill" style="width:100%"></div></div>
-      <div id="enregen">+<span id="eregen">0.04</span>/s · recarga automática</div>
-    </div>
-    <div id="dailysec">
-      <button id="dailybtn" onclick="openDaily()">
-        <div class="dbicon">🎁</div>
-        <div class="dbinfo"><div class="dbtitle">Bonus Diario</div><div class="dbsub" id="dailysub">¡Reclama tu recompensa!</div></div>
-        <div class="dbbadge" id="dailybadge">RECLAMAR</div>
-      </button>
-    </div>
-  </div>
-
-  <!-- UPGRADES -->
-  <div id="screen-upgrades" class="screen">
-    <div class="sh">⚡ Mejoras</div>
-    <div class="ss">Invierte $CLK para generar más tokens</div>
-    <div id="upslist"></div>
-    <div id="skinsec">
-      <div class="skintitle">🎨 SKINS DE MONEDA</div>
-      <div id="skingrid"></div>
-    </div>
-  </div>
-
-  <!-- MISSIONS -->
-  <div id="screen-missions" class="screen">
-    <div class="sh">🎯 Misiones</div>
-    <div class="ss">Completa retos para ganar $CLK extra</div>
-    <div id="misslist"></div>
-  </div>
-
-  <!-- RANKING GLOBAL -->
-  <div id="screen-leaderboard" class="screen">
-    <div class="sh">🏆 Ranking Global</div>
-    <div class="ss">Los mejores mineros de $CLK</div>
-
-    <div id="lbtabs">
-      <button class="lbtab active" data-period="weekly" onclick="setLBPeriod('weekly')">📅 Semanal</button>
-      <button class="lbtab" data-period="monthly" onclick="setLBPeriod('monthly')">🗓️ Mensual</button>
-      <button class="lbtab" data-period="total" onclick="setLBPeriod('total')">👑 Total</button>
-    </div>
-    <div id="lbsub" class="ss" style="margin-bottom:10px"></div>
-
-    <div id="lbme"></div>
-    <div id="lblist"></div>
-  </div>
-
-  <!-- TELEGRAM CTA -->
-  <div id="screen-community" class="screen">
-    <div class="sh">📡 Comunidad</div>
-    <div class="ss">Únete para enterarte de las novedades de $CLK</div>
-
-    <div style="background:linear-gradient(135deg,#0d1b2a,#1a1040);border:1px solid rgba(139,92,246,.4);border-radius:20px;padding:24px 20px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden">
-      <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(139,92,246,.3),transparent);border-radius:50%"></div>
-      <div style="position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(255,60,172,.2),transparent);border-radius:50%"></div>
-      <div style="font-size:52px;margin-bottom:10px">🚀</div>
-      <div style="font-family:var(--fh);font-size:22px;color:var(--yellow);margin-bottom:8px">Novedades de $CLK</div>
-      <div style="font-size:13px;color:#c4b5fd;line-height:1.6;margin-bottom:6px">Sigue el canal oficial para enterarte de futuros anuncios sobre <strong style="color:white">$CLK</strong> y posibles programas externos.</div>
-      <div style="font-size:12px;color:var(--muted);font-weight:700">Tus tokens actuales reflejan tu progreso en el juego 🎁</div>
-      <a href="landing.html" target="_blank" rel="noopener" class="cbtn-big cbtn-juego" style="margin-top:20px;display:inline-block;">Saber más</a>
-    </div>
-
-    <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,107,53,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center;margin-bottom:14px">
-      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:6px">📌 MANTENTE INFORMADO</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5">Suscríbete al canal oficial de Telegram para no perderte los anuncios sobre el futuro de $CLK</div>
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
-      <a href="https://t.me/cryptoclikoficial" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#0088cc,#006aaa);border-radius:16px;padding:16px;text-decoration:none;box-shadow:0 4px 20px rgba(0,136,204,.3)">
-        <div style="font-size:32px;flex-shrink:0">📢</div>
-        <div style="flex:1">
-          <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Canal de Noticias</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Anuncios oficiales · Fecha del airdrop · Actualizaciones</div>
-        </div>
-        <div style="font-size:20px;color:white">›</div>
-      </a>
-      <a href="https://t.me/cryptoclikgrupo" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border-radius:16px;padding:16px;text-decoration:none;box-shadow:0 4px 20px rgba(139,92,246,.3)">
-        <div style="font-size:32px;flex-shrink:0">👥</div>
-        <div style="flex:1">
-          <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Grupo de la Comunidad</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Habla con otros mineros · Estrategias · Soporte</div>
-        </div>
-        <div style="font-size:20px;color:white">›</div>
-      </a>
-    </div>
-
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
-      <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:2px;margin-bottom:12px">🗺️ CÓMO MANTENERTE AL DÍA</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--orange));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#1a0a00;flex-shrink:0">1</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Sigue minando $CLK en el juego</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0088cc,#006aaa);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:white;flex-shrink:0">2</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Suscríbete al canal oficial de Telegram</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:white;flex-shrink:0">3</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Entérate de los anuncios oficiales cuando se publiquen</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green),#059669);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#001a0a;flex-shrink:0">4</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Consulta la pantalla Canjear para más información 📋</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(6,182,212,.08));border:1px solid rgba(16,185,129,.2);border-radius:14px;padding:14px;text-align:center">
-      <div style="font-size:11px;color:var(--green);font-weight:800;letter-spacing:1px;margin-bottom:4px">🌍 ÚNETE A LA COMUNIDAD $CLK</div>
-      <div style="font-size:12px;color:var(--muted)">Comparte el juego · Invita amigos · Gana más $CLK</div>
-    </div>
-
-    <!-- AMIGOS: trasladado desde su propia pestaña de navegación, contenido intacto -->
-    <div style="margin:22px 0 10px;padding-top:14px;border-top:1px solid var(--border)">
-      <div class="sh" style="font-size:18px">👥 Amigos</div>
-      <div class="ss">Invita amigos · +50000 $CLK por cada uno</div>
-    </div>
-    <div id="refbox">
-      <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:2px">TU CÓDIGO ÚNICO</div>
-      <div id="refcode">XXXXXXX</div>
-      <button id="copybtn" onclick="copyCode()">📋 Copiar y compartir</button>
-    </div>
-    <div class="refstats">
-      <div class="rs"><div class="rsv" id="rcount">0</div><div class="rsl">AMIGOS</div></div>
-      <div class="rs"><div class="rsv" id="rearned">0</div><div class="rsl">$CLK GANADOS</div></div>
-    </div>
-    <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px">CÓDIGO DE AMIGO</div>
-    <div style="display:flex;gap:8px">
-      <input id="refinp" type="text" placeholder="Ej: ABC1234" maxlength="8">
-      <button id="refgo" onclick="subRef()">✓</button>
-    </div>
-    <center><img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_064302460.png" 
-       alt="alien" 
-       style="width:190px; height:190px; animation:pulse 1s infinite; object-fit:contain;"></center>
-  </div>
-
-  <!-- CANJEAR: catálogo informativo de proyectos externos, redirige fuera de la app -->
-  <div id="screen-redeem" class="screen">
-    <div class="sh">🔁 Canjear</div>
-    <div class="ss">Airdrops de proyectos externos</div>
-    <div class="rdintro">
-      Aquí encontrarás <b>proyectos de terceros</b>, no afiliados a Crypto Alien Click, que ofrecen airdrops o programas de canje propios. Cada proyecto tiene sus propias condiciones, requisitos y token — este juego no gestiona, garantiza ni interviene en ningún canje.
-    </div>
-    <div id="redeemlist"></div>
-    <div class="rdfoot">Toda operación de canje se realiza fuera de esta app, en el sitio oficial de cada proyecto. Infórmate bien antes de conectar ninguna wallet.</div>
-  </div>
-
-
-</div>
-
-<nav id="bnav">
-  <button class="nbtn active" id="nav-mine" onclick="goTo('mine')"><span class="nicon">⛏️</span>MINAR</button>
-  <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span>MEJORAS</button>
-  <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
-  <button class="nbtn" id="nav-community" onclick="goTo('community')"><span class="nicon">📡</span>COMUNIDAD</button>
-  <button class="nbtn" id="nav-redeem" onclick="goTo('redeem')"><span class="nicon">🔁</span>CANJEAR</button>
-  <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span>RANKING</button>
+  <a href="index.html" class="nav-cta">⛏️ JUGAR AHORA</a>
 </nav>
 
-<!-- OVERLAYS -->
-<div id="noeov"><div id="noebox">
-  <h3>⚡ Sin energía</h3>
-  <p>Se recarga sola — +<span id="noeregen">0.04</span>/segundo<br>¡Mejora tu batería en la tienda!</p>
-  <button class="obbtn" onclick="document.getElementById('noeov').classList.remove('show')">Esperar ⏳</button>
-</div></div>
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-eyebrow"><span></span> Canjeable en proyectos aliados</div>
+  <h1 class="hero-title">
+    <span class="line1">MINA</span>
+    <span class="line2">$CLK</span>
+  </h1>
 
-<div id="ruov"><div id="rubox">
-  <span id="ruemoji">🎉</span>
-  <div id="rutitle">¡SUBISTE DE RANGO!</div>
-  <div id="runame">Nombre</div>
-  <div id="rubonus">Bonus</div>
-  <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show')">¡A MINAR! ⛏️</button>
-</div></div>
+  <!-- ── HERO IMAGE: flotar + glow dorado/naranja/rosa ── -->
+  <img
+    src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png"
+    alt="Alien Coin"
+    class="hero-alien-img"
+    style="width:70%;max-width:420px;object-fit:contain;">
 
-<div id="dailyov"><div id="dailybox">
-  <h3>🎁 Bonus Diario</h3>
-  <p>¡Regresa cada día para multiplicar tus recompensas!</p>
-  <div id="dailygrid"></div>
-  <button id="dailyclaim" onclick="claimDaily()">Reclamar 🎁</button>
-  <button id="dailyclose" onclick="document.getElementById('dailyov').classList.remove('show')">Cerrar</button>
-</div></div>
+  <p class="hero-sub">
+    El juego de tap-to-earn donde <strong>tus tokens pueden canjearse en proyectos aliados</strong>.
+    Mina, sube de rango, invita amigos — y usa tus $CLK acumulados
+    en los programas de canje de nuestros proyectos asociados.
+  </p>
+  <div class="hero-btns">
+    <a href="index.html" class="btn-primary"><span class="btn-icon">⛏️</span> EMPEZAR A MINAR</a>
+    <a href="https://t.me/Crypto_Click_News" target="_blank" class="btn-tg"><span class="btn-icon">📢</span> Canal Telegram</a>
+    <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="btn-tg-grupo"><span class="btn-icon">👥</span> Grupo Comunidad</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-val" id="stat-players">∞</div><div class="hstat-lbl">Mineros Activos</div></div>
+    <div class="hstat"><div class="hstat-val">$CLK</div><div class="hstat-lbl">Token del Juego</div></div>
+    <div class="hstat"><div class="hstat-val">100%</div><div class="hstat-lbl">Gratis para jugar</div></div>
+    <div class="hstat"><div class="hstat-val">0€</div><div class="hstat-lbl">Sin inversión inicial</div></div>
+  </div>
+</section>
 
-<div id="aliasov"><div id="aliasbox">
-  <div class="aic">🏆</div>
-  <h3>Elige tu alias</h3>
-  <p>Así te verán los demás mineros en el Ranking Global. Puedes cambiarlo luego desde la sección Ranking.</p>
-  <input id="aliasinp" type="text" placeholder="Ej: MineroCLK" maxlength="16">
-  <div id="aliaserr"></div>
-  <button id="aliasgo" onclick="confirmAlias()">Confirmar ✓</button>
-  <button id="aliasskip" onclick="skipAlias()">Ahora no, jugar sin ranking</button>
-</div></div>
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item"><div class="marquee-dot"></div>MINAR $CLK</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>PROYECTOS ALIADOS</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>CANJE EXTERNO</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>TAP TO EARN</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>PLAY & EARN</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>CRYPTO CLICK</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>GRATIS TOTAL</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>MINAR $CLK</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>PROYECTOS ALIADOS</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>CANJE EXTERNO</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>TAP TO EARN</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>PLAY & EARN</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>CRYPTO CLICK</div>
+    <div class="marquee-item"><div class="marquee-dot"></div>GRATIS TOTAL</div>
+  </div>
+</div>
 
-<div id="redeemov"><div id="redeembox">
-  <h3>⚠️ Vas a salir de la app</h3>
-  <p id="redeemtext">Vas a abrir el sitio externo de este proyecto para gestionar tu canje.</p>
-  <div class="rdwarn">Este juego no participa en la operación, no puede revertirla ni garantizar el resultado. Verifica siempre que la dirección web sea la oficial del proyecto y nunca compartas tus claves privadas ni frase semilla con nadie.</div>
-  <button id="redeemgo" onclick="confirmRedeem()">Entiendo, continuar</button>
-  <button id="redeemcancel" onclick="cancelRedeem()">Cancelar</button>
-</div></div>
+<!-- CANJE SECTION -->
+<section id="airdrop">
+  <div class="container">
+    <div class="airdrop-grid">
+      <div>
+        <div class="section-label reveal">🔄 Canje en proyectos aliados</div>
+        <h2 class="section-title reveal"><em>Canjea</em><br>tus $CLK</h2>
+        <p class="section-sub reveal">Los $CLK que minas jugando pueden <strong style="color:var(--gold)">canjearse en proyectos externos aliados</strong>, según los programas y condiciones que cada proyecto establezca. Empieza a acumular hoy.</p>
+        <div class="airdrop-features reveal" style="margin-top:36px">
+          <div class="af">
+            <div class="af-ico gold">🏆</div>
+            <div><h3>Tu progreso es tuyo</h3><p>Cada $CLK que acumulas jugando queda guardado en tu partida y disponible para cuando quieras explorar los proyectos de canje disponibles.</p></div>
+          </div>
+          <div class="af">
+            <div class="af-ico pink">📣</div>
+            <div><h3>Suscríbete para novedades</h3><p>Únete al canal oficial de Telegram para enterarte cuando se anuncien nuevos proyectos aliados de canje.</p></div>
+          </div>
+          <div class="af">
+            <div class="af-ico cyan">👥</div>
+            <div><h3>Referidos = más tokens</h3><p>Invita amigos con tu código único y gana 25.000 $CLK extra por cada uno. Además, sus misiones también te benefician.</p></div>
+          </div>
+        </div>
+      </div>
 
-<div id="sfire">🔥</div>
-<div id="toast"></div>
+      <!-- ── AIRDROP IMAGE: flotar + glow cyan/purple ── -->
+      <div class="airdrop-visual reveal">
+        <img
+          src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_053356494.png"
+          alt="Alien Coin"
+          style="width:70%;height:70%;object-fit:contain;">
+      </div>
 
-<!-- ============ FIREBASE ============ -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-  getRedirectResult, onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, serverTimestamp,
-  collection, query, orderBy, limit, getDocs
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    </div>
+  </div>
+</section>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAEVcDHhKSyPd4n_U-DXzJI7lskY7BTiyI",
-  authDomain: "crypto-alien.firebaseapp.com",
-  projectId: "crypto-alien",
-  storageBucket: "crypto-alien.firebasestorage.app",
-  messagingSenderId: "61542154571",
-  appId: "1:61542154571:web:bddd5100632abc9f09a8ce"
-};
+<!-- HOW IT WORKS -->
+<section id="howto">
+  <div class="container">
+    <div class="section-label reveal">⚡ Simple y gratuito</div>
+    <h2 class="section-title reveal">Cómo <em>funciona</em></h2>
+    <div class="steps-grid reveal">
+      <div class="step"><div class="step-num">01</div><div class="step-ico">⛏️</div><h3>Juega & Mina</h3><p>Toca la moneda para generar $CLK. Cuantos más tapes, más tokens acumulas. Gratis, sin registro, desde el navegador.</p></div>
+      <div class="step"><div class="step-num">02</div><div class="step-ico">⚡</div><h3>Mejora tu minería</h3><p>Compra upgrades — GPUs, farms, protocolos DeFi — para generar CLK automáticamente incluso cuando no juegas.</p></div>
+      <div class="step"><div class="step-num">03</div><div class="step-ico">📡</div><h3>Únete a Telegram</h3><p>Suscríbete al canal oficial para enterarte de los proyectos aliados de canje que se vayan anunciando.</p></div>
+      <div class="step"><div class="step-num">04</div><div class="step-ico">🔄</div><h3>Explora el canje</h3><p>Consulta la sección Canjear dentro del juego para ver los proyectos externos disponibles y sus condiciones.</p></div>
+    </div>
+  </div>
+</section>
 
-const fbApp = initializeApp(firebaseConfig);
-const auth = getAuth(fbApp);
-const db = getFirestore(fbApp);
-const provider = new GoogleAuthProvider();
+<!-- PROYECTOS ALIADOS SECTION -->
+<section id="economy">
+  <div class="container">
+    <div class="economy-grid">
+      <div>
+        <div class="section-label reveal">🔄 Cómo funciona el canje</div>
+        <h2 class="section-title reveal">Proyectos<br><em>aliados</em></h2>
+        <p class="section-sub reveal">$CLK es el token interno del juego. Fuera de Crypto Alien Click, algunos proyectos externos e independientes ofrecen programas de canje para $CLK, bajo sus propias condiciones y términos.</p>
+        <div class="eco-cards reveal" style="margin-top:36px">
+          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--gold)"></div><h3>Proyectos independientes</h3></div><p>Los programas de canje son operados por proyectos externos, ajenos a Crypto Alien Click. Cada uno define sus propias reglas, requisitos y disponibilidad.</p></div>
+          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--pink)"></div><h3>Todo el canje ocurre fuera de la app</h3></div><p>Crypto Alien Click no gestiona, garantiza ni realiza ningún canje. El canje se completa siempre en el sitio oficial del proyecto correspondiente.</p></div>
+          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--cyan)"></div><h3>Infórmate antes de participar</h3></div><p>Te recomendamos revisar bien las condiciones de cada proyecto aliado antes de participar en sus programas de canje.</p></div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="eco-chart">
+          <div class="eco-title-sm">Sobre los proyectos aliados</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.8">Los proyectos de canje mostrados en la sección Canjear del juego son de terceros independientes. Crypto Alien Click no controla su funcionamiento, disponibilidad ni condiciones — cada proyecto es responsable de su propio programa.</p>
+          <div style="margin-top:24px;padding-top:22px;border-top:1px solid var(--border)">
+            <div style="font-size:12px;color:var(--muted);line-height:1.7">ℹ️ Los proyectos aliados disponibles pueden variar con el tiempo. Consulta la sección Canjear dentro del juego para ver la lista actualizada.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-window.__fb = { auth, db, doc, getDoc, setDoc, serverTimestamp, signOut, collection, query, orderBy, limit, getDocs };
 
-window.loginWithGoogle = async function () {
-  const errEl = document.getElementById('login-error');
-  const loadEl = document.getElementById('login-loading');
-  errEl.textContent = '';
-  loadEl.style.display = 'block';
 
-  let timedOut = false;
-  const safetyTimer = setTimeout(() => {
-    timedOut = true;
-    loadEl.style.display = 'none';
-    errEl.textContent = 'Está tardando demasiado. Revisa tu conexión e inténtalo de nuevo.';
-  }, 15000);
+<!-- COMMUNITY CTA -->
+<section id="community">
+  <div class="container">
+    <div class="community-box reveal">
+      <div class="section-label">🌍 Únete ahora</div>
+      <h2 class="section-title">Forma parte<br>de la <em>comunidad</em></h2>
+      <p style="font-size:17px;line-height:1.7;color:rgba(245,240,255,.55);max-width:560px;margin:0 auto">
+        Suscríbete al canal oficial para enterarte de los proyectos aliados de canje a medida que se vayan anunciando. Sigue minando mientras tanto para acumular más $CLK.
+      </p>
+      <div class="community-btns">
+        <a href="#jugar" class="cbtn-big cbtn-juego"><span class="cbtn-icon">⛏️</span><div class="cbtn-text">Empezar a minar<span>Juega gratis ahora mismo</span></div></a>
+        <a href="https://t.me/Crypto_Click_News" target="_blank" class="cbtn-big cbtn-canal"><span class="cbtn-icon">📢</span><div class="cbtn-text">Canal de Noticias<span>Anuncios oficiales del juego</span></div></a>
+        <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="cbtn-big cbtn-grupo"><span class="cbtn-icon">👥</span><div class="cbtn-text">Grupo Comunidad<span>Habla con otros mineros</span></div></a>
+      </div>
+    </div>
+  </div>
+</section>
 
-  try {
-    await signInWithPopup(auth, provider);
-    clearTimeout(safetyTimer);
-  } catch (e) {
-    clearTimeout(safetyTimer);
-    if (timedOut) return; // ya se mostró el mensaje de timeout, no lo pisamos
-    loadEl.style.display = 'none';
-    if (e && e.code === 'auth/popup-blocked') {
-      try {
-        await signInWithRedirect(auth, provider);
-        return;
-      } catch (e2) {
-        errEl.textContent = 'No se pudo iniciar sesión (' + (e2 && e2.code || 'error') + ').';
-        console.error('signInWithRedirect también falló:', e2);
-        return;
-      }
-    }
-    // Mostramos el código real (no solo un mensaje genérico) porque el motivo típico en móvil
-    // es auth/unauthorized-domain: el dominio desde el que se abre la app no está en la lista
-    // de "Dominios autorizados" de Firebase Auth (Authentication > Settings > Authorized domains).
-    errEl.textContent = 'No se pudo iniciar sesión (' + (e && e.code || 'error') + ').';
-    console.error(e);
-  }
-};
+<!-- PLAY SECTION -->
+<section id="jugar" style="padding:60px 0 40px;z-index:1;position:relative">
+  <div class="container" style="text-align:center">
+    <div class="section-label reveal">⛏️ Juega ahora</div>
+    <h2 class="section-title reveal">Empieza a <em>minar</em></h2>
+    <p class="section-sub reveal" style="margin:0 auto 40px">El juego funciona 100% en el navegador, sin instalación, sin registro. Solo entra y empieza a acumular $CLK.</p>
+    <div class="reveal" style="background:var(--card);border:1px solid rgba(255,215,0,.15);border-radius:16px;padding:60px 40px;max-width:600px;margin:0 auto">
 
-window.logoutUser = async function () {
-  try { if (window.forceSaveCloud) await window.forceSaveCloud(); } catch (e) {}
-  await signOut(auth);
-  window.location.reload();
-};
+      <!-- ── JUGAR IMAGE: pulse dorado intenso, se escala al hover ── -->
+      <img
+        src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_032954295.png"
+        alt="Alien Coin"
+        class="jugar-alien-img"
+        style="width:50%;height:50%;object-fit:contain;">
 
-getRedirectResult(auth).catch(()=>{});
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px">CRYPTO ALIEN CLICK</div>
+      <p style="font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.6">Tap · Mina · Sube de rango · Canjea en proyectos aliados</p>
+      <a href="index.html" class="btn-primary" style="font-size:18px;padding:20px 48px">⛏️ &nbsp;ABRIR EL JUEGO</a>
+      <div style="margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px">GRATIS · SIN REGISTRO · EN TU NAVEGADOR</div>
+    </div>
+  </div>
+</section>
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('login-loading').style.display = 'none';
-    document.getElementById('loading').style.display = 'flex';
-    const pic = document.getElementById('userpic');
-    if (pic) pic.src = user.photoURL || '';
-    if (window.startGameForUser) window.startGameForUser(user);
-  } else {
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('loading').style.display = 'none';
-    const l = document.getElementById('loading'); if (l) l.classList.remove('hide');
-  }
-});
-</script>
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="section-label reveal">❓ Preguntas frecuentes</div>
+    <h2 class="section-title reveal">FAQ</h2>
+    <div class="faq-list reveal">
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Es gratis jugar? <span class="faq-chevron">+</span></div><div class="faq-a">Completamente gratis. No necesitas invertir ni un céntimo para jugar y acumular $CLK.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Qué son los proyectos aliados de canje? <span class="faq-chevron">+</span></div><div class="faq-a">Son proyectos externos e independientes, ajenos a Crypto Alien Click, que ofrecen sus propios programas de canje para $CLK. Cada uno define sus condiciones, y el canje siempre se realiza en el sitio oficial de ese proyecto, fuera de esta app.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Dónde veo los proyectos aliados disponibles? <span class="faq-chevron">+</span></div><div class="faq-a">En la sección Canjear dentro del juego. Ahí encontrarás la lista actualizada de proyectos y un enlace directo al sitio oficial de cada uno.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Se guardan mis tokens? <span class="faq-chevron">+</span></div><div class="faq-a">Sí. Tu progreso se guarda automáticamente en tu dispositivo mediante localStorage. También puedes exportar un código de partida en la sección "Mi Partida" para transferirlo a otro dispositivo o navegador.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Tengo que suscribirme a Telegram para canjear? <span class="faq-chevron">+</span></div><div class="faq-a">No es obligatorio, pero te recomendamos suscribirte al canal oficial para enterarte cuando se anuncien nuevos proyectos aliados de canje.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Qué pasa si invito amigos? <span class="faq-chevron">+</span></div><div class="faq-a">Recibes 25.000 $CLK extra por cada amigo que use tu código de referido. Además, si ellos mismos invitan a más personas, la comunidad crece para todos.</div></div>
+    </div>
+  </div>
+</section>
 
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">₿ CRYPTO ALIEN CLICK</div>
+    <div class="footer-sub">Tap to earn · Canjeable en proyectos aliados</div>
+    <div class="footer-links">
+      <a href="index.html">Jugar ahora</a>
+      <a href="https://t.me/Crypto_Click_News" target="_blank">📢 Canal Telegram</a>
+      <a href="https://t.me/CryptoClickGroupCommunity" target="_blank">👥 Grupo Comunidad</a>
+      <a href="#faq">FAQ</a>
+      <a href="#economy">Economía</a>
+      <a href="privacidad.html">Privacidad</a>
+      <a href="terminos.html">Términos y Condiciones</a>
+    </div>
+    <div class="footer-copy">© 2026 TECNOLOGÍAS ONIX · CRYPTO ALIEN CLICK · $CLK TOKEN · TODOS LOS DERECHOS RESERVADOS</div>
+  </div>
+</footer>
 
 <script>
-/* ════════════════════════════════════════════════════════════════
-   AUDIO ENGINE — 100% sintetizado con Web Audio API, cero ficheros.
-   Cada sonido es una pequeña receta de osciladores/envolventes para
-   que el juego tenga feedback sonoro sin depender de red ni CORS.
-   ════════════════════════════════════════════════════════════════ */
-const SFX=(()=>{
-  let ctx=null,master=null,muted=false;
-  try{ muted = localStorage.getItem('cck4_muted')==='1'; }catch(e){}
-
-  function ensure(){
-    if(ctx)return ctx;
-    try{
-      ctx=new (window.AudioContext||window.webkitAudioContext)();
-      master=ctx.createGain();
-      master.gain.value=muted?0:0.5;
-      master.connect(ctx.destination);
-    }catch(e){ ctx=null; }
-    return ctx;
-  }
-  // El navegador exige un gesto del usuario para arrancar el AudioContext.
-  function unlock(){ const c=ensure(); if(c&&c.state==='suspended')c.resume(); }
-  ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{once:true,passive:true}));
-
-  function tone(freq,dur,type,gainPeak,when,glideTo){
-    const c=ensure(); if(!c)return;
-    const t0=c.currentTime+(when||0);
-    const osc=c.createOscillator(),g=c.createGain();
-    osc.type=type||'sine'; osc.frequency.setValueAtTime(freq,t0);
-    if(glideTo)osc.frequency.exponentialRampToValueAtTime(Math.max(1,glideTo),t0+dur);
-    g.gain.setValueAtTime(0.0001,t0);
-    g.gain.exponentialRampToValueAtTime(Math.max(0.0001,gainPeak||0.3),t0+0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-    osc.connect(g); g.connect(master);
-    osc.start(t0); osc.stop(t0+dur+0.02);
-  }
-  function noiseBurst(dur,gainPeak,when,filterFreq){
-    const c=ensure(); if(!c)return;
-    const t0=c.currentTime+(when||0);
-    const n=Math.floor(c.sampleRate*dur);
-    const buf=c.createBuffer(1,n,c.sampleRate);
-    const d=buf.getChannelData(0);
-    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-    const src=c.createBufferSource(); src.buffer=buf;
-    const g=c.createGain();
-    g.gain.setValueAtTime(0.0001,t0);
-    g.gain.exponentialRampToValueAtTime(Math.max(0.0001,gainPeak||0.2),t0+0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-    const f=c.createBiquadFilter(); f.type='bandpass'; f.frequency.value=filterFreq||3000;
-    src.connect(f); f.connect(g); g.connect(master);
-    src.start(t0);
-  }
-  // Notas de una pentatónica mayor: cualquier combinación suena "bien" (usado en taps/combo/rankup)
-  const PENTA=[523.25,587.33,659.25,783.99,880.00,1046.50,1174.66,1318.51];
-
-  return {
-    get muted(){return muted},
-    toggleMute(){
-      muted=!muted;
-      try{localStorage.setItem('cck4_muted',muted?'1':'0');}catch(e){}
-      if(master)master.gain.setTargetAtTime(muted?0:0.5,ctx.currentTime,0.05);
-      return muted;
-    },
-    tap(comboLevel){
-      // El tono sube ligeramente con el combo para que la racha "se sienta" ascendente
-      const idx=Math.min(PENTA.length-1,Math.floor((comboLevel||1)/4));
-      tone(PENTA[idx],0.11,'triangle',0.22);
-      tone(PENTA[idx]*2,0.06,'sine',0.06,0.005);
-    },
-    comboMilestone(){
-      tone(PENTA[4],0.08,'square',0.15);
-      tone(PENTA[6],0.14,'triangle',0.18,0.05);
-      noiseBurst(0.12,0.1,0,5000);
-    },
-    coinBuy(){
-      tone(880,0.05,'square',0.12);
-      tone(1320,0.09,'square',0.14,0.04);
-      tone(1760,0.13,'triangle',0.12,0.08);
-    },
-    buyFail(){
-      tone(180,0.16,'sawtooth',0.12,0,110);
-    },
-    levelUp(){
-      [0,1,2,3].forEach((n,i)=>tone(PENTA[n+3],0.16,'triangle',0.22,i*0.07));
-      noiseBurst(0.3,0.14,0.1,6000);
-    },
-    rankUp(){
-      [0,2,4,7].forEach((n,i)=>tone(PENTA[Math.min(n,PENTA.length-1)],0.22,'triangle',0.26,i*0.09));
-      tone(PENTA[7]*1.5,0.4,'sine',0.18,0.3);
-      noiseBurst(0.4,0.16,0.25,7000);
-    },
-    missionClaim(){
-      tone(659.25,0.09,'triangle',0.2);
-      tone(987.77,0.16,'triangle',0.22,0.09);
-    },
-    dailyClaim(){
-      [0,2,4].forEach((n,i)=>tone(PENTA[n],0.14,'sine',0.2,i*0.08));
-      noiseBurst(0.25,0.12,0.2,5500);
-    },
-    navClick(){ tone(440,0.045,'sine',0.09); },
-    toggle(){ tone(660,0.05,'sine',0.1); tone(880,0.05,'sine',0.08,0.03); },
-    noEnergy(){ tone(220,0.1,'sawtooth',0.14); tone(160,0.14,'sawtooth',0.1,0.08); },
-    refJoin(){ [0,3,5].forEach((n,i)=>tone(PENTA[n],0.13,'triangle',0.2,i*0.07)); },
-  };
-})();
-
-const RANKS=[
-  {name:'Crypto Noob',  minLvl:1,  e:'🐣',tapB:0  },
-  {name:'Hodler',       minLvl:3,  e:'💎',tapB:1  },
-  {name:'Trader Pro',   minLvl:6,  e:'📈',tapB:3  },
-  {name:'DeFi Shark',   minLvl:10, e:'🦈',tapB:7  },
-  {name:'Whale',        minLvl:15, e:'🐳',tapB:15 },
-  {name:'DeFi King',    minLvl:20, e:'👑',tapB:30 },
-  {name:'Satoshi',      minLvl:30, e:'⚡',tapB:60 },
-  {name:'Blockchain God',minLvl:50,e:'🌌',tapB:100},
-];
-const SKINS=[
-  {id:0,ico:'🌟',name:'Original',cls:'s0',lvl:1 },
-  {id:1,ico:'🔵',name:'Ice',     cls:'s1',lvl:3 },
-  {id:2,ico:'💜',name:'Purple',  cls:'s2',lvl:6 },
-  {id:3,ico:'💚',name:'Matrix',  cls:'s3',lvl:10},
-  {id:4,ico:'❤️', name:'Ruby',   cls:'s4',lvl:15},
-];
-const UPS=[
-  {id:'gpu',   n:'Mining GPU',       i:'🖥️',d:'Procesador basico de tokens',        base:100,     pph:2,      max:50},
-  {id:'asic',  n:'ASIC Rig',         i:'⚙️',d:'Hardware dedicado al minado',         base:500,     pph:12,     max:40},
-  {id:'pool',  n:'Mining Pool',      i:'🌐',d:'Pool de mineria colaborativa',         base:2000,    pph:50,     max:30},
-  {id:'farm',  n:'Crypto Farm',      i:'🏭',d:'Granja de servidores',                base:8000,    pph:200,    max:25},
-  {id:'dc',    n:'Data Center',      i:'🗄️',d:'Centro de datos masivo',              base:40000,   pph:1000,   max:20},
-  {id:'qc',    n:'Quantum Core',     i:'⚛️',d:'Procesamiento cuantico avanzado',     base:200000,  pph:6000,   max:15},
-  {id:'sat',   n:'Satelite Miner',   i:'🛰️',d:'Minado orbital desde el espacio',     base:1000000, pph:35000,  max:10},
-  {id:'moon',  n:'Moon Base',        i:'🌕',d:'Base de minado lunar permanente',      base:5000000, pph:200000, max:8 },
-  {id:'dyson', n:'Dyson Sphere',     i:'☀️',d:'Captura energia solar total',         base:25000000,pph:1200000,max:5 },
-  {id:'multi', n:'Multiversum Node', i:'🌌',d:'Nodo interdimensional de minado',     base:1e8,     pph:8000000,max:3 },
-  {id:'tap1',  n:'Tap Booster I',    i:'👆',d:'+2 CLK por tap',                      base:300,     tapB:2,     max:20},
-  {id:'tap2x', n:'Turbo Fingers',    i:'⚡',d:'+5 CLK por tap',                      base:1500,    tapB:5,     max:15},
-  {id:'tap3',  n:'Golden Touch',     i:'✋',d:'+12 CLK por tap',                     base:8000,    tapB:12,    max:12},
-  {id:'tap4',  n:'Diamond Hands',    i:'💎',d:'+30 CLK por tap',                     base:40000,   tapB:30,    max:10},
-  {id:'tap5x', n:'Laser Fingertips', i:'🔫',d:'+80 CLK por tap',                     base:200000,  tapB:80,    max:8 },
-  {id:'tap6',  n:'Quantum Tap',      i:'🌀',d:'+250 CLK por tap',                    base:1000000, tapB:250,   max:6 },
-  {id:'tap7',  n:'God Finger',       i:'☝️',d:'+1000 CLK por tap',                   base:8000000, tapB:1000,  max:4 },
-  {id:'tap8',  n:'Big Bang Tap',     i:'💥',d:'+5000 CLK por tap',                   base:5e7,     tapB:5000,  max:3 },
-  {id:'bt1',   n:'Battery Pack',     i:'🔋',d:'+4 energia maxima',                   base:400,     eB:4,       max:20},
-  {id:'bt2',   n:'Power Cell',       i:'🔌',d:'+8 energia maxima',                   base:2000,    eB:8,       max:15},
-  {id:'bt3',   n:'Supercapacitor',   i:'⚡',d:'+15 energia maxima',                  base:12000,   eB:15,      max:10},
-  {id:'bt4',   n:'Fusion Core',      i:'☢️',d:'+24 energia maxima',                  base:80000,   eB:24,      max:8 },
-  {id:'bt5',   n:'Dark Energy Cell', i:'🌑',d:'+44 energia maxima',                  base:500000,  eB:44,      max:5 },
-  {id:'rg1',   n:'Fast Regen I',     i:'💨',d:'+0.005 recarga/segundo',              base:800,     rB:0.005,   max:15},
-  {id:'rg2',   n:'Fast Regen II',    i:'🌬️',d:'+0.008 recarga/segundo',              base:5000,    rB:0.008,   max:10},
-  {id:'rg3',   n:'Turbo Regen',      i:'🌪️',d:'+0.012 recarga/segundo',              base:30000,   rB:0.012,   max:8 },
-  {id:'rg4',   n:'Instant Recharge', i:'⚡',d:'+0.02 recarga/segundo',                base:200000,  rB:0.02,    max:5 },
-  {id:'rg5',   n:'Infinite Flow',    i:'♾️',d:'+0.035 recarga/segundo',               base:1500000, rB:0.035,   max:3 },
-  {id:'bst1',  n:'x2 Boost',         i:'🚀',d:'Dobla CLK por tap 30min',             base:5000,    bMin:30,    max:10},
-  {id:'bst2',  n:'Mega Boost',       i:'💫',d:'x2 Boost 120min extra',               base:50000,   bMin:120,   max:5 },
-  {id:'algo',  n:'Trading Algorithm',i:'🤖',d:'Bot de trading autonomo',             base:15000,   pph:300,    max:20},
-  {id:'defi',  n:'DeFi Protocol',    i:'🏦',d:'Staking y yield farming',             base:70000,   pph:1500,   max:15},
-  {id:'nft',   n:'NFT Collection',   i:'🖼️',d:'Royalties de NFTs por hora',          base:300000,  pph:7000,   max:12},
-  {id:'dao',   n:'DAO Treasury',     i:'🗳️',d:'Ingresos de gobernanza',              base:1500000, pph:35000,  max:10},
-  {id:'l2',    n:'Layer 2 Network',  i:'🔗',d:'Comisiones de red L2',                base:8000000, pph:180000, max:8 },
-  {id:'ora',   n:'Blockchain Oracle',i:'🔮',d:'Datos on-chain premium',              base:4e7,     pph:900000, max:5 },
-  {id:'ai',    n:'AI Miner',         i:'🧠',d:'Inteligencia artificial de minado',   base:2e8,     pph:5000000,max:3 },
-  {id:'time',  n:'Time Crystal',     i:'💠',d:'Minado a traves del tiempo',          base:1e9,     pph:3e7,    max:2 },
-];
-const MISS=[
-  {id:'t10',    n:'Primeros pasos',      i:'👆',g:10,         t:'taps',    r:50    },
-  {id:'t100',   n:'Primer centenar',     i:'✊',g:100,        t:'taps',    r:200   },
-  {id:'t500',   n:'Calentando motores',  i:'🔥',g:500,        t:'taps',    r:600   },
-  {id:'t1k',    n:'Tap Master',          i:'⚡',g:1000,       t:'taps',    r:1000  },
-  {id:'t5k',    n:'Dedos de acero',      i:'🦾',g:5000,       t:'taps',    r:3000  },
-  {id:'t10k',   n:'Tap Legend',          i:'🏆',g:10000,      t:'taps',    r:5000  },
-  {id:'t25k',   n:'Manos incansables',   i:'💪',g:25000,      t:'taps',    r:10000 },
-  {id:'t50k',   n:'Tap Máquina',         i:'🤖',g:50000,      t:'taps',    r:20000 },
-  {id:'t100k',  n:'Tap God',             i:'🌌',g:100000,     t:'taps',    r:40000 },
-  {id:'t250k',  n:'El Incansable',       i:'♾️',g:250000,     t:'taps',    r:100000},
-  {id:'t500k',  n:'Medio millón',        i:'💫',g:500000,     t:'taps',    r:200000},
-  {id:'t1m',    n:'Un millón de taps',   i:'🌟',g:1000000,    t:'taps',    r:500000},
-  {id:'t5m',    n:'Tap Eterno',          i:'⚡',g:5000000,    t:'taps',    r:2000000},
-  {id:'t10m',   n:'Leyenda Absoluta',    i:'👑',g:10000000,   t:'taps',    r:5000000},
-  {id:'c100',   n:'Primeros CLK',        i:'💰',g:100,        t:'clk',     r:50    },
-  {id:'c1k',    n:'Primer millar',       i:'💵',g:1000,       t:'clk',     r:500   },
-  {id:'c10k',   n:'En racha',            i:'💎',g:10000,      t:'clk',     r:2000  },
-  {id:'c50k',   n:'Cuenta gorda',        i:'🏦',g:50000,      t:'clk',     r:8000  },
-  {id:'c100k',  n:'Ballena pequena',     i:'🐳',g:100000,     t:'clk',     r:15000 },
-  {id:'c500k',  n:'Medio millon CLK',    i:'💸',g:500000,     t:'clk',     r:60000 },
-  {id:'c1m',    n:'Millonario CLK',      i:'🤑',g:1000000,    t:'clk',     r:120000},
-  {id:'c5m',    n:'Multi-millonario',    i:'🎩',g:5000000,    t:'clk',     r:500000},
-  {id:'c10m',   n:'Crypto Tycoon',       i:'🐋',g:10000000,   t:'clk',     r:1000000},
-  {id:'c50m',   n:'Tiburon del Mercado', i:'🦈',g:50000000,   t:'clk',     r:4000000},
-  {id:'c100m',  n:'Cien Millones',       i:'💹',g:100000000,  t:'clk',     r:8000000},
-  {id:'c1b',    n:'El Primer Billion',   i:'🌐',g:1000000000, t:'clk',     r:5e7   },
-  {id:'c10b',   n:'Dios del Blockchain', i:'⚡',g:10000000000,t:'clk',     r:2e8   },
-  {id:'l2m',    n:'Primer ascenso',      i:'📈',g:2,          t:'lvl',     r:300   },
-  {id:'l5m',    n:'Subiendo peldanos',   i:'🪜',g:5,          t:'lvl',     r:800   },
-  {id:'l10m',   n:'Doble digito',        i:'🏆',g:10,         t:'lvl',     r:3000  },
-  {id:'l20m',   n:'Veterano',            i:'👑',g:20,         t:'lvl',     r:15000 },
-  {id:'l30m',   n:'Experto Crypto',      i:'🎖️',g:30,         t:'lvl',     r:50000 },
-  {id:'l50m',   n:'Blockchain God',      i:'⚡',g:50,         t:'lvl',     r:200000},
-  {id:'l75m',   n:'Maestro Eterno',      i:'🌌',g:75,         t:'lvl',     r:800000},
-  {id:'l100m',  n:'El Centenario',       i:'💯',g:100,        t:'lvl',     r:3000000},
-  {id:'u1',     n:'Primera inversion',   i:'🖥️',g:1,          t:'ups',     r:200   },
-  {id:'u3',     n:'Inversor',            i:'💼',g:3,          t:'ups',     r:600   },
-  {id:'u10',    n:'VC Mode',             i:'🏦',g:10,         t:'ups',     r:5000  },
-  {id:'u25',    n:'Magnate',             i:'🎩',g:25,         t:'ups',     r:25000 },
-  {id:'u50',    n:'Fondo de inversion',  i:'📊',g:50,         t:'ups',     r:100000},
-  {id:'u100',   n:'Imperio de Mejoras',  i:'🏰',g:100,        t:'ups',     r:500000},
-  {id:'u200',   n:'Maquina Perfecta',    i:'⚙️',g:200,        t:'ups',     r:2000000},
-  {id:'u500',   n:'Dios de las Mejoras', i:'🌟',g:500,        t:'ups',     r:1e7   },
-  {id:'cmb3',   n:'Combo Iniciado',      i:'🔥',g:3,          t:'combo',   r:150   },
-  {id:'cmb5',   n:'Combo King',          i:'💢',g:5,          t:'combo',   r:400   },
-  {id:'cmb10',  n:'Combo Master',        i:'⚡',g:10,         t:'combo',   r:1500  },
-  {id:'cmb20',  n:'Ultra Combo',         i:'🌀',g:20,         t:'combo',   r:5000  },
-  {id:'cmb50',  n:'Combo Insano',        i:'🔴',g:50,         t:'combo',   r:20000 },
-  {id:'cmb100', n:'Combo Legendario',    i:'🌟',g:100,        t:'combo',   r:80000 },
-  {id:'cmb250', n:'Combo Inmortal',      i:'👑',g:250,        t:'combo',   r:350000},
-  {id:'cmb500', n:'Combo Dios',          i:'⚡',g:500,        t:'combo',   r:1500000},
-  {id:'d1',     n:'Primer dia',          i:'📅',g:1,          t:'dstreak', r:200   },
-  {id:'d3',     n:'3 dias seguidos',     i:'🗓️',g:3,          t:'dstreak', r:1000  },
-  {id:'d7',     n:'7 dias seguidos',     i:'🔥',g:7,          t:'dstreak', r:7000  },
-  {id:'d14',    n:'Dos semanas crack',   i:'💪',g:14,         t:'dstreak', r:25000 },
-  {id:'d30',    n:'Un mes fiel',         i:'🏅',g:30,         t:'dstreak', r:100000},
-  {id:'d60',    n:'Dos meses sin falta', i:'🎖️',g:60,         t:'dstreak', r:400000},
-  {id:'d100',   n:'100 dias legendario', i:'👑',g:100,        t:'dstreak', r:1500000},
-  {id:'d365',   n:'Un ano entero',       i:'🌟',g:365,        t:'dstreak', r:1e7   },
-  {id:'r1',     n:'Primer amigo',        i:'👥',g:1,          t:'refs',    r:500   },
-  {id:'r3',     n:'Pequena tribu',       i:'👨‍👩‍👧',g:3,          t:'refs',    r:2000  },
-  {id:'r10',    n:'Tu red crece',        i:'🌐',g:10,         t:'refs',    r:8000  },
-  {id:'r25',    n:'Influencer CLK',      i:'📣',g:25,         t:'refs',    r:30000 },
-  {id:'r50',    n:'Evangelista Crypto',  i:'🚀',g:50,         t:'refs',    r:100000},
-  {id:'r100',   n:'Lider de masas',      i:'👑',g:100,        t:'refs',    r:500000},
-];
-const DRWD=[200,400,600,800,1200,1600,2500];
-const PCOLS=['#FFD700','#FF6B35','#FF3CAC','#06B6D4','#10B981','#8B5CF6','#84CC16'];
-const SAVE_KEY='cck4';
-
-const DEFAULTS={
-  clk:0,totalClk:0,totalTaps:0,
-  lvl:1,xp:0,xpNeed:500,
-  energy:120,eMax:120,eRegen:0.04,
-  tapPow:1,pph:0,
-  ups:{},missions:{},
-  refCode:'',refs:0,refEarned:0,
-  maxCombo:0,upsCount:0,skin:0,
-  dailyDay:0,dStreak:0,lastDaily:0,boostEnd:0,
-  alias:'',
-  wkAnchor:0,wkBase:0,moAnchor:0,moBase:0,
-  lastSave:Date.now(),lastPassive:Date.now(),
-};
-const S=Object.assign({},DEFAULTS);
-
-function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<7;i++)r+=c[Math.random()*c.length|0];return r}
-
-/* ===== GUARDADO: localStorage instantáneo (siempre) + Firestore con throttle fuerte ===== */
-let _saveScheduled=false;
-let _dirtySinceCloud=false;      // true si hay cambios locales aún no subidos
-let _cloudSaving=false;
-let _lastCloudSave=0;
-let _cloudEverWorked=false;      // true en cuanto una escritura a Firestore tiene éxito alguna vez
-let _setupWarned=false;          // evita repetir el aviso de consola en cada intento fallido
-let _localSaveWarned=false;      // evita repetir el toast si localStorage.setItem sigue fallando
-const CLOUD_MIN_INTERVAL=300000; // ~300s (5min): mínima separación entre escrituras a Firestore (ahorra cuota del plan free)
-
-function warnFirestoreSetup(e){
-  if(_setupWarned)return;_setupWarned=true;
-  console.warn(
-    '%c[CryptoClick] La partida NO se está guardando en Firestore.',
-    'color:#EF4444;font-weight:bold;font-size:13px',
-    '\nCódigo de error:', e&&e.code,
-    '\n\nEsto casi siempre significa que en la consola de Firebase (console.firebase.google.com → proyecto → Build → Firestore Database) todavía no has pulsado "Crear base de datos", o que las Reglas de seguridad no están publicadas.',
-    '\nMientras tanto el progreso del jugador sigue a salvo en localStorage, así que no se pierde nada — pero no viaja entre dispositivos hasta que actives Firestore.'
-  );
-}
-
-function localSaveNow(){
-  try{
-    localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));
-  }catch(e){
-    // Esto NO debería pasar en uso normal. Motivo típico: navegación privada de Safari/iOS
-    // (bloquea localStorage por completo) o almacenamiento lleno/deshabilitado por el navegador.
-    console.error('localStorage.setItem falló, el progreso no se está guardando ni siquiera localmente:',e);
-    if(!_localSaveWarned){
-      _localSaveWarned=true;
-      toast('⚠️ Tu navegador está bloqueando el guardado (¿modo privado?). Usa una pestaña normal.');
-    }
-  }
-}
-
-function setSyncPill(state){
-  const p=document.getElementById('syncpill'),t=document.getElementById('syncpilltxt');
-  if(!p)return;
-  p.style.display='flex';
-  p.classList.remove('saving','err');
-  if(state==='saving'){p.classList.add('saving');t.textContent='Guardando…';}
-  else if(state==='err'){p.classList.add('err');t.textContent='Guardado local';}
-  else if(state==='setup'){p.classList.add('err');t.textContent='Nube no configurada';}
-  else{t.textContent='Guardado';}
-}
-
-async function cloudSaveNow(force){
-  if(!window.__fbUser)return;
-  const now=Date.now();
-  if(!force){
-    if(_cloudSaving)return;
-    if(now-_lastCloudSave<CLOUD_MIN_INTERVAL)return;
-    if(!_dirtySinceCloud)return;
-  }
-  if(_cloudSaving && !force)return;
-  _cloudSaving=true;
-  setSyncPill('saving');
-  try{
-    const {db,doc,setDoc,serverTimestamp}=window.__fb;
-    const data=sanitize({...S,lastSave:Date.now()});
-    await setDoc(doc(db,'saves',window.__fbUser.uid),{
-      data:JSON.stringify(data),
-      updatedAt:serverTimestamp()
-    });
-    _lastCloudSave=Date.now();
-    _dirtySinceCloud=false;
-    _cloudEverWorked=true;
-    setSyncPill('ok');
-  }catch(e){
-    // El progreso YA está a salvo en localStorage (localSaveNow se llama siempre antes que esto).
-    // Solo la copia en la nube falló: lo más común es que Firestore Database no exista todavía
-    // en la consola de Firebase, o que las reglas de seguridad no estén publicadas.
-    console.error('cloud save failed:',e && e.code, e);
-    if(!_cloudEverWorked && (e && (e.code==='unavailable' || e.code==='not-found' || e.code==='permission-denied'))){
-      setSyncPill('setup');
-      warnFirestoreSetup(e);
-    }else{
-      setSyncPill('err');
-    }
-  }finally{
-    _cloudSaving=false;
-  }
-}
-window.forceSaveCloud=()=>cloudSaveNow(true);
-
-/* ===== RANKING PÚBLICO: doc chico y separado de saves/, mismo throttle que el guardado
-   normal (CLOUD_MIN_INTERVAL) para no gastar cuota. Solo publica si hay alias elegido. */
-let _lbSaving=false,_lastLbSave=0;
-async function publishLeaderboard(force){
-  if(!window.__fbUser||!S.alias)return;
-  const now=Date.now();
-  if(!force){ if(_lbSaving)return; if(now-_lastLbSave<CLOUD_MIN_INTERVAL)return; }
-  _lbSaving=true;
-  try{
-    const {db,doc,setDoc,serverTimestamp}=window.__fb;
-    ensurePeriods();
-    await setDoc(doc(db,'leaderboard',window.__fbUser.uid),{
-      alias:S.alias,
-      total:Math.floor(S.totalClk),
-      weekly:weeklyScore(),
-      monthly:monthlyScore(),
-      lvl:S.lvl,
-      updatedAt:serverTimestamp()
-    });
-    _lastLbSave=now;
-  }catch(e){
-    // Igual que cloudSaveNow: si esto falla el progreso real no se pierde (vive en saves/),
-    // solo no se actualiza la fila del ranking hasta el próximo intento.
-    console.error('leaderboard publish failed:',e&&e.code,e);
-  }finally{
-    _lbSaving=false;
-  }
-}
-window.forcePublishLeaderboard=()=>publishLeaderboard(true);
-
-function save(){
-  // guardado local: barato, instantáneo, protege contra cierres inesperados
-  if(_saveScheduled)return;_saveScheduled=true;
-  setTimeout(()=>{_saveScheduled=false;localSaveNow();_dirtySinceCloud=true;cloudSaveNow(false);},800);
-}
-function forceSave(){
-  _saveScheduled=false;
-  localSaveNow();
-  _dirtySinceCloud=true;
-  // fuerza subida solo si ya pasó el intervalo mínimo, para no gastar cuota en cada click de compra
-  cloudSaveNow(false);
-}
-function sanitize(d){
-  const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin','wkAnchor','wkBase','moAnchor','moBase'];
-  for(const k of nums){if(typeof d[k]!=='number'||!isFinite(d[k]))d[k]=DEFAULTS[k]||0;if(d[k]<0)d[k]=0;}
-  if(d.lvl<1)d.lvl=1;if(d.xpNeed<500)d.xpNeed=500;if(d.eMax<120)d.eMax=120;if(d.eRegen<0.04)d.eRegen=0.04;if(d.tapPow<1)d.tapPow=1;
-  if(!d.ups||typeof d.ups!=='object')d.ups={};if(!d.missions||typeof d.missions!=='object')d.missions={};
-  if(typeof d.alias!=='string')d.alias='';d.alias=d.alias.slice(0,16);
-  return d;
-}
-function applyLoadedData(raw){
-  const d=sanitize(JSON.parse(raw));Object.assign(S,d);
-  const offSec=Math.min((Date.now()-S.lastSave)/1000,86400);
-  if(offSec>5&&S.pph>0){const earned=S.pph/3600*offSec;addClk(earned,'offline');setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);}
-  S.energy=Math.min(S.eMax,S.energy+S.eRegen*offSec);
-  ensurePeriods();
-}
-
-// Carga local (localStorage) - usada como respaldo instantáneo
-function loadLocal(){
-  try{
-    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
-    applyLoadedData(raw);
-    return true;
-  }catch(e){return false;}
-}
-
-// Carga desde Firestore: 1 sola lectura por sesión de login.
-// Compara timestamps para usar el save más reciente entre nube y local.
-async function loadCloud(uid){
-  const {db,doc,getDoc}=window.__fb;
-  try{
-    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
-    const snap=await Promise.race([getDoc(doc(db,'saves',uid)), timeout]);
-    if(snap.exists()){
-      _cloudEverWorked=true; // pudimos leer la nube, así que sí está configurada
-      const cloudRaw=snap.data().data;
-      const cloudData=JSON.parse(cloudRaw);
-      const localRaw=localStorage.getItem(SAVE_KEY);
-      const localData=localRaw?JSON.parse(localRaw):null;
-      // lastSave puede faltar si el documento se editó a mano o viene de una versión vieja;
-      // en ese caso lo tratamos como 0 para no comparar undefined>undefined (que siempre da false
-      // y haría perder progreso local más reciente frente a una nube corrupta).
-      const cloudTime=(typeof cloudData.lastSave==='number')?cloudData.lastSave:0;
-      const localTime=(localData && typeof localData.lastSave==='number')?localData.lastSave:0;
-      // Un save "vacío" (0 taps, 0 totalClk) es el estado inicial recién creado en este dispositivo,
-      // no una partida real. Su lastSave es "ahora mismo" por definición, así que compararlo por
-      // timestamp contra la nube casi siempre lo haría ganar y borraría visualmente el progreso real.
-      // Por eso: si el local no tiene progreso real, la nube gana siempre que exista.
-      const localHasProgress=localData && ((localData.totalClk||0)>0 || (localData.totalTaps||0)>0);
-      if(localHasProgress && localTime>cloudTime){
-        applyLoadedData(localRaw); // el local es más nuevo Y tiene progreso real (offline recientemente)
-      }else{
-        applyLoadedData(cloudRaw);
-      }
-    }else{
-      // no hay save en la nube todavía (usuario nuevo o Firestore recién creado): usa local si existe
-      loadLocal();
-    }
-  }catch(e){
-    // Motivo típico: Firestore Database no existe aún en la consola de Firebase, o las reglas
-    // de seguridad no están publicadas. El juego sigue funcionando con el guardado local.
-    console.error('cloud load failed (o tardó demasiado), usando local. code:',e&&e.code,e);
-    if(e && (e.code==='unavailable' || e.code==='not-found' || e.code==='permission-denied')){
-      setSyncPill('setup');
-      warnFirestoreSetup(e);
-    }else{
-      // Motivo distinto a los tres de arriba: red caída, timeout, o algo inesperado.
-      // Lo mostramos en pantalla porque en móvil nadie va a mirar la consola.
-      toast('⚠️ No se pudo cargar tu partida de la nube ('+(e&&e.code||e&&e.message||'error')+'). Usando local.');
-    }
-    loadLocal();
-  }
-  if(!S.refCode)S.refCode=genCode();
-  if(!S.missions)S.missions={};if(!S.ups)S.ups={};
-}
-function addClk(amount,mode){if(!isFinite(amount)||amount<=0)return;const n=Math.floor(amount*100)/100;S.clk+=n;S.totalClk+=n;}
-function spendClk(amount){if(S.clk<amount)return false;S.clk-=amount;return true;}
-
-function fmt(n){n=Math.floor(n);if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n+''}
-function getRank(){let r=RANKS[0];for(const x of RANKS)if(S.lvl>=x.minLvl)r=x;return r}
-function upCost(u){return Math.floor(u.base*Math.pow(1.5,S.ups[u.id]||0))}
-function isBoost(){return Date.now()<S.boostEnd}
-
-/* ===== PERIODOS DE RANKING: semana ISO y mes calendario, con reset 100% en el cliente =====
-   No hay cron ni servidor: cada save guarda un "ancla" (marca de cuándo empezó su periodo
-   actual) y una "base" (su totalClk en ese instante). El puntaje del periodo es siempre
-   totalClk-base. Si la clave del periodo actual (año+semana o año+mes) ya no coincide con
-   la guardada, el periodo cambió: se reancla a ahora mismo y arranca de 0 sin borrar nada. */
-function isoWeekKey(d){
-  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
-  const day=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-day+3);
-  const firstThu=new Date(Date.UTC(t.getUTCFullYear(),0,4));
-  const wk=1+Math.round(((t-firstThu)/86400000-3+((firstThu.getUTCDay()+6)%7))/7);
-  return t.getUTCFullYear()+'-W'+wk;
-}
-function monthKey(d){return d.getFullYear()+'-'+d.getMonth();}
-function ensurePeriods(){
-  const now=Date.now(),nd=new Date(now);
-  if(!S.wkAnchor||isoWeekKey(new Date(S.wkAnchor))!==isoWeekKey(nd)){S.wkAnchor=now;S.wkBase=S.totalClk;}
-  if(!S.moAnchor||monthKey(new Date(S.moAnchor))!==monthKey(nd)){S.moAnchor=now;S.moBase=S.totalClk;}
-}
-function weeklyScore(){return Math.max(0,Math.floor(S.totalClk-S.wkBase));}
-function monthlyScore(){return Math.max(0,Math.floor(S.totalClk-S.moBase));}
-
-function recalc(){
-  let tap=1,pph=0,eMax=120,eR=0.04;
-  for(const u of UPS){const l=S.ups[u.id]||0;if(!l)continue;if(u.tapB)tap+=u.tapB*l;if(u.pph)pph+=u.pph*l*Math.pow(1.15,l-1);if(u.eB)eMax+=u.eB*l;if(u.rB)eR+=u.rB*l;}
-  tap+=getRank().tapB;S.tapPow=Math.max(1,Math.floor(tap));S.pph=Math.floor(pph);S.eMax=eMax;S.eRegen=eR;
-}
-
-let bumpTO=null;
-function upd(){
-  const bn=document.getElementById('balnum');bn.textContent=fmt(S.clk);bn.classList.remove('bump');void bn.offsetWidth;bn.classList.add('bump');
-  if(bumpTO)clearTimeout(bumpTO);bumpTO=setTimeout(()=>bn.classList.remove('bump'),120);
-  const mult=isBoost()?2:1;
-  document.getElementById('pertap').textContent=S.tapPow*mult;
-  document.getElementById('perhour').textContent=fmt(S.pph);
-  document.getElementById('svlvl').textContent=S.lvl;
-  document.getElementById('svtaps').textContent=fmt(S.totalTaps);
-  document.getElementById('svcombo').textContent=S.maxCombo+'🔥';
-  const xpP=Math.min(100,Math.round(S.xp/S.xpNeed*100));
-  document.getElementById('xplabel').textContent='Nivel '+S.lvl+' · '+fmt(S.xp)+'/'+fmt(S.xpNeed)+' XP';
-  document.getElementById('xppct').textContent=xpP+'%';
-  document.getElementById('xpb').style.width=xpP+'%';
-  const r=getRank();document.getElementById('rankpill').textContent=r.e+' '+r.name;
-  document.getElementById('ecur').textContent=Math.floor(S.energy);
-  document.getElementById('emax').textContent=S.eMax;
-  document.getElementById('eregen').textContent=S.eRegen.toFixed(2);
-  document.getElementById('noeregen').textContent=S.eRegen.toFixed(2);
-  document.getElementById('enfill').style.width=Math.max(0,Math.min(100,(S.energy/S.eMax)*100))+'%';
-  document.getElementById('boostpill').classList.toggle('show',isBoost());
-  const dr=isDailyReady();
-  document.getElementById('dailybtn').classList.toggle('ready',dr);
-  document.getElementById('dailybadge').textContent=dr?'RECLAMAR':'✅ OK';
-  if(dr){document.getElementById('dailysub').textContent='¡Reclama tu recompensa!';}
-  else{const nxt=86400000-(Date.now()-S.lastDaily);const h=Math.floor(nxt/3600000),m=Math.floor((nxt%3600000)/60000);document.getElementById('dailysub').textContent='Vuelve en '+h+'h '+m+'m';}
-}
-
-/* ── TAP HANDLER: now on coinwrap, works everywhere on circle ── */
-let lastTap=0,combo=0,comboTO=null,tLock=false;
-
-function htap(e){
-  e.preventDefault();
-  if(e.type==='touchstart')tLock=true;
-  else if(e.type==='click'&&tLock){tLock=false;return;}
-
-  if(S.energy<1){document.getElementById('noeov').classList.add('show');SFX.noEnergy();return;}
-  try{if(window.navigator&&window.navigator.vibrate)window.navigator.vibrate(15);}catch(err){}
-
-  const mult=isBoost()?2:1, earned=S.tapPow*mult;
-  addClk(earned,'tap');S.totalTaps++;S.energy=Math.max(0,S.energy-1);
-
-  const now=Date.now();
-  if(now-lastTap<500)combo++;else combo=1;
-  lastTap=now;
-  if(combo>S.maxCombo)S.maxCombo=combo;
-  if(comboTO)clearTimeout(comboTO);
-  comboTO=setTimeout(()=>{combo=0;document.getElementById('combopill').classList.remove('show');},1600);
-  document.getElementById('cv').textContent=combo;
-  document.getElementById('combopill').classList.toggle('show',combo>=3);
-  SFX.tap(combo);
-  if(combo===10){spawnBurst();showSfire();SFX.comboMilestone();shakeScreen(6);}
-  if(combo>10&&combo%5===0){spawnBurst();SFX.comboMilestone();shakeScreen(4);}
-
-  S.xp+=1+Math.floor(combo/5);
-  if(S.xp>=S.xpNeed){
-    const pr=getRank().name;S.xp-=S.xpNeed;S.lvl++;S.xpNeed=Math.floor(500*Math.pow(1.18,S.lvl-1));recalc();
-    const nr=getRank();const sk=SKINS.find(x=>x.lvl===S.lvl);if(sk)toast('🎨 Nueva skin "'+sk.name+'" desbloqueada!');
-    SFX.levelUp();
-    if(nr.name!==pr)showRankup(nr);
-  }
-  spawnFloat(e,'+'+fmt(earned),combo);
-  spawnRipple(e);
-  if(combo>=5)spawnParts(getCenter(),combo);
-  checkMiss();upd();save();
-}
-
-/* Sacude ligeramente el HUD al golpear hitos de combo — un guiño físico a que
-   algo grande está pasando, sin desplazar el layout de forma permanente. */
-let shakeTO=null;
-function shakeScreen(px){
-  const app=document.getElementById('app');
-  app.style.transition='transform .05s ease-out';
-  app.style.transform='translate('+(Math.random()*px*2-px)+'px,'+(Math.random()*px*2-px)+'px)';
-  if(shakeTO)clearTimeout(shakeTO);
-  shakeTO=setTimeout(()=>{app.style.transform='';},70);
-}
-
-/* ── Scale animation on wrap ── */
-function setupCoinPress(){
-  const wrap=document.getElementById('coinwrap');
-  function pressOn(e){
-    // Only trigger if click is within the circle (not on outer rings)
-    wrap.classList.add('pressed');
-  }
-  function pressOff(){
-    wrap.classList.remove('pressed');
-  }
-  wrap.addEventListener('touchstart', e=>{pressOn(e); htap(e);}, {passive:false});
-  wrap.addEventListener('touchend', pressOff, {passive:true});
-  wrap.addEventListener('touchcancel', pressOff, {passive:true});
-  wrap.addEventListener('mousedown', pressOn);
-  wrap.addEventListener('mouseup', pressOff);
-  wrap.addEventListener('mouseleave', pressOff);
-  wrap.addEventListener('click', htap);
-}
-
-function getCenter(){const r=document.getElementById('coinwrap').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
-function spawnFloat(e,txt,comboLevel){
-  const el=document.createElement('div');el.className='fn';el.textContent=txt;
-  const r=document.getElementById('coinwrap').getBoundingClientRect();
-  const cx=r.left+r.width/2,cy=r.top+r.height/2;
-  const radius=78+Math.random()*22;
-  const angle=Math.random()*Math.PI*2;
-  // en rachas altas el número crece y vira a naranja/rosa: la racha se ve, no solo se cuenta
-  const cl=comboLevel||1;
-  const scale=1+Math.min(0.9,cl*0.035);
-  const color=cl>=20?'var(--pink)':cl>=10?'var(--orange)':'var(--yellow)';
-  el.style.cssText='left:'+(cx+Math.cos(angle)*radius)+'px;top:'+(cy+Math.sin(angle)*radius)+'px;font-size:'+(20*scale)+'px;color:'+color;
-  document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
-}
-function spawnRipple(e){
-  const wrap=document.getElementById('coinwrap'),r=wrap.getBoundingClientRect();
-  const el=document.createElement('div');el.className='crip';
-  const cx=e.touches?e.touches[0].clientX:e.clientX;
-  const cy=e.touches?e.touches[0].clientY:e.clientY;
-  el.style.cssText='left:'+(cx-r.left)+'px;top:'+(cy-r.top)+'px';
-  wrap.appendChild(el);setTimeout(()=>el.remove(),560);
-}
-function showSfire(){const el=document.getElementById('sfire');el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}
-
-const pCv=document.getElementById('pC'),pX=pCv.getContext('2d'),PARTS=[];
-function resPC(){pCv.width=window.innerWidth;pCv.height=window.innerHeight}
-resPC();window.addEventListener('resize',resPC);
-const PART_COLS=['#FFD700','#FF6B35','#FF3CAC','#06B6D4','#8B5CF6','#10B981'];
-// Techo global de partículas vivas: en un combo largo cientos de spawns por segundo
-// harían crecer PARTS sin límite y tirar el framerate en móviles de gama baja.
-const PARTS_CAP=260;
-function pushPart(p){ if(PARTS.length<PARTS_CAP) PARTS.push(p); }
-
-/* Chispas cortas alrededor del coin en cada tap con combo≥5: refuerza visualmente
-   que la racha está "encendida" sin llegar a saturar la pantalla en cada click. */
-function spawnParts(center,comboLevel){
-  const c=center||getCenter();
-  const n=Math.min(10,4+Math.floor(comboLevel/6));
-  for(let i=0;i<n;i++){
-    const a=Math.random()*Math.PI*2,sp=1.5+Math.random()*3.5;
-    pushPart({
-      x:c.x,y:c.y,
-      vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,
-      sz:2+Math.random()*3,
-      life:1,dec:0.02+Math.random()*0.025,
-      col:PART_COLS[Math.random()*PART_COLS.length|0]
-    });
-  }
-}
-/* Ráfaga radial más densa: se dispara en hitos de combo (10, 15, 20…) para marcar
-   ese instante como un pequeño evento, no solo un tap más. */
-function spawnBurst(){
-  const c=getCenter();
-  const n=26;
-  for(let i=0;i<n;i++){
-    const a=(Math.PI*2/n)*i+Math.random()*0.3,sp=3+Math.random()*5;
-    pushPart({
-      x:c.x,y:c.y,
-      vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
-      sz:3+Math.random()*3.5,
-      life:1,dec:0.014+Math.random()*0.012,
-      col:PART_COLS[Math.random()*PART_COLS.length|0]
-    });
-  }
-}
-/* Confeti de pantalla completa: cae desde arriba en vez de explotar desde el coin,
-   reservado para momentos de verdadero hito (subir de rango, reclamar el bonus diario). */
-function rankBurst(){
-  const w=pCv.width;
-  const n=70;
-  for(let i=0;i<n;i++){
-    pushPart({
-      x:Math.random()*w,y:-20-Math.random()*200,
-      vx:(Math.random()-0.5)*2,vy:2+Math.random()*3,
-      sz:3+Math.random()*4,
-      rot:Math.random()*Math.PI*2,vr:(Math.random()-0.5)*0.3,
-      shape:'rect',
-      life:1,dec:0.006+Math.random()*0.006,
-      col:PART_COLS[Math.random()*PART_COLS.length|0]
-    });
-  }
-}
-function animP(){
-  pX.clearRect(0,0,pCv.width,pCv.height);
-  for(let i=PARTS.length-1;i>=0;i--){
-    const p=PARTS[i];
-    p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.life-=p.dec;
-    if(p.rot!==undefined)p.rot+=p.vr||0;
-    if(p.life<=0||p.y>pCv.height+40){PARTS.splice(i,1);continue}
-    pX.globalAlpha=p.life;pX.fillStyle=p.col;
-    if(p.shape==='rect'){
-      // confeti: rectángulo que rota sobre su propio eje mientras cae
-      pX.save();
-      pX.translate(p.x,p.y);pX.rotate(p.rot||0);
-      const s=p.sz*p.life;
-      pX.fillRect(-s,-s*0.6,s*2,s*1.2);
-      pX.restore();
-    }else{
-      pX.beginPath();pX.arc(p.x,p.y,p.sz*p.life,0,Math.PI*2);pX.fill();
-    }
-  }
-  pX.globalAlpha=1;requestAnimationFrame(animP);
-}
-animP();
-
-/* ── BARRA DE MINADO PASIVO ──────────────────────────────────────────────
-   El CLK del pph sigue sumándose cada segundo igual que siempre (para que
-   el saldo arriba fluya sin saltos); esta barra es una capa puramente
-   visual sobre ese mismo flujo: se llena en MINE_CYCLE_MS y, al llegar al
-   final, muestra cuánto se ganó en ese tramo y se reinicia — como una
-   vagoneta de minero yendo y viniendo. Así queda claro que se mina solo,
-   tap o no tap, sin tocar el ritmo económico real del juego. */
-const MINE_CYCLE_MS=8000;
-let mineCycleStart=Date.now(),mineCycleClk=0;
-function tickMiningBar(now){
-  const sec=document.getElementById('miningsec');
-  if(!sec)return;
-  const idle=!(S.pph>0);
-  sec.classList.toggle('idle',idle);
-  document.getElementById('miningsub').textContent=idle
-    ? 'Compra una mejora de producción para que mine solo'
-    : 'Sigue minando aunque no toques la pantalla';
-  if(idle){
-    document.getElementById('miningfill').style.width='0%';
-    document.getElementById('miningpct').textContent='0%';
-    mineCycleStart=now;mineCycleClk=S.clk;
-    return;
-  }
-  let elapsed=now-mineCycleStart;
-  if(elapsed>=MINE_CYCLE_MS){
-    const earned=Math.max(0,S.clk-mineCycleClk);
-    const pop=document.getElementById('miningpop');
-    pop.textContent='+'+fmt(earned);
-    pop.classList.remove('go');void pop.offsetWidth;pop.classList.add('go');
-    mineCycleStart=now;mineCycleClk=S.clk;
-    elapsed=0;
-  }
-  const pct=Math.min(100,(elapsed/MINE_CYCLE_MS)*100);
-  document.getElementById('miningfill').style.width=pct+'%';
-  document.getElementById('miningpct').textContent=Math.floor(pct)+'%';
-}
-
-setInterval(()=>{
-  const now=Date.now(),dt=Math.min((now-S.lastPassive)/1000,5);S.lastPassive=now;
-  if(S.energy<S.eMax)S.energy=Math.min(S.eMax,S.energy+S.eRegen*dt);
-  if(S.pph>0)addClk(S.pph/3600*dt,'passive');
-  tickMiningBar(now);
-  upd();save();checkMiss();
-},1000);
-
-// Intento periódico de subir a la nube. Alineado con CLOUD_MIN_INTERVAL: no tiene sentido
-// comprobar más seguido que el propio throttle, eso solo desperdicia ciclos sin ahorrar cuota.
-// Aprovechamos el mismo intervalo para revisar si cambió la semana/mes (sesión larga que
-// cruza medianoche del corte) y, si el jugador ya tiene alias, republicar su score.
-setInterval(()=>{ if(window.__fbUser){ ensurePeriods(); cloudSaveNow(false); publishLeaderboard(false); } }, CLOUD_MIN_INTERVAL);
-
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); }
+// ── CURSOR ──
+const cur=document.getElementById('cursor');
+const cur2=document.getElementById('cursor2');
+let mx=0,my=0,cx=0,cy=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+setInterval(()=>{cx+=(mx-cx)*.15;cy+=(my-cy)*.15;cur2.style.left=cx+'px';cur2.style.top=cy+'px';},16);
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='28px';cur.style.height='28px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='16px';cur.style.height='16px';});
 });
-window.addEventListener('beforeunload',()=>{ localSaveNow(); });
-window.addEventListener('pagehide',()=>{ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); });
 
-function toggleMute(){
-  const isMuted=SFX.toggleMute();
-  const btn=document.getElementById('muteBtn');
-  btn.textContent=isMuted?'🔇':'🔊';
-  btn.classList.toggle('off',isMuted);
-  if(!isMuted)SFX.toggle();
-}
-function showRankup(r){document.getElementById('ruemoji').textContent=r.e;document.getElementById('runame').textContent=r.name;document.getElementById('rubonus').textContent='+'+r.tapB+' poder de tap desbloqueado';document.getElementById('ruov').classList.add('show');SFX.rankUp();rankBurst();}
-
-function isDailyReady(){return Date.now()-S.lastDaily>86400000}
-function openDaily(){renderDG();document.getElementById('dailyov').classList.add('show');const cb=document.getElementById('dailyclaim');cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';}
-function renderDG(){const g=document.getElementById('dailygrid');g.innerHTML='';for(let i=0;i<7;i++){const div=document.createElement('div');div.className='dday'+(i<S.dailyDay?' done':i===S.dailyDay?' today':'');div.innerHTML='<div class="ddv">'+fmt(DRWD[i])+'</div>Día '+(i+1);g.appendChild(div);}}
-function claimDaily(){if(!isDailyReady())return;const rwd=DRWD[S.dailyDay%7];addClk(rwd,'daily');S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();upd();checkMiss();renderDG();document.getElementById('dailyclaim').disabled=true;document.getElementById('dailyclaim').style.opacity='.4';toast('🎁 Bonus diario: +'+fmt(rwd)+' $CLK!');SFX.dailyClaim();rankBurst();forceSave();}
-
-function renderUps(){
-  recalc();const list=document.getElementById('upslist');list.innerHTML='';
-  const cats=[
-    {key:'pph', label:'⚙️ PRODUCCIÓN/HORA',   col:'var(--cyan)',   test:u=>!!u.pph },
-    {key:'tapB',label:'👆 BONUS POR TAP',      col:'var(--pink)',   test:u=>!!u.tapB},
-    {key:'eB',  label:'🔋 ENERGÍA MÁXIMA',     col:'var(--yellow)', test:u=>!!u.eB  },
-    {key:'rB',  label:'💨 REGENERACIÓN',       col:'var(--green)',  test:u=>!!u.rB  },
-    {key:'bMin',label:'🚀 BOOSTS TEMPORALES',  col:'var(--orange)', test:u=>!!u.bMin},
-  ];
-  for(const cat of cats){
-    const ups=UPS.filter(cat.test);if(!ups.length)continue;
-    const allMaxed=ups.every(u=>(S.ups[u.id]||0)>=u.max);
-    const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label+(allMaxed?' ✅':'');list.appendChild(hdr);
-    for(const u of ups){
-      const l=S.ups[u.id]||0,cost=upCost(u),maxed=l>=u.max,can=!maxed&&S.clk>=cost;
-      let bonus='';if(u.pph)bonus='+'+fmt(Math.floor(u.pph*l*Math.pow(1.15,Math.max(0,l-1))))+'/h';else if(u.tapB)bonus='+'+u.tapB*l+' tap';else if(u.eB)bonus='+'+u.eB*l+' E';else if(u.rB)bonus='+'+(u.rB*l).toFixed(2)+'/s';else if(u.bMin)bonus='+'+u.bMin*l+'min x2';
-      const pct=Math.round(l/u.max*100);
-      const card=document.createElement('div');card.className='uc'+(can?' canbuy':'')+(maxed?' maxed':'');
-      card.innerHTML='<div class="uico">'+u.i+'</div><div class="uinfo"><div class="uname">'+u.n+'</div><div class="udesc">'+u.d+(bonus?' · <span style="color:var(--cyan)">'+bonus+'</span>':'')+'</div><div class="ulvl">Nivel '+l+'/'+u.max+'</div><div class="ulvlb"><div class="ulvlf" style="width:'+pct+'%"></div></div></div><button class="ubtn" '+((!can||maxed)?'disabled':'')+' onclick="buyUp(\''+u.id+'\')">'+( maxed?'MAX':'🪙 '+fmt(cost))+'</button>';
-      list.appendChild(card);
-    }
-  }
-  renderSkins();
-}
-function buyUp(id){const u=UPS.find(x=>x.id===id);if(!u)return;const l=S.ups[id]||0;if(l>=u.max)return;const cost=upCost(u);if(!spendClk(cost)){toast('❌ Sin suficiente $CLK');SFX.buyFail();return}S.ups[id]=(l+1);S.upsCount++;if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;recalc();upd();renderUps();checkMiss();toast('✅ '+u.n+' → Nivel '+S.ups[id]);SFX.coinBuy();forceSave();}
-function renderSkins(){const g=document.getElementById('skingrid');g.innerHTML='';for(const sk of SKINS){const ok=S.lvl>=sk.lvl;const d=document.createElement('div');d.className='skinitem'+(sk.id===S.skin?' active':'')+(ok?'':' locked');d.innerHTML=sk.ico+'<span class="skinlbl">'+(ok?sk.name:'Lvl '+sk.lvl)+'</span>';if(ok)d.onclick=()=>{S.skin=sk.id;forceSave();renderSkins();upd();toast('🎨 Skin "'+sk.name+'" activada')};g.appendChild(d);}}
-
-/* ===== MISIONES POR NIVELES: igual que las mejoras (UPS), una misión nunca
-   "se acaba" — al reclamarla sube de nivel y reaparece con objetivo y
-   recompensa mayores, sin tope.
-   CLAVE para que sea un reto real y no un bucle gratis: cada nivel mide
-   progreso RELATIVO desde que se alcanzó ese nivel, no el contador
-   absoluto de toda la partida. ms.base = valor del contador global en el
-   momento de subir a este nivel; ms.p = contador_actual - ms.base. Así
-   cada fase exige generar avance NUEVO (más taps, más CLK, más combo...)
-   antes de poder reclamar otra vez — no basta con tener un historial
-   grande acumulado de antes. ===== */
-function misGoal(m,lvl){return Math.ceil(m.g*Math.pow(1.6,lvl-1));}
-function misReward(m,lvl){return Math.ceil(m.r*Math.pow(1.5,lvl-1));}
-function misRaw(m){
-  // valor actual del contador global que esta misión rastrea
-  if(m.t==='taps')return S.totalTaps;
-  if(m.t==='clk')return Math.floor(S.totalClk);
-  if(m.t==='lvl')return S.lvl;
-  if(m.t==='ups')return S.upsCount;
-  if(m.t==='combo')return S.maxCombo;
-  if(m.t==='dstreak')return S.dStreak;
-  if(m.t==='refs')return S.refs;
-  return 0;
-}
-function misState(m){
-  let ms=S.missions[m.id];
-  if(!ms||typeof ms!=='object')ms={lvl:1,base:0,c:false};
-  if(typeof ms.lvl!=='number'||ms.lvl<1)ms.lvl=1;
-  if(typeof ms.base!=='number'||!isFinite(ms.base)){
-    // migración desde saves antiguos: 'p' absoluto o 'c:true' ya no existen como tales.
-    // Si ya estaba reclamada (c:true), el ancla es el valor de entonces (guardado en p);
-    // si no, arranca el ancla en 0 para no penalizar progreso que ya llevaba hecho.
-    ms.base=(ms.c&&typeof ms.p==='number')?ms.p:0;
-  }
-  delete ms.p;ms.c=false; // 'p' pasa a derivarse siempre de misRaw()-base, nunca se guarda ya fijo
-  S.missions[m.id]=ms;
-  return ms;
-}
-function misProgress(m,ms){return Math.max(0,misRaw(m)-ms.base);}
-function checkMiss(){
-  let has=false;
-  for(const m of MISS){
-    const ms=misState(m),goal=misGoal(m,ms.lvl);
-    if(misProgress(m,ms)>=goal)has=true;
-  }
-  const nav=document.getElementById('nav-missions'),dot=nav.querySelector('.ndot');
-  if(has&&!dot){const d=document.createElement('div');d.className='ndot';nav.appendChild(d);}else if(!has&&dot)dot.remove();
-}
-function renderMiss(){
-  checkMiss();const list=document.getElementById('misslist');list.innerHTML='';
-  const cats=[{key:'taps',label:'👆 TAPS',col:'var(--cyan)'},{key:'clk',label:'💰 $CLK ACUMULADO',col:'var(--yellow)'},{key:'lvl',label:'📈 NIVEL',col:'var(--purple)'},{key:'ups',label:'⚡ MEJORAS',col:'var(--orange)'},{key:'combo',label:'🔥 COMBO',col:'var(--pink)'},{key:'dstreak',label:'📅 RACHA DIARIA',col:'var(--green)'},{key:'refs',label:'👥 REFERIDOS',col:'var(--blue)'}];
-  for(const cat of cats){
-    const missions=MISS.filter(m=>m.t===cat.key);
-    const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label;list.appendChild(hdr);
-    for(const m of missions){
-      const ms=misState(m),goal=misGoal(m,ms.lvl),reward=misReward(m,ms.lvl),p=misProgress(m,ms);
-      const pct=Math.min(100,(p/goal)*100),ready=p>=goal;
-      const card=document.createElement('div');card.className='mc';
-      card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+' <span style="color:var(--muted);font-weight:700">· Nv.'+ms.lvl+'</span></div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(reward)+' $CLK &nbsp;·&nbsp; '+fmt(p)+'/'+fmt(goal)+'</div></div><button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>';
-      list.appendChild(card);
-    }
-  }
-}
-function claimM(id){
-  const m=MISS.find(x=>x.id===id);if(!m)return;
-  const ms=misState(m),goal=misGoal(m,ms.lvl);
-  if(misProgress(m,ms)<goal)return;
-  const reward=misReward(m,ms.lvl);
-  ms.base=misRaw(m); // ancla el contador aquí: la siguiente fase empieza de cero de verdad
-  ms.lvl++;
-  addClk(reward,'reward');upd();renderMiss();
-  toast('🎉 Misión Nv.'+(ms.lvl-1)+': +'+fmt(reward)+' $CLK');
-  SFX.missionClaim();rankBurst();forceSave();
-}
-
-function renderRef(){document.getElementById('refcode').textContent=S.refCode;document.getElementById('rcount').textContent=S.refs;document.getElementById('rearned').textContent=fmt(S.refEarned);}
-function copyCode(){
-  const gameUrl = window.location.href;  // Captura la URL actual del juego
-  const text = '¡Juega Crypto Click! 🪙 Mi código: ' + S.refCode + '\nEnlace: ' + gameUrl;
-  SFX.navClick();
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(() => toast('📋 ¡Código y enlace copiados!')).catch(() => toast('📋 Copia manual: ' + text));
-  } else {
-    toast('📋 Copia manual: ' + text);
-  }
-}
-function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');SFX.buyFail();return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');SFX.buyFail();return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');SFX.refJoin();document.getElementById('refinp').value='';forceSave();}
-
-/* ===== CANJEAR ============================================================
-   IMPORTANTE — por qué esta sección funciona así y no de otra forma:
-   Google Play prohíbe expresamente que una app "promueva o glamurice
-   cualquier ganancia potencial derivada de jugar o tradear" (política de
-   Blockchain-based Content) y no permite facilitar el canje de recompensas
-   obtenidas jugando por premios de valor monetario real (política de
-   Real-Money Games). Además, cualquier función que retenga, transfiera o
-   intercambie criptomonedas dentro de la app la convierte en un "software
-   wallet" / "exchange", sujeto a licencias regionales (FinCEN, MiCA/CASP,
-   etc.) que este proyecto no tiene.
-   Por eso esta pantalla es SOLO informativa: ningún canje, formulario de
-   wallet, ni conexión de wallet ocurre dentro de la app. El botón, tras un
-   aviso explícito, únicamente abre el sitio oficial de cada proyecto en el
-   navegador — fuera de la superficie que esas políticas regulan. Todo el
-   texto usa lenguaje neutro (nunca "gana dinero real" ni cifras de valor). */
-const RDPROJ=[
-  {id:'demo1',n:'Proyecto Demo A',i:'🪐',status:'live', d:'Airdrop propio ya activo. Requiere completar tareas en su sitio oficial.', url:'https://example.com'},
-  {id:'demo2',n:'Proyecto Demo B',i:'🌊',status:'soon', d:'Programa de canje anunciado, pendiente de apertura oficial.',           url:'https://example.com'},
-];
-let _redeemPending=null;
-function renderRedeem(){
-  const list=document.getElementById('redeemlist');list.innerHTML='';
-  for(const p of RDPROJ){
-    const card=document.createElement('div');card.className='rdcard';
-    const statusLabel=p.status==='live'?'Activo':'Próximamente';
-    card.innerHTML='<div class="rdico">'+p.i+'</div><div class="rdinfo"><div class="rdname">'+p.n+' <span class="rdstatus '+p.status+'">'+statusLabel+'</span></div><div class="rddesc">'+p.d+'</div></div><button class="rdbtn" onclick="openRedeem(\''+p.id+'\')">Ver ↗</button>';
-    list.appendChild(card);
-  }
-}
-function openRedeem(id){
-  const p=RDPROJ.find(x=>x.id===id);if(!p)return;
-  _redeemPending=p;
-  document.getElementById('redeemtext').textContent='Vas a abrir el sitio externo de "'+p.n+'" para informarte sobre su programa de canje.';
-  document.getElementById('redeemov').classList.add('show');
-  SFX.navClick();
-}
-function confirmRedeem(){
-  if(_redeemPending)window.open(_redeemPending.url,'_blank','noopener');
-  document.getElementById('redeemov').classList.remove('show');
-  _redeemPending=null;
-}
-function cancelRedeem(){
-  document.getElementById('redeemov').classList.remove('show');
-  _redeemPending=null;
-}
-
-/* ===== ALIAS: paso único de onboarding para el ranking, validación mínima a propósito ===== */
-function confirmAlias(){
-  const v=document.getElementById('aliasinp').value.trim();
-  const errEl=document.getElementById('aliaserr');
-  if(!v){errEl.textContent='Escribe un alias para continuar';return}
-  if(v.length<2){errEl.textContent='Muy corto, usa al menos 2 caracteres';return}
-  errEl.textContent='';
-  S.alias=v.slice(0,16);
-  document.getElementById('aliasov').classList.remove('show');
-  forceSave();
-  publishLeaderboard(true);
-  toast('🏆 ¡Ya apareces en el Ranking Global!');
-  SFX.missionClaim();
-  rankBurst();
-}
-function skipAlias(){
-  document.getElementById('aliasov').classList.remove('show');
-  // Sin alias el jugador sigue jugando con normalidad; solo no publica en leaderboard/.
-  // Puede volver a este mismo modal desde la pantalla de Ranking cuando quiera.
-}
-
-/* ===== RANKING GLOBAL: 1 sola query (top 100 por total), las pestañas semanal/mensual
-   re-ordenan el mismo resultado en el cliente para no necesitar 3 índices compuestos. ===== */
-let LB_CACHE=null,LB_PERIOD='weekly',_lbFetching=false;
-async function fetchLB(){
-  if(!window.__fbUser||_lbFetching)return LB_CACHE;
-  _lbFetching=true;
-  try{
-    const {db,collection,query,orderBy,limit,getDocs}=window.__fb;
-    const snap=await getDocs(query(collection(db,'leaderboard'),orderBy('total','desc'),limit(100)));
-    LB_CACHE=[];
-    snap.forEach(docSnap=>LB_CACHE.push({uid:docSnap.id,...docSnap.data()}));
-  }catch(e){
-    console.error('leaderboard fetch failed:',e&&e.code,e);
-    LB_CACHE='error'; // distinto de null (cargando) y de [] (vacío pero ok): evita quedarse en "Cargando…" para siempre
-  }finally{
-    _lbFetching=false;
-  }
-  return LB_CACHE;
-}
-function setLBPeriod(p){
-  LB_PERIOD=p;
-  document.querySelectorAll('.lbtab').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
-  renderLBList();
-}
-const LB_LABELS={weekly:'Se reinicia cada lunes',monthly:'Se reinicia el día 1 de cada mes',total:'Progreso histórico de siempre'};
-function renderLBList(){
-  const sub=document.getElementById('lbsub'),me=document.getElementById('lbme'),list=document.getElementById('lblist');
-  sub.textContent=LB_LABELS[LB_PERIOD];
-  if(LB_CACHE==='error'){list.innerHTML='<div class="lbempty">⚠️ No se pudo cargar el ranking.<br>Revisa tu conexión e inténtalo de nuevo.</div>';me.innerHTML='';return}
-  if(!LB_CACHE){list.innerHTML='<div class="lbempty">Cargando ranking…</div>';me.innerHTML='';return}
-  if(LB_CACHE.length===0){list.innerHTML='<div class="lbempty">🏆 Todavía nadie tiene alias publicado.<br>¡Sé el primero del Ranking Global!</div>';me.innerHTML='';return}
-  const field=LB_PERIOD==='weekly'?'weekly':LB_PERIOD==='monthly'?'monthly':'total';
-  const sorted=[...LB_CACHE].sort((a,b)=>(b[field]||0)-(a[field]||0));
-  const myUid=window.__fbUser&&window.__fbUser.uid;
-  const myIdx=sorted.findIndex(r=>r.uid===myUid);
-
-  list.innerHTML='';
-  sorted.slice(0,100).forEach((r,i)=>{
-    const pos=i+1,isMe=r.uid===myUid;
-    const medal=pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':pos;
-    const cls='lr'+(pos<=3?' top'+pos:'')+(isMe?' me':'');
-    const row=document.createElement('div');row.className=cls;
-    row.innerHTML='<div class="lp">'+medal+'</div><div class="lname">'+escapeHtml(r.alias||'Minero')+(isMe?' <span style="color:var(--cyan);font-size:10px">(tú)</span>':'')+'<div class="lrbadge">Nivel '+(r.lvl||1)+'</div></div><div class="lscore">🪙 '+fmt(r[field]||0)+'</div>';
-    list.appendChild(row);
+// ── BACKGROUND PARTICLES ──
+const canvas=document.getElementById('bgCanvas');
+const ctx=canvas.getContext('2d');
+let W=0,H=0;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+const STARS=[];
+for(let i=0;i<160;i++){STARS.push({x:Math.random(),y:Math.random(),s:Math.random()*1.5+.3,o:Math.random()*.6+.1,sp:Math.random()*.0003+.00005,col:Math.random()>.85?'255,215,0':Math.random()>.7?'255,60,172':'245,240,255'})}
+const NODES=[];
+for(let i=0;i<35;i++){NODES.push({x:Math.random()*100,y:Math.random()*100,vx:(Math.random()-.5)*.06,vy:(Math.random()-.5)*.06,s:Math.random()*2+1})}
+function drawBg(){
+  ctx.clearRect(0,0,W,H);
+  STARS.forEach(s=>{s.y-=s.sp;if(s.y<0)s.y=1;ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.s,0,Math.PI*2);ctx.fillStyle=`rgba(${s.col},${s.o})`;ctx.fill();});
+  NODES.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>100)n.vx*=-1;if(n.y<0||n.y>100)n.vy*=-1;});
+  NODES.forEach((a,i)=>{
+    NODES.slice(i+1).forEach(b=>{
+      const dx=(a.x-b.x)/100*W,dy=(a.y-b.y)/100*H,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<140){ctx.beginPath();ctx.moveTo(a.x/100*W,a.y/100*H);ctx.lineTo(b.x/100*W,b.y/100*H);ctx.strokeStyle=`rgba(255,215,0,${.04*(1-dist/140)})`;ctx.lineWidth=.5;ctx.stroke();}
+    });
+    ctx.beginPath();ctx.arc(a.x/100*W,a.y/100*H,a.s,0,Math.PI*2);ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fill();
   });
-
-  if(S.alias&&myIdx===-1){
-    me.innerHTML='<div class="lp">—</div><div class="lname">'+escapeHtml(S.alias)+' <span style="color:var(--cyan);font-size:10px">(tú)</span><div class="lrbadge">Fuera del Top 100</div></div><div class="lscore">🪙 '+fmt(LB_PERIOD==='weekly'?weeklyScore():LB_PERIOD==='monthly'?monthlyScore():Math.floor(S.totalClk))+'</div>';
-  }else if(!S.alias){
-    me.innerHTML='<div class="lp">🔒</div><div class="lname">Sin alias todavía<div class="lrbadge">No apareces en el ranking</div></div><button class="ubtn" style="flex-shrink:0" onclick="document.getElementById(\'aliasov\').classList.add(\'show\')">Unirme</button>';
-  }else{
-    me.innerHTML='';
-  }
+  requestAnimationFrame(drawBg);
 }
-function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-async function renderLB(){
-  ensurePeriods();
-  document.getElementById('lblist').innerHTML='<div class="lbempty">Cargando ranking…</div>';
-  await fetchLB();
-  renderLBList();
-}
+drawBg();
 
-function goTo(n){SFX.navClick();document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='community')renderRef();if(n==='leaderboard')renderLB();if(n==='redeem')renderRedeem();}
+// ── SCROLL REVEAL ──
+const revels=document.querySelectorAll('.reveal');
+const io=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*80);});},{threshold:.12});
+revels.forEach(r=>io.observe(r));
 
-let tTO=null;
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(tTO)clearTimeout(tTO);tTO=setTimeout(()=>t.classList.remove('show'),2800);}
+// ── FAQ ──
+function toggleFaq(el){const item=el.parentElement;const isOpen=item.classList.contains('open');document.querySelectorAll('.faq-item.open').forEach(f=>f.classList.remove('open'));if(!isOpen)item.classList.add('open');}
 
-const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
-function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(localStorage.getItem(SAVE_KEY))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
+// ── COUNTER ──
+function animateCounter(el,target,suffix=''){let start=0;const inc=target/(2000/16);const iv=setInterval(()=>{start+=inc;if(start>=target){start=target;clearInterval(iv);}el.textContent=Math.floor(start).toLocaleString('es')+suffix;},16);}
+const statIO=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){animateCounter(document.getElementById('stat-players'),12480,'+');statIO.disconnect();}});},{threshold:.5});
+const heroStats=document.querySelector('.hero-stats');
+if(heroStats)statIO.observe(heroStats);
 
-let _gameStarted=false;
-window.startGameForUser=async function(user){
-  if(_gameStarted)return; // evita doble init si onAuthStateChanged dispara más de una vez
-  _gameStarted=true;
-  window.__fbUser=user;
-  await loadCloud(user.uid);
-  recalc();upd();checkMiss();
-  document.addEventListener('dblclick',e=>e.preventDefault());
-  setupCoinPress();
-  const mb=document.getElementById('muteBtn');
-  if(mb){mb.textContent=SFX.muted?'🔇':'🔊';mb.classList.toggle('off',SFX.muted);}
-  document.getElementById('app').style.display='';
-  runLoader();
-  setSyncPill('ok');
-  if(!S.alias)setTimeout(()=>document.getElementById('aliasov').classList.add('show'),1600);
-};
+// ── SMOOTH NAV ──
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}});});
 </script>
-<!-- PWA: registro del service worker -->
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .catch((err) => console.warn('SW registration failed:', err));
-  });
-}
-</script>
-
 </body>
   </html>
