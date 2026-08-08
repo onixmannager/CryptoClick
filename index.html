@@ -1737,31 +1737,47 @@ function renderSkins(){const g=document.getElementById('skingrid');g.innerHTML='
 
 /* ===== MISIONES POR NIVELES: igual que las mejoras (UPS), una misión nunca
    "se acaba" — al reclamarla sube de nivel y reaparece con objetivo y
-   recompensa mayores, sin tope. ms.lvl empieza en 1; misGoal/misReward
-   escalan ese nivel con el mismo espíritu de progresión que upCost(). ===== */
+   recompensa mayores, sin tope.
+   CLAVE para que sea un reto real y no un bucle gratis: cada nivel mide
+   progreso RELATIVO desde que se alcanzó ese nivel, no el contador
+   absoluto de toda la partida. ms.base = valor del contador global en el
+   momento de subir a este nivel; ms.p = contador_actual - ms.base. Así
+   cada fase exige generar avance NUEVO (más taps, más CLK, más combo...)
+   antes de poder reclamar otra vez — no basta con tener un historial
+   grande acumulado de antes. ===== */
 function misGoal(m,lvl){return Math.ceil(m.g*Math.pow(1.6,lvl-1));}
 function misReward(m,lvl){return Math.ceil(m.r*Math.pow(1.5,lvl-1));}
+function misRaw(m){
+  // valor actual del contador global que esta misión rastrea
+  if(m.t==='taps')return S.totalTaps;
+  if(m.t==='clk')return Math.floor(S.totalClk);
+  if(m.t==='lvl')return S.lvl;
+  if(m.t==='ups')return S.upsCount;
+  if(m.t==='combo')return S.maxCombo;
+  if(m.t==='dstreak')return S.dStreak;
+  if(m.t==='refs')return S.refs;
+  return 0;
+}
 function misState(m){
   let ms=S.missions[m.id];
-  if(!ms||typeof ms!=='object')ms={lvl:1,p:0,c:false};
-  if(typeof ms.lvl!=='number'||ms.lvl<1)ms.lvl=ms.c?2:1; // migración de saves antiguos (c:true = ya reclamada una vez)
-  if(typeof ms.p!=='number'||!isFinite(ms.p))ms.p=0;
-  ms.c=false; // 'c' ya no representa un fin definitivo, solo se usa como pista de migración arriba
+  if(!ms||typeof ms!=='object')ms={lvl:1,base:0,c:false};
+  if(typeof ms.lvl!=='number'||ms.lvl<1)ms.lvl=1;
+  if(typeof ms.base!=='number'||!isFinite(ms.base)){
+    // migración desde saves antiguos: 'p' absoluto o 'c:true' ya no existen como tales.
+    // Si ya estaba reclamada (c:true), el ancla es el valor de entonces (guardado en p);
+    // si no, arranca el ancla en 0 para no penalizar progreso que ya llevaba hecho.
+    ms.base=(ms.c&&typeof ms.p==='number')?ms.p:0;
+  }
+  delete ms.p;ms.c=false; // 'p' pasa a derivarse siempre de misRaw()-base, nunca se guarda ya fijo
   S.missions[m.id]=ms;
   return ms;
 }
+function misProgress(m,ms){return Math.max(0,misRaw(m)-ms.base);}
 function checkMiss(){
   let has=false;
   for(const m of MISS){
     const ms=misState(m),goal=misGoal(m,ms.lvl);
-    if(m.t==='taps')ms.p=S.totalTaps;
-    if(m.t==='clk')ms.p=Math.floor(S.totalClk);
-    if(m.t==='lvl')ms.p=S.lvl;
-    if(m.t==='ups')ms.p=S.upsCount;
-    if(m.t==='combo')ms.p=S.maxCombo;
-    if(m.t==='dstreak')ms.p=S.dStreak;
-    if(m.t==='refs')ms.p=S.refs;
-    if(ms.p>=goal)has=true;
+    if(misProgress(m,ms)>=goal)has=true;
   }
   const nav=document.getElementById('nav-missions'),dot=nav.querySelector('.ndot');
   if(has&&!dot){const d=document.createElement('div');d.className='ndot';nav.appendChild(d);}else if(!has&&dot)dot.remove();
@@ -1773,10 +1789,10 @@ function renderMiss(){
     const missions=MISS.filter(m=>m.t===cat.key);
     const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label;list.appendChild(hdr);
     for(const m of missions){
-      const ms=misState(m),goal=misGoal(m,ms.lvl),reward=misReward(m,ms.lvl);
-      const pct=Math.min(100,(ms.p/goal)*100),ready=ms.p>=goal;
+      const ms=misState(m),goal=misGoal(m,ms.lvl),reward=misReward(m,ms.lvl),p=misProgress(m,ms);
+      const pct=Math.min(100,(p/goal)*100),ready=p>=goal;
       const card=document.createElement('div');card.className='mc';
-      card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+' <span style="color:var(--muted);font-weight:700">· Nv.'+ms.lvl+'</span></div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(reward)+' $CLK &nbsp;·&nbsp; '+fmt(ms.p)+'/'+fmt(goal)+'</div></div><button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>';
+      card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+' <span style="color:var(--muted);font-weight:700">· Nv.'+ms.lvl+'</span></div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(reward)+' $CLK &nbsp;·&nbsp; '+fmt(p)+'/'+fmt(goal)+'</div></div><button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>';
       list.appendChild(card);
     }
   }
@@ -1784,9 +1800,10 @@ function renderMiss(){
 function claimM(id){
   const m=MISS.find(x=>x.id===id);if(!m)return;
   const ms=misState(m),goal=misGoal(m,ms.lvl);
-  if(ms.p<goal)return;
+  if(misProgress(m,ms)<goal)return;
   const reward=misReward(m,ms.lvl);
-  ms.lvl++; // sube de nivel en vez de cerrarse: la misión sigue disponible, más exigente y con más recompensa
+  ms.base=misRaw(m); // ancla el contador aquí: la siguiente fase empieza de cero de verdad
+  ms.lvl++;
   addClk(reward,'reward');upd();renderMiss();
   toast('🎉 Misión Nv.'+(ms.lvl-1)+': +'+fmt(reward)+' $CLK');
   SFX.missionClaim();rankBurst();forceSave();
