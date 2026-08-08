@@ -238,10 +238,21 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 
 /* LEADERBOARD */
 .lr{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.lr.top1{border-color:rgba(255,215,0,.5);box-shadow:0 0 16px rgba(255,215,0,.15)}
+.lr.top2{border-color:rgba(192,192,192,.4)}
+.lr.top3{border-color:rgba(205,127,50,.4)}
+.lr.me{border-color:var(--cyan);box-shadow:0 0 16px rgba(6,182,212,.2)}
 .lp{font-family:var(--fh);font-size:18px;width:30px;text-align:center;flex-shrink:0}
 .lname{flex:1;font-weight:800;font-size:13px}
 .lscore{font-family:var(--fh);font-size:13px;color:var(--yellow)}
 .lrbadge{font-size:10px;background:var(--card2);border-radius:6px;padding:2px 6px;color:var(--muted);font-weight:700;margin-top:2px}
+
+#lbtabs{display:flex;gap:6px;margin-bottom:8px}
+.lbtab{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 4px;font-family:var(--fb);font-weight:800;font-size:11px;color:var(--muted);cursor:pointer;transition:border-color .2s,color .2s}
+.lbtab.active{border-color:rgba(255,215,0,.5);color:var(--yellow);background:rgba(255,215,0,.08)}
+#lbme{background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(139,92,246,.1));border:1px solid rgba(6,182,212,.35);border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+#lbme .lp{color:var(--cyan)}
+.lbempty{text-align:center;padding:24px 16px;color:var(--muted);font-size:12px;font-weight:700;line-height:1.6}
 
 /* NAV */
 #bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(11,10,20,.97);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;z-index:100;padding:6px 0 10px}
@@ -283,6 +294,19 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 #dailyclaim{width:100%;padding:14px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:20px;color:#1a0a00;cursor:pointer;box-shadow:0 4px 20px rgba(255,215,0,.3)}
 #dailyclaim:disabled{opacity:.4;cursor:not-allowed}
 #dailyclose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
+
+/* ALIAS (ranking) */
+#aliasov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:900;align-items:center;justify-content:center;padding:24px}
+#aliasov.show{display:flex}
+#aliasbox{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:26px 22px;width:100%;max-width:380px;text-align:center;animation:popin .45s cubic-bezier(.175,.885,.32,1.275)}
+#aliasbox .aic{font-size:44px;margin-bottom:8px}
+#aliasbox h3{font-family:var(--fh);font-size:21px;color:var(--yellow);margin-bottom:6px}
+#aliasbox p{color:var(--muted);font-size:12.5px;margin-bottom:16px;line-height:1.5}
+#aliasinp{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;color:white;font-family:var(--fb);font-weight:800;font-size:15px;text-align:center;outline:none;margin-bottom:6px}
+#aliasinp:focus{border-color:rgba(255,215,0,.5)}
+#aliaserr{font-size:11px;color:var(--red);font-weight:800;min-height:14px;margin-bottom:10px}
+#aliasgo{width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:17px;color:#1a0a00;cursor:pointer}
+#aliasskip{width:100%;padding:10px;background:none;border:none;font-family:var(--fb);font-weight:700;font-size:11px;color:var(--muted);text-decoration:underline;cursor:pointer;margin-top:8px}
 
 /* STREAK FIRE */
 #sfire{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;opacity:0;pointer-events:none;z-index:9997}
@@ -449,8 +473,24 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
        style="width:190px; height:190px; animation:pulse 1s infinite; object-fit:contain;"></center>
   </div>
 
-  <!-- TELEGRAM CTA -->
+  <!-- RANKING GLOBAL -->
   <div id="screen-leaderboard" class="screen">
+    <div class="sh">🏆 Ranking Global</div>
+    <div class="ss">Los mejores mineros de $CLK</div>
+
+    <div id="lbtabs">
+      <button class="lbtab active" data-period="weekly" onclick="setLBPeriod('weekly')">📅 Semanal</button>
+      <button class="lbtab" data-period="monthly" onclick="setLBPeriod('monthly')">🗓️ Mensual</button>
+      <button class="lbtab" data-period="total" onclick="setLBPeriod('total')">👑 Total</button>
+    </div>
+    <div id="lbsub" class="ss" style="margin-bottom:10px"></div>
+
+    <div id="lbme"></div>
+    <div id="lblist"></div>
+  </div>
+
+  <!-- TELEGRAM CTA -->
+  <div id="screen-community" class="screen">
     <div class="sh">📡 Comunidad</div>
     <div class="ss">Únete para no perderte el Airdrop de $CLK</div>
 
@@ -524,7 +564,8 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span>MEJORAS</button>
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
   <button class="nbtn" id="nav-referral" onclick="goTo('referral')"><span class="nicon">👥</span>AMIGOS</button>
-  <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">📡</span>COMUNIDAD</button>
+  <button class="nbtn" id="nav-community" onclick="goTo('community')"><span class="nicon">📡</span>COMUNIDAD</button>
+  <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span>RANKING</button>
 </nav>
 
 <!-- OVERLAYS -->
@@ -550,6 +591,16 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <button id="dailyclose" onclick="document.getElementById('dailyov').classList.remove('show')">Cerrar</button>
 </div></div>
 
+<div id="aliasov"><div id="aliasbox">
+  <div class="aic">🏆</div>
+  <h3>Elige tu alias</h3>
+  <p>Así te verán los demás mineros en el Ranking Global. Puedes cambiarlo luego desde la sección Ranking.</p>
+  <input id="aliasinp" type="text" placeholder="Ej: MineroCLK" maxlength="16">
+  <div id="aliaserr"></div>
+  <button id="aliasgo" onclick="confirmAlias()">Confirmar ✓</button>
+  <button id="aliasskip" onclick="skipAlias()">Ahora no, jugar sin ranking</button>
+</div></div>
+
 <div id="sfire">🔥</div>
 <div id="toast"></div>
 
@@ -561,7 +612,8 @@ import {
   getRedirectResult, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, serverTimestamp
+  getFirestore, doc, getDoc, setDoc, serverTimestamp,
+  collection, query, orderBy, limit, getDocs
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -578,7 +630,7 @@ const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
 
-window.__fb = { auth, db, doc, getDoc, setDoc, serverTimestamp, signOut };
+window.__fb = { auth, db, doc, getDoc, setDoc, serverTimestamp, signOut, collection, query, orderBy, limit, getDocs };
 
 window.loginWithGoogle = async function () {
   const errEl = document.getElementById('login-error');
@@ -781,6 +833,8 @@ const DEFAULTS={
   refCode:'',refs:0,refEarned:0,
   maxCombo:0,upsCount:0,skin:0,
   dailyDay:0,dStreak:0,lastDaily:0,boostEnd:0,
+  alias:'',
+  wkAnchor:0,wkBase:0,moAnchor:0,moBase:0,
   lastSave:Date.now(),lastPassive:Date.now(),
 };
 const S=Object.assign({},DEFAULTS);
@@ -872,6 +926,36 @@ async function cloudSaveNow(force){
 }
 window.forceSaveCloud=()=>cloudSaveNow(true);
 
+/* ===== RANKING PÚBLICO: doc chico y separado de saves/, mismo throttle que el guardado
+   normal (CLOUD_MIN_INTERVAL) para no gastar cuota. Solo publica si hay alias elegido. */
+let _lbSaving=false,_lastLbSave=0;
+async function publishLeaderboard(force){
+  if(!window.__fbUser||!S.alias)return;
+  const now=Date.now();
+  if(!force){ if(_lbSaving)return; if(now-_lastLbSave<CLOUD_MIN_INTERVAL)return; }
+  _lbSaving=true;
+  try{
+    const {db,doc,setDoc,serverTimestamp}=window.__fb;
+    ensurePeriods();
+    await setDoc(doc(db,'leaderboard',window.__fbUser.uid),{
+      alias:S.alias,
+      total:Math.floor(S.totalClk),
+      weekly:weeklyScore(),
+      monthly:monthlyScore(),
+      lvl:S.lvl,
+      updatedAt:serverTimestamp()
+    });
+    _lastLbSave=now;
+  }catch(e){
+    // Igual que cloudSaveNow: si esto falla el progreso real no se pierde (vive en saves/),
+    // solo no se actualiza la fila del ranking hasta el próximo intento.
+    console.error('leaderboard publish failed:',e&&e.code,e);
+  }finally{
+    _lbSaving=false;
+  }
+}
+window.forcePublishLeaderboard=()=>publishLeaderboard(true);
+
 function save(){
   // guardado local: barato, instantáneo, protege contra cierres inesperados
   if(_saveScheduled)return;_saveScheduled=true;
@@ -885,10 +969,11 @@ function forceSave(){
   cloudSaveNow(false);
 }
 function sanitize(d){
-  const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin'];
+  const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin','wkAnchor','wkBase','moAnchor','moBase'];
   for(const k of nums){if(typeof d[k]!=='number'||!isFinite(d[k]))d[k]=DEFAULTS[k]||0;if(d[k]<0)d[k]=0;}
   if(d.lvl<1)d.lvl=1;if(d.xpNeed<500)d.xpNeed=500;if(d.eMax<1000)d.eMax=1000;if(d.eRegen<3)d.eRegen=3;if(d.tapPow<1)d.tapPow=1;
   if(!d.ups||typeof d.ups!=='object')d.ups={};if(!d.missions||typeof d.missions!=='object')d.missions={};
+  if(typeof d.alias!=='string')d.alias='';d.alias=d.alias.slice(0,16);
   return d;
 }
 function applyLoadedData(raw){
@@ -896,6 +981,7 @@ function applyLoadedData(raw){
   const offSec=Math.min((Date.now()-S.lastSave)/1000,86400);
   if(offSec>5&&S.pph>0){const earned=S.pph/3600*offSec;addClk(earned,'offline');setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);}
   S.energy=Math.min(S.eMax,S.energy+S.eRegen*offSec);
+  ensurePeriods();
 }
 
 // Carga local (localStorage) - usada como respaldo instantáneo
@@ -963,6 +1049,28 @@ function fmt(n){n=Math.floor(n);if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1
 function getRank(){let r=RANKS[0];for(const x of RANKS)if(S.lvl>=x.minLvl)r=x;return r}
 function upCost(u){return Math.floor(u.base*Math.pow(1.5,S.ups[u.id]||0))}
 function isBoost(){return Date.now()<S.boostEnd}
+
+/* ===== PERIODOS DE RANKING: semana ISO y mes calendario, con reset 100% en el cliente =====
+   No hay cron ni servidor: cada save guarda un "ancla" (marca de cuándo empezó su periodo
+   actual) y una "base" (su totalClk en ese instante). El puntaje del periodo es siempre
+   totalClk-base. Si la clave del periodo actual (año+semana o año+mes) ya no coincide con
+   la guardada, el periodo cambió: se reancla a ahora mismo y arranca de 0 sin borrar nada. */
+function isoWeekKey(d){
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-day+3);
+  const firstThu=new Date(Date.UTC(t.getUTCFullYear(),0,4));
+  const wk=1+Math.round(((t-firstThu)/86400000-3+((firstThu.getUTCDay()+6)%7))/7);
+  return t.getUTCFullYear()+'-W'+wk;
+}
+function monthKey(d){return d.getFullYear()+'-'+d.getMonth();}
+function ensurePeriods(){
+  const now=Date.now(),nd=new Date(now);
+  if(!S.wkAnchor||isoWeekKey(new Date(S.wkAnchor))!==isoWeekKey(nd)){S.wkAnchor=now;S.wkBase=S.totalClk;}
+  if(!S.moAnchor||monthKey(new Date(S.moAnchor))!==monthKey(nd)){S.moAnchor=now;S.moBase=S.totalClk;}
+}
+function weeklyScore(){return Math.max(0,Math.floor(S.totalClk-S.wkBase));}
+function monthlyScore(){return Math.max(0,Math.floor(S.totalClk-S.moBase));}
+
 function recalc(){
   let tap=1,pph=0,eMax=1000,eR=3;
   for(const u of UPS){const l=S.ups[u.id]||0;if(!l)continue;if(u.tapB)tap+=u.tapB*l;if(u.pph)pph+=u.pph*l*Math.pow(1.15,l-1);if(u.eB)eMax+=u.eB*l;if(u.rB)eR+=u.rB*l;}
@@ -1090,7 +1198,9 @@ setInterval(()=>{
 
 // Intento periódico de subir a la nube. Alineado con CLOUD_MIN_INTERVAL: no tiene sentido
 // comprobar más seguido que el propio throttle, eso solo desperdicia ciclos sin ahorrar cuota.
-setInterval(()=>{ if(window.__fbUser) cloudSaveNow(false); }, CLOUD_MIN_INTERVAL);
+// Aprovechamos el mismo intervalo para revisar si cambió la semana/mes (sesión larga que
+// cruza medianoche del corte) y, si el jugador ya tiene alias, republicar su score.
+setInterval(()=>{ if(window.__fbUser){ ensurePeriods(); cloudSaveNow(false); publishLeaderboard(false); } }, CLOUD_MIN_INTERVAL);
 
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); }
@@ -1148,7 +1258,87 @@ function copyCode(){
   }
 }
 function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');document.getElementById('refinp').value='';forceSave();}
-function renderLB(){}
+
+/* ===== ALIAS: paso único de onboarding para el ranking, validación mínima a propósito ===== */
+function confirmAlias(){
+  const v=document.getElementById('aliasinp').value.trim();
+  const errEl=document.getElementById('aliaserr');
+  if(!v){errEl.textContent='Escribe un alias para continuar';return}
+  if(v.length<2){errEl.textContent='Muy corto, usa al menos 2 caracteres';return}
+  errEl.textContent='';
+  S.alias=v.slice(0,16);
+  document.getElementById('aliasov').classList.remove('show');
+  forceSave();
+  publishLeaderboard(true);
+  toast('🏆 ¡Ya apareces en el Ranking Global!');
+}
+function skipAlias(){
+  document.getElementById('aliasov').classList.remove('show');
+  // Sin alias el jugador sigue jugando con normalidad; solo no publica en leaderboard/.
+  // Puede volver a este mismo modal desde la pantalla de Ranking cuando quiera.
+}
+
+/* ===== RANKING GLOBAL: 1 sola query (top 100 por total), las pestañas semanal/mensual
+   re-ordenan el mismo resultado en el cliente para no necesitar 3 índices compuestos. ===== */
+let LB_CACHE=null,LB_PERIOD='weekly',_lbFetching=false;
+async function fetchLB(){
+  if(!window.__fbUser||_lbFetching)return LB_CACHE;
+  _lbFetching=true;
+  try{
+    const {db,collection,query,orderBy,limit,getDocs}=window.__fb;
+    const snap=await getDocs(query(collection(db,'leaderboard'),orderBy('total','desc'),limit(100)));
+    LB_CACHE=[];
+    snap.forEach(docSnap=>LB_CACHE.push({uid:docSnap.id,...docSnap.data()}));
+  }catch(e){
+    console.error('leaderboard fetch failed:',e&&e.code,e);
+    LB_CACHE='error'; // distinto de null (cargando) y de [] (vacío pero ok): evita quedarse en "Cargando…" para siempre
+  }finally{
+    _lbFetching=false;
+  }
+  return LB_CACHE;
+}
+function setLBPeriod(p){
+  LB_PERIOD=p;
+  document.querySelectorAll('.lbtab').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
+  renderLBList();
+}
+const LB_LABELS={weekly:'Se reinicia cada lunes',monthly:'Se reinicia el día 1 de cada mes',total:'Progreso histórico de siempre'};
+function renderLBList(){
+  const sub=document.getElementById('lbsub'),me=document.getElementById('lbme'),list=document.getElementById('lblist');
+  sub.textContent=LB_LABELS[LB_PERIOD];
+  if(LB_CACHE==='error'){list.innerHTML='<div class="lbempty">⚠️ No se pudo cargar el ranking.<br>Revisa tu conexión e inténtalo de nuevo.</div>';me.innerHTML='';return}
+  if(!LB_CACHE){list.innerHTML='<div class="lbempty">Cargando ranking…</div>';me.innerHTML='';return}
+  if(LB_CACHE.length===0){list.innerHTML='<div class="lbempty">🏆 Todavía nadie tiene alias publicado.<br>¡Sé el primero del Ranking Global!</div>';me.innerHTML='';return}
+  const field=LB_PERIOD==='weekly'?'weekly':LB_PERIOD==='monthly'?'monthly':'total';
+  const sorted=[...LB_CACHE].sort((a,b)=>(b[field]||0)-(a[field]||0));
+  const myUid=window.__fbUser&&window.__fbUser.uid;
+  const myIdx=sorted.findIndex(r=>r.uid===myUid);
+
+  list.innerHTML='';
+  sorted.slice(0,100).forEach((r,i)=>{
+    const pos=i+1,isMe=r.uid===myUid;
+    const medal=pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':pos;
+    const cls='lr'+(pos<=3?' top'+pos:'')+(isMe?' me':'');
+    const row=document.createElement('div');row.className=cls;
+    row.innerHTML='<div class="lp">'+medal+'</div><div class="lname">'+escapeHtml(r.alias||'Minero')+(isMe?' <span style="color:var(--cyan);font-size:10px">(tú)</span>':'')+'<div class="lrbadge">Nivel '+(r.lvl||1)+'</div></div><div class="lscore">🪙 '+fmt(r[field]||0)+'</div>';
+    list.appendChild(row);
+  });
+
+  if(S.alias&&myIdx===-1){
+    me.innerHTML='<div class="lp">—</div><div class="lname">'+escapeHtml(S.alias)+' <span style="color:var(--cyan);font-size:10px">(tú)</span><div class="lrbadge">Fuera del Top 100</div></div><div class="lscore">🪙 '+fmt(LB_PERIOD==='weekly'?weeklyScore():LB_PERIOD==='monthly'?monthlyScore():Math.floor(S.totalClk))+'</div>';
+  }else if(!S.alias){
+    me.innerHTML='<div class="lp">🔒</div><div class="lname">Sin alias todavía<div class="lrbadge">No apareces en el ranking</div></div><button class="ubtn" style="flex-shrink:0" onclick="document.getElementById(\'aliasov\').classList.add(\'show\')">Unirme</button>';
+  }else{
+    me.innerHTML='';
+  }
+}
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+async function renderLB(){
+  ensurePeriods();
+  document.getElementById('lblist').innerHTML='<div class="lbempty">Cargando ranking…</div>';
+  await fetchLB();
+  renderLBList();
+}
 
 function goTo(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='referral')renderRef();if(n==='leaderboard')renderLB();}
 
@@ -1170,6 +1360,7 @@ window.startGameForUser=async function(user){
   document.getElementById('app').style.display='';
   runLoader();
   setSyncPill('ok');
+  if(!S.alias)setTimeout(()=>document.getElementById('aliasov').classList.add('show'),1600);
 };
 </script>
 </body>
