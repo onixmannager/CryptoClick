@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "app.vercel.cryptoalien.twa",
       "sha256_cert_fingerprints": [
-        "DD:C9:57:0C:2C:BB:EB:4E:94:84:B6:54:76:E1:08:1C:EA:6F:3E:83:08:47:66:DB:42:C0:B2:C7:97:C1:8A:2F"
+        "DD:C9:57:0C:2C:BB:EB:4E:94:84:B6:54:76:E1:08:1C:EA:6F:3E:83:08:47:66:DB:42:C0:B2:C7:97:C1:8A:2F",
+        "CC:06:FB:0B:A1:F6:8E:B4:46:71:81:19:51:1A:21:6A:9B:95:1C:A5:D1:DC:FF:04:63:C3:76:DD:7C:45:C2:C4"
       ]
     }
   }
