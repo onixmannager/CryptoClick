@@ -1226,6 +1226,7 @@ const MISS=[
 const DRWD=[200,400,600,800,1200,1600,2500];
 const PCOLS=['#FFD700','#FF6B35','#FF3CAC','#06B6D4','#10B981','#8B5CF6','#84CC16'];
 const SAVE_KEY='cck4';
+const SAVE_KEY_PREFIX='cck4_user_';
 
 const DEFAULTS={
   clk:0,totalClk:0,totalTaps:0,
@@ -1252,6 +1253,8 @@ let _lastCloudSave=0;
 let _cloudEverWorked=false;      // true en cuanto una escritura a Firestore tiene éxito alguna vez
 let _setupWarned=false;          // evita repetir el aviso de consola en cada intento fallido
 let _localSaveWarned=false;      // evita repetir el toast si localStorage.setItem sigue fallando
+let _appReadyForSave=false;      // evita guardar una partida vacia antes de terminar la carga inicial
+let _cloudWritesEnabled=false;   // solo se activa tras una lectura fiable de Firestore
 const CLOUD_MIN_INTERVAL=300000; // ~300s (5min): mínima separación entre escrituras a Firestore (ahorra cuota del plan free)
 
 function warnFirestoreSetup(e){
@@ -1265,9 +1268,31 @@ function warnFirestoreSetup(e){
   );
 }
 
-function localSaveNow(){
+function saveKeyForUid(uid){return uid?SAVE_KEY_PREFIX+uid:SAVE_KEY;}
+function parseSave(raw){if(!raw)return null;try{return sanitize(JSON.parse(raw));}catch(e){return null;}}
+function hasRealProgress(d){return !!d&&((d.totalClk||0)>0||(d.totalTaps||0)>0||(d.upsCount||0)>0||(d.lvl||1)>1);}
+function readLocalCandidate(uid,allowLegacy){
   try{
-    localStorage.setItem(SAVE_KEY,JSON.stringify(sanitize({...S,lastSave:Date.now()})));
+    if(uid){
+      const userRaw=localStorage.getItem(saveKeyForUid(uid));
+      const userData=parseSave(userRaw);
+      if(userData)return{raw:userRaw,data:userData,key:saveKeyForUid(uid),legacy:false};
+    }
+    if(allowLegacy){
+      const legacyRaw=localStorage.getItem(SAVE_KEY);
+      const legacyData=parseSave(legacyRaw);
+      if(legacyData)return{raw:legacyRaw,data:legacyData,key:SAVE_KEY,legacy:true};
+    }
+  }catch(e){}
+  return null;
+}
+
+function localSaveNow(){
+  if(!_appReadyForSave)return false;
+  try{
+    const uid=window.__fbUser&&window.__fbUser.uid;
+    localStorage.setItem(saveKeyForUid(uid),JSON.stringify(sanitize({...S,uid:uid||'',lastSave:Date.now()})));
+    return true;
   }catch(e){
     // Esto NO debería pasar en uso normal. Motivo típico: navegación privada de Safari/iOS
     // (bloquea localStorage por completo) o almacenamiento lleno/deshabilitado por el navegador.
@@ -1276,6 +1301,7 @@ function localSaveNow(){
       _localSaveWarned=true;
       toast('⚠️ Tu navegador está bloqueando el guardado (¿modo privado?). Usa una pestaña normal.');
     }
+    return false;
   }
 }
 
@@ -1291,19 +1317,19 @@ function setSyncPill(state){
 }
 
 async function cloudSaveNow(force){
-  if(!window.__fbUser)return;
+  if(!window.__fbUser||!_appReadyForSave||!_cloudWritesEnabled)return;
   const now=Date.now();
   if(!force){
     if(_cloudSaving)return;
     if(now-_lastCloudSave<CLOUD_MIN_INTERVAL)return;
     if(!_dirtySinceCloud)return;
   }
-  if(_cloudSaving && !force)return;
+  if(_cloudSaving)return;
   _cloudSaving=true;
   setSyncPill('saving');
   try{
     const {db,doc,setDoc,serverTimestamp}=window.__fb;
-    const data=sanitize({...S,lastSave:Date.now()});
+    const data=sanitize({...S,uid:window.__fbUser.uid,lastSave:Date.now()});
     await setDoc(doc(db,'saves',window.__fbUser.uid),{
       data:JSON.stringify(data),
       updatedAt:serverTimestamp()
@@ -1360,11 +1386,13 @@ async function publishLeaderboard(force){
 window.forcePublishLeaderboard=()=>publishLeaderboard(true);
 
 function save(){
+  if(!_appReadyForSave)return;
   // guardado local: barato, instantáneo, protege contra cierres inesperados
   if(_saveScheduled)return;_saveScheduled=true;
   setTimeout(()=>{_saveScheduled=false;localSaveNow();_dirtySinceCloud=true;cloudSaveNow(false);},800);
 }
 function forceSave(){
+  if(!_appReadyForSave)return;
   _saveScheduled=false;
   localSaveNow();
   _dirtySinceCloud=true;
@@ -1377,21 +1405,25 @@ function sanitize(d){
   if(d.lvl<1)d.lvl=1;if(d.xpNeed<500)d.xpNeed=500;if(d.eMax<120)d.eMax=120;if(d.eRegen<0.04)d.eRegen=0.04;if(d.tapPow<1)d.tapPow=1;
   if(!d.ups||typeof d.ups!=='object')d.ups={};if(!d.missions||typeof d.missions!=='object')d.missions={};
   if(typeof d.alias!=='string')d.alias='';d.alias=d.alias.slice(0,16);
+  if(typeof d.uid!=='string')d.uid='';
   return d;
 }
 function applyLoadedData(raw){
   const d=sanitize(JSON.parse(raw));Object.assign(S,d);
-  const offSec=Math.min((Date.now()-S.lastSave)/1000,86400);
+  const now=Date.now();
+  const offSec=Math.min((now-S.lastSave)/1000,86400);
   if(offSec>5&&S.pph>0){const earned=S.pph/3600*offSec;addClk(earned,'offline');setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);}
   S.energy=Math.min(S.eMax,S.energy+S.eRegen*offSec);
+  S.lastPassive=now;
   ensurePeriods();
 }
 
 // Carga local (localStorage) - usada como respaldo instantáneo
-function loadLocal(){
+function loadLocal(uid,allowLegacy=true){
+  const candidate=readLocalCandidate(uid,allowLegacy);
+  if(!candidate)return false;
   try{
-    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
-    applyLoadedData(raw);
+    applyLoadedData(candidate.raw);
     return true;
   }catch(e){return false;}
 }
@@ -1400,15 +1432,18 @@ function loadLocal(){
 // Compara timestamps para usar el save más reciente entre nube y local.
 async function loadCloud(uid){
   const {db,doc,getDoc}=window.__fb;
+  _cloudWritesEnabled=false;
   try{
     const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
     const snap=await Promise.race([getDoc(doc(db,'saves',uid)), timeout]);
+    _cloudWritesEnabled=true;
     if(snap.exists()){
       _cloudEverWorked=true; // pudimos leer la nube, así que sí está configurada
       const cloudRaw=snap.data().data;
       const cloudData=JSON.parse(cloudRaw);
-      const localRaw=localStorage.getItem(SAVE_KEY);
-      const localData=localRaw?JSON.parse(localRaw):null;
+      const userLocal=readLocalCandidate(uid,false);
+      const legacyLocal=!userLocal?readLocalCandidate(uid,true):null;
+      const localData=userLocal&&userLocal.data;
       // lastSave puede faltar si el documento se editó a mano o viene de una versión vieja;
       // en ese caso lo tratamos como 0 para no comparar undefined>undefined (que siempre da false
       // y haría perder progreso local más reciente frente a una nube corrupta).
@@ -1418,19 +1453,22 @@ async function loadCloud(uid){
       // no una partida real. Su lastSave es "ahora mismo" por definición, así que compararlo por
       // timestamp contra la nube casi siempre lo haría ganar y borraría visualmente el progreso real.
       // Por eso: si el local no tiene progreso real, la nube gana siempre que exista.
-      const localHasProgress=localData && ((localData.totalClk||0)>0 || (localData.totalTaps||0)>0);
+      const localHasProgress=hasRealProgress(localData);
       if(localHasProgress && localTime>cloudTime){
-        applyLoadedData(localRaw); // el local es más nuevo Y tiene progreso real (offline recientemente)
+        applyLoadedData(userLocal.raw); // el local del mismo usuario es mas nuevo y tiene progreso real
+      }else if(!hasRealProgress(cloudData) && legacyLocal && legacyLocal.legacy && hasRealProgress(legacyLocal.data)){
+        applyLoadedData(legacyLocal.raw);
       }else{
         applyLoadedData(cloudRaw);
       }
     }else{
       // no hay save en la nube todavía (usuario nuevo o Firestore recién creado): usa local si existe
-      loadLocal();
+      loadLocal(uid,true);
     }
   }catch(e){
     // Motivo típico: Firestore Database no existe aún en la consola de Firebase, o las reglas
     // de seguridad no están publicadas. El juego sigue funcionando con el guardado local.
+    _cloudWritesEnabled=false;
     console.error('cloud load failed (o tardó demasiado), usando local. code:',e&&e.code,e);
     if(e && (e.code==='unavailable' || e.code==='not-found' || e.code==='permission-denied')){
       setSyncPill('setup');
@@ -1440,7 +1478,7 @@ async function loadCloud(uid){
       // Lo mostramos en pantalla porque en móvil nadie va a mirar la consola.
       toast('⚠️ No se pudo cargar tu partida de la nube ('+(e&&e.code||e&&e.message||'error')+'). Usando local.');
     }
-    loadLocal();
+    loadLocal(uid,false);
   }
   if(!S.refCode)S.refCode=genCode();
   if(!S.missions)S.missions={};if(!S.ups)S.ups={};
@@ -2002,22 +2040,26 @@ let tTO=null;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(tTO)clearTimeout(tTO);tTO=setTimeout(()=>t.classList.remove('show'),2800);}
 
 const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
-function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(localStorage.getItem(SAVE_KEY))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
+function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(readLocalCandidate(window.__fbUser&&window.__fbUser.uid,true))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
 
 let _gameStarted=false;
 window.startGameForUser=async function(user){
   if(_gameStarted)return; // evita doble init si onAuthStateChanged dispara más de una vez
   _gameStarted=true;
-  window.__fbUser=user;
   await loadCloud(user.uid);
+  window.__fbUser=user;
   recalc();upd();checkMiss();
+  _appReadyForSave=true;
+  localSaveNow();
+  _dirtySinceCloud=true;
+  cloudSaveNow(false);
   document.addEventListener('dblclick',e=>e.preventDefault());
   setupCoinPress();
   const mb=document.getElementById('muteBtn');
   if(mb){mb.textContent=SFX.muted?'🔇':'🔊';mb.classList.toggle('off',SFX.muted);}
   document.getElementById('app').style.display='';
   runLoader();
-  setSyncPill('ok');
+  if(_cloudWritesEnabled)setSyncPill('ok');
   if(!S.alias)setTimeout(()=>document.getElementById('aliasov').classList.add('show'),1600);
 };
 </script>
