@@ -166,6 +166,24 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 .fn{position:fixed;pointer-events:none;z-index:9999;font-family:var(--fh);font-size:20px;color:var(--yellow);text-shadow:0 0 10px rgba(255,215,0,.7);animation:fup .95s ease-out forwards}
 @keyframes fup{0%{opacity:1;transform:translateY(0) scale(1)}60%{opacity:1;transform:translateY(-45px) scale(1.15)}100%{opacity:0;transform:translateY(-90px) scale(.75)}}
 
+/* MINING BAR — progreso del minado pasivo (pph), se llena solo sin necesidad de tap */
+#miningsec{width:100%;max-width:260px;margin-top:8px}
+#mininghead{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+#miningtitle{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+#miningtitle .mdot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:mdotpulse 1.4s ease-in-out infinite}
+@keyframes mdotpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+#miningsec.idle #miningtitle .mdot{background:var(--muted);box-shadow:none;animation:none}
+#miningpct{font-size:11px;font-weight:800;color:var(--cyan)}
+#miningtrack{height:10px;background:var(--card2);border-radius:8px;overflow:hidden;border:1px solid var(--border);position:relative}
+#miningfill{height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--cyan));border-radius:8px;transition:width .3s linear;position:relative}
+#miningfill::after{content:'';position:absolute;right:0;top:0;width:14px;height:100%;background:rgba(255,255,255,.35);border-radius:8px;filter:blur(3px)}
+#miningsec.idle #miningfill{background:var(--muted)}
+#miningsub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;text-align:center}
+/* pequeño destello de moneda cuando se completa un ciclo de minado automático */
+#miningpop{position:absolute;font-family:var(--fh);font-size:13px;color:var(--cyan);text-shadow:0 0 8px rgba(6,182,212,.7);pointer-events:none;opacity:0;left:50%;top:-4px;transform:translate(-50%,0)}
+#miningpop.go{animation:miningpop .9s ease-out forwards}
+@keyframes miningpop{0%{opacity:0;transform:translate(-50%,0) scale(.8)}25%{opacity:1;transform:translate(-50%,-6px) scale(1)}100%{opacity:0;transform:translate(-50%,-26px) scale(.9)}}
+
 /* COMBO */
 #comboa{height:28px;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px}
 #combopill{background:linear-gradient(135deg,var(--orange),var(--pink));border-radius:20px;padding:4px 14px;font-family:var(--fh);font-size:15px;color:white;opacity:0;transform:scale(.8);transition:opacity .2s,transform .2s;box-shadow:0 0 16px rgba(255,107,53,.5)}
@@ -642,6 +660,14 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <div id="comboa">
         <div id="combopill">🔥 COMBO x<span id="cv">1</span></div>
         <div id="boostpill">⚡ x2 BOOST</div>
+      </div>
+      <div id="miningsec">
+        <div id="mininghead">
+          <div id="miningtitle"><span class="mdot"></span>MINANDO EN SEGUNDO PLANO</div>
+          <div id="miningpct">0%</div>
+        </div>
+        <div id="miningtrack"><div id="miningfill"><div id="miningpop">+0</div></div></div>
+        <div id="miningsub">Sigue minando aunque no toques la pantalla</div>
       </div>
     </div>
     <div id="ensec">
@@ -1611,10 +1637,48 @@ function animP(){
 }
 animP();
 
+/* ── BARRA DE MINADO PASIVO ──────────────────────────────────────────────
+   El CLK del pph sigue sumándose cada segundo igual que siempre (para que
+   el saldo arriba fluya sin saltos); esta barra es una capa puramente
+   visual sobre ese mismo flujo: se llena en MINE_CYCLE_MS y, al llegar al
+   final, muestra cuánto se ganó en ese tramo y se reinicia — como una
+   vagoneta de minero yendo y viniendo. Así queda claro que se mina solo,
+   tap o no tap, sin tocar el ritmo económico real del juego. */
+const MINE_CYCLE_MS=8000;
+let mineCycleStart=Date.now(),mineCycleClk=0;
+function tickMiningBar(now){
+  const sec=document.getElementById('miningsec');
+  if(!sec)return;
+  const idle=!(S.pph>0);
+  sec.classList.toggle('idle',idle);
+  document.getElementById('miningsub').textContent=idle
+    ? 'Compra una mejora de producción para que mine solo'
+    : 'Sigue minando aunque no toques la pantalla';
+  if(idle){
+    document.getElementById('miningfill').style.width='0%';
+    document.getElementById('miningpct').textContent='0%';
+    mineCycleStart=now;mineCycleClk=S.clk;
+    return;
+  }
+  let elapsed=now-mineCycleStart;
+  if(elapsed>=MINE_CYCLE_MS){
+    const earned=Math.max(0,S.clk-mineCycleClk);
+    const pop=document.getElementById('miningpop');
+    pop.textContent='+'+fmt(earned);
+    pop.classList.remove('go');void pop.offsetWidth;pop.classList.add('go');
+    mineCycleStart=now;mineCycleClk=S.clk;
+    elapsed=0;
+  }
+  const pct=Math.min(100,(elapsed/MINE_CYCLE_MS)*100);
+  document.getElementById('miningfill').style.width=pct+'%';
+  document.getElementById('miningpct').textContent=Math.floor(pct)+'%';
+}
+
 setInterval(()=>{
   const now=Date.now(),dt=Math.min((now-S.lastPassive)/1000,5);S.lastPassive=now;
   if(S.energy<S.eMax)S.energy=Math.min(S.eMax,S.energy+S.eRegen*dt);
   if(S.pph>0)addClk(S.pph/3600*dt,'passive');
+  tickMiningBar(now);
   upd();save();checkMiss();
 },1000);
 
@@ -1671,9 +1735,34 @@ function renderUps(){
 function buyUp(id){const u=UPS.find(x=>x.id===id);if(!u)return;const l=S.ups[id]||0;if(l>=u.max)return;const cost=upCost(u);if(!spendClk(cost)){toast('❌ Sin suficiente $CLK');SFX.buyFail();return}S.ups[id]=(l+1);S.upsCount++;if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;recalc();upd();renderUps();checkMiss();toast('✅ '+u.n+' → Nivel '+S.ups[id]);SFX.coinBuy();forceSave();}
 function renderSkins(){const g=document.getElementById('skingrid');g.innerHTML='';for(const sk of SKINS){const ok=S.lvl>=sk.lvl;const d=document.createElement('div');d.className='skinitem'+(sk.id===S.skin?' active':'')+(ok?'':' locked');d.innerHTML=sk.ico+'<span class="skinlbl">'+(ok?sk.name:'Lvl '+sk.lvl)+'</span>';if(ok)d.onclick=()=>{S.skin=sk.id;forceSave();renderSkins();upd();toast('🎨 Skin "'+sk.name+'" activada')};g.appendChild(d);}}
 
+/* ===== MISIONES POR NIVELES: igual que las mejoras (UPS), una misión nunca
+   "se acaba" — al reclamarla sube de nivel y reaparece con objetivo y
+   recompensa mayores, sin tope. ms.lvl empieza en 1; misGoal/misReward
+   escalan ese nivel con el mismo espíritu de progresión que upCost(). ===== */
+function misGoal(m,lvl){return Math.ceil(m.g*Math.pow(1.6,lvl-1));}
+function misReward(m,lvl){return Math.ceil(m.r*Math.pow(1.5,lvl-1));}
+function misState(m){
+  let ms=S.missions[m.id];
+  if(!ms||typeof ms!=='object')ms={lvl:1,p:0,c:false};
+  if(typeof ms.lvl!=='number'||ms.lvl<1)ms.lvl=ms.c?2:1; // migración de saves antiguos (c:true = ya reclamada una vez)
+  if(typeof ms.p!=='number'||!isFinite(ms.p))ms.p=0;
+  ms.c=false; // 'c' ya no representa un fin definitivo, solo se usa como pista de migración arriba
+  S.missions[m.id]=ms;
+  return ms;
+}
 function checkMiss(){
-  for(const m of MISS){if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};const ms=S.missions[m.id];if(ms.c)continue;if(m.t==='taps')ms.p=Math.min(m.g,S.totalTaps);if(m.t==='clk')ms.p=Math.min(m.g,Math.floor(S.totalClk));if(m.t==='lvl')ms.p=Math.min(m.g,S.lvl);if(m.t==='ups')ms.p=Math.min(m.g,S.upsCount);if(m.t==='combo')ms.p=Math.min(m.g,S.maxCombo);if(m.t==='dstreak')ms.p=Math.min(m.g,S.dStreak);if(m.t==='refs')ms.p=Math.min(m.g,S.refs);}
-  const has=MISS.some(m=>{const ms=S.missions[m.id];return ms&&!ms.c&&ms.p>=m.g});
+  let has=false;
+  for(const m of MISS){
+    const ms=misState(m),goal=misGoal(m,ms.lvl);
+    if(m.t==='taps')ms.p=S.totalTaps;
+    if(m.t==='clk')ms.p=Math.floor(S.totalClk);
+    if(m.t==='lvl')ms.p=S.lvl;
+    if(m.t==='ups')ms.p=S.upsCount;
+    if(m.t==='combo')ms.p=S.maxCombo;
+    if(m.t==='dstreak')ms.p=S.dStreak;
+    if(m.t==='refs')ms.p=S.refs;
+    if(ms.p>=goal)has=true;
+  }
   const nav=document.getElementById('nav-missions'),dot=nav.querySelector('.ndot');
   if(has&&!dot){const d=document.createElement('div');d.className='ndot';nav.appendChild(d);}else if(!has&&dot)dot.remove();
 }
@@ -1681,12 +1770,27 @@ function renderMiss(){
   checkMiss();const list=document.getElementById('misslist');list.innerHTML='';
   const cats=[{key:'taps',label:'👆 TAPS',col:'var(--cyan)'},{key:'clk',label:'💰 $CLK ACUMULADO',col:'var(--yellow)'},{key:'lvl',label:'📈 NIVEL',col:'var(--purple)'},{key:'ups',label:'⚡ MEJORAS',col:'var(--orange)'},{key:'combo',label:'🔥 COMBO',col:'var(--pink)'},{key:'dstreak',label:'📅 RACHA DIARIA',col:'var(--green)'},{key:'refs',label:'👥 REFERIDOS',col:'var(--blue)'}];
   for(const cat of cats){
-    const missions=MISS.filter(m=>m.t===cat.key),allDone=missions.every(m=>S.missions[m.id]&&S.missions[m.id].c);
-    const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label+(allDone?' ✅':'');list.appendChild(hdr);
-    for(const m of missions){if(!S.missions[m.id])S.missions[m.id]={c:false,p:0};const ms=S.missions[m.id];const pct=Math.min(100,(ms.p/m.g)*100);const done=ms.c,ready=!done&&ms.p>=m.g;const card=document.createElement('div');card.className='mc';if(done)card.style.opacity='.45';card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+'</div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(m.r)+' $CLK &nbsp;·&nbsp; '+fmt(ms.p)+'/'+fmt(m.g)+'</div></div>'+(done?'<div style="font-size:22px">✅</div>':'<button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>');list.appendChild(card);}
+    const missions=MISS.filter(m=>m.t===cat.key);
+    const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label;list.appendChild(hdr);
+    for(const m of missions){
+      const ms=misState(m),goal=misGoal(m,ms.lvl),reward=misReward(m,ms.lvl);
+      const pct=Math.min(100,(ms.p/goal)*100),ready=ms.p>=goal;
+      const card=document.createElement('div');card.className='mc';
+      card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+' <span style="color:var(--muted);font-weight:700">· Nv.'+ms.lvl+'</span></div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(reward)+' $CLK &nbsp;·&nbsp; '+fmt(ms.p)+'/'+fmt(goal)+'</div></div><button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>';
+      list.appendChild(card);
+    }
   }
 }
-function claimM(id){const m=MISS.find(x=>x.id===id);if(!m)return;const ms=S.missions[id];if(!ms||ms.c||ms.p<m.g)return;ms.c=true;addClk(m.r,'reward');upd();renderMiss();toast('🎉 Misión: +'+fmt(m.r)+' $CLK');SFX.missionClaim();rankBurst();forceSave();}
+function claimM(id){
+  const m=MISS.find(x=>x.id===id);if(!m)return;
+  const ms=misState(m),goal=misGoal(m,ms.lvl);
+  if(ms.p<goal)return;
+  const reward=misReward(m,ms.lvl);
+  ms.lvl++; // sube de nivel en vez de cerrarse: la misión sigue disponible, más exigente y con más recompensa
+  addClk(reward,'reward');upd();renderMiss();
+  toast('🎉 Misión Nv.'+(ms.lvl-1)+': +'+fmt(reward)+' $CLK');
+  SFX.missionClaim();rankBurst();forceSave();
+}
 
 function renderRef(){document.getElementById('refcode').textContent=S.refCode;document.getElementById('rcount').textContent=S.refs;document.getElementById('rearned').textContent=fmt(S.refEarned);}
 function copyCode(){
