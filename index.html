@@ -583,6 +583,32 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
     .nbtn{font-size:8px}
   }
 }
+
+/* ═══════════════════ CANJEAR (airdrops de terceros) ═══════════════════
+   Sección puramente informativa: ningún canje ni conexión de wallet
+   ocurre dentro de la app — solo se explica y se redirige fuera. */
+.rdintro{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 15px;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,.75);line-height:1.55}
+.rdintro b{color:var(--yellow)}
+.rdcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 13px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.rdico{font-size:28px;flex-shrink:0;width:44px;height:44px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center}
+.rdinfo{flex:1;min-width:0}
+.rdname{font-weight:800;font-size:13px;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+.rdstatus{font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:20px;text-transform:uppercase}
+.rdstatus.live{background:rgba(16,185,129,.18);color:var(--green)}
+.rdstatus.soon{background:rgba(255,215,0,.16);color:var(--yellow)}
+.rddesc{font-size:11px;color:var(--muted);line-height:1.4}
+.rdbtn{background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:10px;padding:9px 13px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;color:white;flex-shrink:0;white-space:nowrap}
+.rdfoot{text-align:center;font-size:10px;color:var(--muted);margin-top:6px;padding:0 6px;line-height:1.5}
+
+/* overlay de aviso, mismo esqueleto visual que #noeov/#noebox */
+#redeemov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center}
+#redeemov.show{display:flex}
+#redeembox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:left;animation:sup .3s ease}
+#redeembox h3{font-family:var(--fh);font-size:19px;color:var(--yellow);margin-bottom:10px;text-align:center}
+#redeembox p{color:rgba(255,255,255,.75);font-size:12.5px;margin-bottom:10px;line-height:1.55}
+#redeembox .rdwarn{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);border-radius:12px;padding:10px 12px;font-size:11.5px;color:#ffd8bd;margin-bottom:14px;line-height:1.5}
+#redeemgo{width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;color:white;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px}
+#redeemcancel{width:100%;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -702,29 +728,6 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
     <div id="misslist"></div>
   </div>
 
-  <!-- REFERRAL -->
-  <div id="screen-referral" class="screen">
-    <div class="sh">👥 Amigos</div>
-    <div class="ss">Invita amigos · +50000 $CLK por cada uno</div>
-    <div id="refbox">
-      <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:2px">TU CÓDIGO ÚNICO</div>
-      <div id="refcode">XXXXXXX</div>
-      <button id="copybtn" onclick="copyCode()">📋 Copiar y compartir</button>
-    </div>
-    <div class="refstats">
-      <div class="rs"><div class="rsv" id="rcount">0</div><div class="rsl">AMIGOS</div></div>
-      <div class="rs"><div class="rsv" id="rearned">0</div><div class="rsl">$CLK GANADOS</div></div>
-    </div>
-    <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px">CÓDIGO DE AMIGO</div>
-    <div style="display:flex;gap:8px">
-      <input id="refinp" type="text" placeholder="Ej: ABC1234" maxlength="8">
-      <button id="refgo" onclick="subRef()">✓</button>
-    </div>
-    <center><img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_064302460.png" 
-       alt="alien" 
-       style="width:190px; height:190px; animation:pulse 1s infinite; object-fit:contain;"></center>
-  </div>
-
   <!-- RANKING GLOBAL -->
   <div id="screen-leaderboard" class="screen">
     <div class="sh">🏆 Ranking Global</div>
@@ -806,6 +809,40 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       <div style="font-size:11px;color:var(--green);font-weight:800;letter-spacing:1px;margin-bottom:4px">🌍 ÚNETE A LA REVOLUCIÓN $CLK</div>
       <div style="font-size:12px;color:var(--muted)">Comparte el juego · Invita amigos · Gana más $CLK</div>
     </div>
+
+    <!-- AMIGOS: trasladado desde su propia pestaña de navegación, contenido intacto -->
+    <div style="margin:22px 0 10px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="sh" style="font-size:18px">👥 Amigos</div>
+      <div class="ss">Invita amigos · +50000 $CLK por cada uno</div>
+    </div>
+    <div id="refbox">
+      <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:2px">TU CÓDIGO ÚNICO</div>
+      <div id="refcode">XXXXXXX</div>
+      <button id="copybtn" onclick="copyCode()">📋 Copiar y compartir</button>
+    </div>
+    <div class="refstats">
+      <div class="rs"><div class="rsv" id="rcount">0</div><div class="rsl">AMIGOS</div></div>
+      <div class="rs"><div class="rsv" id="rearned">0</div><div class="rsl">$CLK GANADOS</div></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px">CÓDIGO DE AMIGO</div>
+    <div style="display:flex;gap:8px">
+      <input id="refinp" type="text" placeholder="Ej: ABC1234" maxlength="8">
+      <button id="refgo" onclick="subRef()">✓</button>
+    </div>
+    <center><img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_064302460.png" 
+       alt="alien" 
+       style="width:190px; height:190px; animation:pulse 1s infinite; object-fit:contain;"></center>
+  </div>
+
+  <!-- CANJEAR: catálogo informativo de proyectos externos, redirige fuera de la app -->
+  <div id="screen-redeem" class="screen">
+    <div class="sh">🔁 Canjear</div>
+    <div class="ss">Airdrops de proyectos externos</div>
+    <div class="rdintro">
+      Aquí encontrarás <b>proyectos de terceros</b>, no afiliados a Crypto Alien Click, que ofrecen airdrops o programas de canje propios. Cada proyecto tiene sus propias condiciones, requisitos y token — este juego no gestiona, garantiza ni interviene en ningún canje.
+    </div>
+    <div id="redeemlist"></div>
+    <div class="rdfoot">Toda operación de canje se realiza fuera de esta app, en el sitio oficial de cada proyecto. Infórmate bien antes de conectar ninguna wallet.</div>
   </div>
 
 
@@ -815,8 +852,8 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <button class="nbtn active" id="nav-mine" onclick="goTo('mine')"><span class="nicon">⛏️</span>MINAR</button>
   <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span>MEJORAS</button>
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
-  <button class="nbtn" id="nav-referral" onclick="goTo('referral')"><span class="nicon">👥</span>AMIGOS</button>
   <button class="nbtn" id="nav-community" onclick="goTo('community')"><span class="nicon">📡</span>COMUNIDAD</button>
+  <button class="nbtn" id="nav-redeem" onclick="goTo('redeem')"><span class="nicon">🔁</span>CANJEAR</button>
   <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span>RANKING</button>
 </nav>
 
@@ -851,6 +888,14 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
   <div id="aliaserr"></div>
   <button id="aliasgo" onclick="confirmAlias()">Confirmar ✓</button>
   <button id="aliasskip" onclick="skipAlias()">Ahora no, jugar sin ranking</button>
+</div></div>
+
+<div id="redeemov"><div id="redeembox">
+  <h3>⚠️ Vas a salir de la app</h3>
+  <p id="redeemtext">Vas a abrir el sitio externo de este proyecto para gestionar tu canje.</p>
+  <div class="rdwarn">Este juego no participa en la operación, no puede revertirla ni garantizar el resultado. Verifica siempre que la dirección web sea la oficial del proyecto y nunca compartas tus claves privadas ni frase semilla con nadie.</div>
+  <button id="redeemgo" onclick="confirmRedeem()">Entiendo, continuar</button>
+  <button id="redeemcancel" onclick="cancelRedeem()">Cancelar</button>
 </div></div>
 
 <div id="sfire">🔥</div>
@@ -1822,6 +1867,52 @@ function copyCode(){
 }
 function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');SFX.buyFail();return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');SFX.buyFail();return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');SFX.refJoin();document.getElementById('refinp').value='';forceSave();}
 
+/* ===== CANJEAR ============================================================
+   IMPORTANTE — por qué esta sección funciona así y no de otra forma:
+   Google Play prohíbe expresamente que una app "promueva o glamurice
+   cualquier ganancia potencial derivada de jugar o tradear" (política de
+   Blockchain-based Content) y no permite facilitar el canje de recompensas
+   obtenidas jugando por premios de valor monetario real (política de
+   Real-Money Games). Además, cualquier función que retenga, transfiera o
+   intercambie criptomonedas dentro de la app la convierte en un "software
+   wallet" / "exchange", sujeto a licencias regionales (FinCEN, MiCA/CASP,
+   etc.) que este proyecto no tiene.
+   Por eso esta pantalla es SOLO informativa: ningún canje, formulario de
+   wallet, ni conexión de wallet ocurre dentro de la app. El botón, tras un
+   aviso explícito, únicamente abre el sitio oficial de cada proyecto en el
+   navegador — fuera de la superficie que esas políticas regulan. Todo el
+   texto usa lenguaje neutro (nunca "gana dinero real" ni cifras de valor). */
+const RDPROJ=[
+  {id:'demo1',n:'Proyecto Demo A',i:'🪐',status:'live', d:'Airdrop propio ya activo. Requiere completar tareas en su sitio oficial.', url:'https://example.com'},
+  {id:'demo2',n:'Proyecto Demo B',i:'🌊',status:'soon', d:'Programa de canje anunciado, pendiente de apertura oficial.',           url:'https://example.com'},
+];
+let _redeemPending=null;
+function renderRedeem(){
+  const list=document.getElementById('redeemlist');list.innerHTML='';
+  for(const p of RDPROJ){
+    const card=document.createElement('div');card.className='rdcard';
+    const statusLabel=p.status==='live'?'Activo':'Próximamente';
+    card.innerHTML='<div class="rdico">'+p.i+'</div><div class="rdinfo"><div class="rdname">'+p.n+' <span class="rdstatus '+p.status+'">'+statusLabel+'</span></div><div class="rddesc">'+p.d+'</div></div><button class="rdbtn" onclick="openRedeem(\''+p.id+'\')">Ver ↗</button>';
+    list.appendChild(card);
+  }
+}
+function openRedeem(id){
+  const p=RDPROJ.find(x=>x.id===id);if(!p)return;
+  _redeemPending=p;
+  document.getElementById('redeemtext').textContent='Vas a abrir el sitio externo de "'+p.n+'" para informarte sobre su programa de canje.';
+  document.getElementById('redeemov').classList.add('show');
+  SFX.navClick();
+}
+function confirmRedeem(){
+  if(_redeemPending)window.open(_redeemPending.url,'_blank','noopener');
+  document.getElementById('redeemov').classList.remove('show');
+  _redeemPending=null;
+}
+function cancelRedeem(){
+  document.getElementById('redeemov').classList.remove('show');
+  _redeemPending=null;
+}
+
 /* ===== ALIAS: paso único de onboarding para el ranking, validación mínima a propósito ===== */
 function confirmAlias(){
   const v=document.getElementById('aliasinp').value.trim();
@@ -1905,7 +1996,7 @@ async function renderLB(){
   renderLBList();
 }
 
-function goTo(n){SFX.navClick();document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='referral')renderRef();if(n==='leaderboard')renderLB();}
+function goTo(n){SFX.navClick();document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='community')renderRef();if(n==='leaderboard')renderLB();if(n==='redeem')renderRedeem();}
 
 let tTO=null;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(tTO)clearTimeout(tTO);tTO=setTimeout(()=>t.classList.remove('show'),2800);}
