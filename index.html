@@ -645,9 +645,9 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
       </div>
     </div>
     <div id="ensec">
-      <div id="enhead"><div id="entitle">⚡ ENERGÍA</div><div id="encount"><span id="ecur">1000</span>/<span id="emax">1000</span></div></div>
+      <div id="enhead"><div id="entitle">⚡ ENERGÍA</div><div id="encount"><span id="ecur">120</span>/<span id="emax">120</span></div></div>
       <div id="entrack"><div id="enfill" style="width:100%"></div></div>
-      <div id="enregen">+<span id="eregen">3</span>/s · recarga automática</div>
+      <div id="enregen">+<span id="eregen">0.04</span>/s · recarga automática</div>
     </div>
     <div id="dailysec">
       <button id="dailybtn" onclick="openDaily()">
@@ -797,7 +797,7 @@ html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);fon
 <!-- OVERLAYS -->
 <div id="noeov"><div id="noebox">
   <h3>⚡ Sin energía</h3>
-  <p>Se recarga sola — +<span id="noeregen">3</span>/segundo<br>¡Mejora tu batería en la tienda!</p>
+  <p>Se recarga sola — +<span id="noeregen">0.04</span>/segundo<br>¡Mejora tu batería en la tienda!</p>
   <button class="obbtn" onclick="document.getElementById('noeov').classList.remove('show')">Esperar ⏳</button>
 </div></div>
 
@@ -1064,16 +1064,16 @@ const UPS=[
   {id:'tap6',  n:'Quantum Tap',      i:'🌀',d:'+250 CLK por tap',                    base:1000000, tapB:250,   max:6 },
   {id:'tap7',  n:'God Finger',       i:'☝️',d:'+1000 CLK por tap',                   base:8000000, tapB:1000,  max:4 },
   {id:'tap8',  n:'Big Bang Tap',     i:'💥',d:'+5000 CLK por tap',                   base:5e7,     tapB:5000,  max:3 },
-  {id:'bt1',   n:'Battery Pack',     i:'🔋',d:'+200 energia maxima',                 base:400,     eB:200,     max:20},
-  {id:'bt2',   n:'Power Cell',       i:'🔌',d:'+500 energia maxima',                 base:2000,    eB:500,     max:15},
-  {id:'bt3',   n:'Supercapacitor',   i:'⚡',d:'+1500 energia maxima',                base:12000,   eB:1500,    max:10},
-  {id:'bt4',   n:'Fusion Core',      i:'☢️',d:'+5000 energia maxima',                base:80000,   eB:5000,    max:8 },
-  {id:'bt5',   n:'Dark Energy Cell', i:'🌑',d:'+20000 energia maxima',               base:500000,  eB:20000,   max:5 },
-  {id:'rg1',   n:'Fast Regen I',     i:'💨',d:'+1 recarga/segundo',                  base:800,     rB:1,       max:15},
-  {id:'rg2',   n:'Fast Regen II',    i:'🌬️',d:'+3 recarga/segundo',                  base:5000,    rB:3,       max:10},
-  {id:'rg3',   n:'Turbo Regen',      i:'🌪️',d:'+8 recarga/segundo',                  base:30000,   rB:8,       max:8 },
-  {id:'rg4',   n:'Instant Recharge', i:'⚡',d:'+25 recarga/segundo',                 base:200000,  rB:25,      max:5 },
-  {id:'rg5',   n:'Infinite Flow',    i:'♾️',d:'+80 recarga/segundo',                 base:1500000, rB:80,      max:3 },
+  {id:'bt1',   n:'Battery Pack',     i:'🔋',d:'+4 energia maxima',                   base:400,     eB:4,       max:20},
+  {id:'bt2',   n:'Power Cell',       i:'🔌',d:'+8 energia maxima',                   base:2000,    eB:8,       max:15},
+  {id:'bt3',   n:'Supercapacitor',   i:'⚡',d:'+15 energia maxima',                  base:12000,   eB:15,      max:10},
+  {id:'bt4',   n:'Fusion Core',      i:'☢️',d:'+24 energia maxima',                  base:80000,   eB:24,      max:8 },
+  {id:'bt5',   n:'Dark Energy Cell', i:'🌑',d:'+44 energia maxima',                  base:500000,  eB:44,      max:5 },
+  {id:'rg1',   n:'Fast Regen I',     i:'💨',d:'+0.005 recarga/segundo',              base:800,     rB:0.005,   max:15},
+  {id:'rg2',   n:'Fast Regen II',    i:'🌬️',d:'+0.008 recarga/segundo',              base:5000,    rB:0.008,   max:10},
+  {id:'rg3',   n:'Turbo Regen',      i:'🌪️',d:'+0.012 recarga/segundo',              base:30000,   rB:0.012,   max:8 },
+  {id:'rg4',   n:'Instant Recharge', i:'⚡',d:'+0.02 recarga/segundo',                base:200000,  rB:0.02,    max:5 },
+  {id:'rg5',   n:'Infinite Flow',    i:'♾️',d:'+0.035 recarga/segundo',               base:1500000, rB:0.035,   max:3 },
   {id:'bst1',  n:'x2 Boost',         i:'🚀',d:'Dobla CLK por tap 30min',             base:5000,    bMin:30,    max:10},
   {id:'bst2',  n:'Mega Boost',       i:'💫',d:'x2 Boost 120min extra',               base:50000,   bMin:120,   max:5 },
   {id:'algo',  n:'Trading Algorithm',i:'🤖',d:'Bot de trading autonomo',             base:15000,   pph:300,    max:20},
@@ -1159,7 +1159,7 @@ const SAVE_KEY='cck4';
 const DEFAULTS={
   clk:0,totalClk:0,totalTaps:0,
   lvl:1,xp:0,xpNeed:500,
-  energy:1000,eMax:1000,eRegen:3,
+  energy:120,eMax:120,eRegen:0.04,
   tapPow:1,pph:0,
   ups:{},missions:{},
   refCode:'',refs:0,refEarned:0,
@@ -1303,7 +1303,7 @@ function forceSave(){
 function sanitize(d){
   const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin','wkAnchor','wkBase','moAnchor','moBase'];
   for(const k of nums){if(typeof d[k]!=='number'||!isFinite(d[k]))d[k]=DEFAULTS[k]||0;if(d[k]<0)d[k]=0;}
-  if(d.lvl<1)d.lvl=1;if(d.xpNeed<500)d.xpNeed=500;if(d.eMax<1000)d.eMax=1000;if(d.eRegen<3)d.eRegen=3;if(d.tapPow<1)d.tapPow=1;
+  if(d.lvl<1)d.lvl=1;if(d.xpNeed<500)d.xpNeed=500;if(d.eMax<120)d.eMax=120;if(d.eRegen<0.04)d.eRegen=0.04;if(d.tapPow<1)d.tapPow=1;
   if(!d.ups||typeof d.ups!=='object')d.ups={};if(!d.missions||typeof d.missions!=='object')d.missions={};
   if(typeof d.alias!=='string')d.alias='';d.alias=d.alias.slice(0,16);
   return d;
@@ -1404,7 +1404,7 @@ function weeklyScore(){return Math.max(0,Math.floor(S.totalClk-S.wkBase));}
 function monthlyScore(){return Math.max(0,Math.floor(S.totalClk-S.moBase));}
 
 function recalc(){
-  let tap=1,pph=0,eMax=1000,eR=3;
+  let tap=1,pph=0,eMax=120,eR=0.04;
   for(const u of UPS){const l=S.ups[u.id]||0;if(!l)continue;if(u.tapB)tap+=u.tapB*l;if(u.pph)pph+=u.pph*l*Math.pow(1.15,l-1);if(u.eB)eMax+=u.eB*l;if(u.rB)eR+=u.rB*l;}
   tap+=getRank().tapB;S.tapPow=Math.max(1,Math.floor(tap));S.pph=Math.floor(pph);S.eMax=eMax;S.eRegen=eR;
 }
@@ -1426,8 +1426,8 @@ function upd(){
   const r=getRank();document.getElementById('rankpill').textContent=r.e+' '+r.name;
   document.getElementById('ecur').textContent=Math.floor(S.energy);
   document.getElementById('emax').textContent=S.eMax;
-  document.getElementById('eregen').textContent=S.eRegen;
-  document.getElementById('noeregen').textContent=S.eRegen;
+  document.getElementById('eregen').textContent=S.eRegen.toFixed(2);
+  document.getElementById('noeregen').textContent=S.eRegen.toFixed(2);
   document.getElementById('enfill').style.width=Math.max(0,Math.min(100,(S.energy/S.eMax)*100))+'%';
   document.getElementById('boostpill').classList.toggle('show',isBoost());
   const dr=isDailyReady();
@@ -1659,7 +1659,7 @@ function renderUps(){
     const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label+(allMaxed?' ✅':'');list.appendChild(hdr);
     for(const u of ups){
       const l=S.ups[u.id]||0,cost=upCost(u),maxed=l>=u.max,can=!maxed&&S.clk>=cost;
-      let bonus='';if(u.pph)bonus='+'+fmt(Math.floor(u.pph*l*Math.pow(1.15,Math.max(0,l-1))))+'/h';else if(u.tapB)bonus='+'+u.tapB*l+' tap';else if(u.eB)bonus='+'+u.eB*l+' E';else if(u.rB)bonus='+'+u.rB*l+'/s';else if(u.bMin)bonus='+'+u.bMin*l+'min x2';
+      let bonus='';if(u.pph)bonus='+'+fmt(Math.floor(u.pph*l*Math.pow(1.15,Math.max(0,l-1))))+'/h';else if(u.tapB)bonus='+'+u.tapB*l+' tap';else if(u.eB)bonus='+'+u.eB*l+' E';else if(u.rB)bonus='+'+(u.rB*l).toFixed(2)+'/s';else if(u.bMin)bonus='+'+u.bMin*l+'min x2';
       const pct=Math.round(l/u.max*100);
       const card=document.createElement('div');card.className='uc'+(can?' canbuy':'')+(maxed?' maxed':'');
       card.innerHTML='<div class="uico">'+u.i+'</div><div class="uinfo"><div class="uname">'+u.n+'</div><div class="udesc">'+u.d+(bonus?' · <span style="color:var(--cyan)">'+bonus+'</span>':'')+'</div><div class="ulvl">Nivel '+l+'/'+u.max+'</div><div class="ulvlb"><div class="ulvlf" style="width:'+pct+'%"></div></div></div><button class="ubtn" '+((!can||maxed)?'disabled':'')+' onclick="buyUp(\''+u.id+'\')">'+( maxed?'MAX':'🪙 '+fmt(cost))+'</button>';
