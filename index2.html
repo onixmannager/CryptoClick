@@ -168,7 +168,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
      vía setInterval — más liviano que <img> a 60fps y sin flicker de carga
      porque ambas tiras están precargadas de una sola vez. */
 .csym-sprite{
-  width:166px;
+  width:186px;
   height:186px;
   transform: scale(1.18);
   pointer-events:none;
@@ -1693,7 +1693,14 @@ const AlienSprite = (function(){
     paint();
     if(timer) clearInterval(timer);
     timer = setInterval(()=>{
-      frame = (frame+1) % BREATHE_FRAMES;
+      frame++;
+      if(frame>=BREATHE_FRAMES){
+        clearInterval(timer);
+        timer = null;
+        frame = BREATHE_FRAMES-1; // se queda quieto en el último frame
+        paint();
+        return;
+      }
       paint();
     }, 1000/BREATHE_FPS);
   }
