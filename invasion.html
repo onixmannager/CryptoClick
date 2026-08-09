@@ -36,10 +36,9 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
 /* ═══════════ FONDO: imagen vertical, mismo criterio que index.html ═══════════
-   Móvil: background-size:contain + position:center top → se ve la imagen
-   vertical COMPLETA, sin recortar, igual que en la pantalla principal.
-   Desktop (@media min-width:901px más abajo): cover + center center,
-   igual que hace index.html al pasar a layout de dos columnas. */
+   background-size:contain + position:center top → se ve la imagen vertical
+   COMPLETA, sin recortar. Igual en móvil y en escritorio (index.html NO
+   cambia esto en su media query desktop, solo centra la "consola" #app). */
 html{
   width:100%;min-height:100vh;background-color:#0b0a14;
   background-image:
@@ -83,10 +82,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #placeholder p{font-size:13px;color:var(--muted);font-weight:700;max-width:280px;line-height:1.6}
 
 /* ═══════════════════ DESKTOP (>=901px) ═══════════════════
-   Mismo criterio que index.html: la imagen de fondo pasa a cover/center
-   para llenar el viewport ancho, y la "consola" se centra como panel. */
+   Mismo criterio que index.html: el fondo sigue en background-size:contain
+   + position:center top (imagen vertical COMPLETA, sin recortar); solo
+   cambia la "consola" #app, que se centra como panel flotante. */
 @media (min-width:901px){
-  html{background-position:center center;background-size:cover}
   body{
     min-height:100vh;
     background:
