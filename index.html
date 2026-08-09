@@ -406,6 +406,15 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #dailyclaim:disabled{opacity:.4;cursor:not-allowed}
 #dailyclose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
 
+/* ── Video de INTRO/presentación — se muestra una sola vez, la primera vez
+   que se entra a la app (antes de pedir el alias). Tiene su propio audio,
+   por eso la música de fondo (BGM) se pausa mientras se reproduce (ver
+   playIntroVideo()/BGM.pause() más abajo) y se reanuda al terminar. ── */
+#introov{display:none;position:fixed;inset:0;background:#000;z-index:1000;align-items:center;justify-content:center}
+#introov.show{display:flex}
+#introvideo{width:100%;height:100%;object-fit:cover}
+#introskip{position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:1001;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;cursor:pointer;backdrop-filter:blur(4px)}
+
 /* ALIAS (ranking) */
 #aliasov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:900;align-items:center;justify-content:center;padding:24px}
 #aliasov.show{display:flex}
@@ -981,7 +990,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="rutitle">¡SUBISTE DE RANGO!</div>
   <div id="runame">Nombre</div>
   <div id="rubonus">Bonus</div>
-  <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show');document.getElementById('ruvideo').pause()">¡A MINAR! ⛏️</button>
+  <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show');document.getElementById('ruvideo').pause();BGM.resume()">¡A MINAR! ⛏️</button>
 </div></div>
 
 <div id="dailyov"><div id="dailybox">
@@ -991,6 +1000,11 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <button id="dailyclaim" onclick="claimDaily()">Reclamar 🎁</button>
   <button id="dailyclose" onclick="document.getElementById('dailyov').classList.remove('show')">Cerrar</button>
 </div></div>
+
+<div id="introov">
+  <video id="introvideo" src="videos/alieniniciocohete.mp4" playsinline></video>
+  <button id="introskip" onclick="skipIntroVideo()">Saltar ⏭️</button>
+</div>
 
 <div id="aliasov"><div id="aliasbox">
   <div class="aic">🏆</div>
@@ -2173,11 +2187,14 @@ function showRankup(r){
   document.getElementById('ruov').classList.add('show');
   SFX.rankUp();rankBurst();
   if(src){
-    // Solo activamos el modo video si carga bien; si falla (URL rota, sin red,
-    // etc.) nos quedamos con el emoji de siempre y el usuario ni lo nota.
+    // Este video puede traer su propio audio, así que pausamos la música de
+    // fondo mientras se reproduce (igual que con el video de intro) y la
+    // reanudamos si falla la carga; si el usuario cierra con #ruclose, BGM.resume()
+    // se llama desde ese mismo botón.
+    BGM.pause();
     vid.src=src;
     vid.oncanplay=()=>{box.classList.add('has-video');vid.play().catch(()=>{});};
-    vid.onerror=()=>{box.classList.remove('has-video');};
+    vid.onerror=()=>{box.classList.remove('has-video');BGM.resume();};
   }
 }
 
@@ -2439,6 +2456,49 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
 function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(readLocalCandidate(window.__fbUser&&window.__fbUser.uid,true))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
 
+/* ════════════════════════════════════════════════════════════════
+   VIDEO DE INTRO — se reproduce una única vez, la primera vez que el
+   usuario entra a la app (mismo criterio que ya usa el juego para saber
+   si es "primera vez": S.alias vacío, ver el final de startGameForUser).
+   Tiene su propio audio, así que la música de fondo (BGM) se pausa
+   mientras dura y se reanuda al terminar o al saltarlo, igual que se
+   hace con el video de celebración de rango en showRankup().
+   ════════════════════════════════════════════════════════════════ */
+let _introShown=false;
+let _introPlaying=false;
+function playIntroVideo(onDone){
+  const ov=document.getElementById('introov');
+  const vid=document.getElementById('introvideo');
+  if(!ov||!vid){onDone();return}
+  let done=false;
+  _introPlaying=true;
+  // El primer toque/click/tecla del usuario (p.ej. tocar "Saltar", o cualquier
+  // toque accidental sobre el video) es también el gesto que BGM.init() usa
+  // para arrancar la música de fondo (los navegadores exigen un gesto para
+  // reproducir audio). Mientras el video de intro esté en pantalla forzamos
+  // que ese primer gesto NO deje sonando la música por encima del video.
+  const reMute=()=>{ if(_introPlaying)BGM.pause(); };
+  ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,reMute,{passive:true}));
+  const finish=()=>{
+    if(done)return; done=true;
+    _introPlaying=false;
+    ['touchstart','mousedown','click','keydown'].forEach(ev=>document.removeEventListener(ev,reMute));
+    vid.pause();
+    ov.classList.remove('show');
+    BGM.resume();
+    onDone();
+  };
+  BGM.pause(); // el video tiene su propio audio: la música de fondo no debe sonar a la vez
+  vid.currentTime=0;
+  vid.muted=false;
+  ov.classList.add('show');
+  vid.onended=finish;
+  vid.onerror=finish; // si el archivo no carga (red, ruta, etc.), seguimos sin bloquear el alta
+  vid.play().catch(finish); // autoplay con sonido puede fallar sin gesto previo del usuario
+  window.__skipIntroVideo=finish;
+}
+function skipIntroVideo(){ if(window.__skipIntroVideo)window.__skipIntroVideo(); }
+
 let _gameStarted=false;
 window.startGameForUser=async function(user){
   if(_gameStarted)return; // evita doble init si onAuthStateChanged dispara más de una vez
@@ -2463,7 +2523,16 @@ window.startGameForUser=async function(user){
   document.getElementById('app').style.display='';
   runLoader();
   if(_cloudWritesEnabled)setSyncPill('ok');
-  if(!S.alias)setTimeout(()=>document.getElementById('aliasov').classList.add('show'),1600);
+  if(!S.alias){
+    // Primera vez que entra: video de presentación primero y, al terminar
+    // (o si el usuario lo salta), el overlay para elegir alias de siempre.
+    _introShown=true;
+    setTimeout(()=>{
+      playIntroVideo(()=>{
+        document.getElementById('aliasov').classList.add('show');
+      });
+    },600);
+  }
 };
 </script>
 <!-- PWA: registro del service worker -->
