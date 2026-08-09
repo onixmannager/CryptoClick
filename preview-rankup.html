@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Rank-up con video</title>
+<style>
+:root{
+  --bg:#0b0a14;--card:#16142a;--yellow:#FFD700;--orange:#FF6B35;--cyan:#06B6D4;--muted:#6B68A0;--border:rgba(255,255,255,.07);--text:#fff;
+  --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;display:flex;align-items:center;justify-content:center}
+
+#launcher{text-align:center;padding:40px}
+#launcher button{background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;padding:16px 32px;font-family:var(--fh);font-size:18px;color:#1a0a00;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,53,.4)}
+#launcher p{color:var(--muted);margin-top:16px;font-size:13px;max-width:340px}
+
+/* ===== Overlay de rank-up, copiado 1:1 del juego ===== */
+#ruov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;align-items:center;justify-content:center}
+#ruov.show{display:flex}
+#rubox{text-align:center;padding:32px 24px;animation:popin .55s cubic-bezier(.175,.885,.32,1.275);position:relative}
+@keyframes popin{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+#ruemoji{font-size:80px;display:block;margin-bottom:6px;animation:bounce 1s ease-in-out infinite}
+
+#ruvideo{display:none;object-fit:cover}
+#rubox.has-video #ruemoji{display:none}
+
+#rubox.has-video #ruvideo{
+  display:block;position:fixed;inset:0;width:100%;height:100%;border-radius:0;z-index:0;
+}
+#rubox.has-video{
+  position:fixed;inset:0;width:100%;max-width:none;height:100%;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:0 24px 40px;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,.75) 85%,rgba(0,0,0,.9) 100%);
+  border-radius:0;
+}
+#rubox.has-video #rutitle,#rubox.has-video #runame,#rubox.has-video #rubonus,#rubox.has-video #ruclose{
+  position:relative;z-index:1;
+}
+
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+#rutitle{font-family:var(--fh);font-size:32px;color:var(--yellow);margin-bottom:4px}
+#runame{font-family:var(--fh);font-size:20px;color:var(--cyan);margin-bottom:6px}
+#rubonus{font-size:13px;color:var(--muted);margin-bottom:22px}
+#ruclose{background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;padding:14px 44px;cursor:pointer;font-family:var(--fh);font-size:20px;color:#1a0a00;box-shadow:0 4px 20px rgba(255,107,53,.4)}
+
+/* ===== Version escritorio: video dentro de tarjeta, no pantalla completa ===== */
+@media (min-width:901px){
+  #rubox.has-video{
+    position:relative;inset:auto;width:100%;max-width:380px;height:auto;
+    display:block;padding:0 0 28px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 30px 90px -20px rgba(0,0,0,.65);
+  }
+  #rubox.has-video #ruvideo{
+    position:relative;inset:auto;
+    width:100%;height:auto;aspect-ratio:9/16;max-height:60vh;
+    border-radius:24px 24px 0 0;
+    display:block;
+  }
+  #rubox.has-video::before{
+    content:'';position:absolute;left:0;right:0;top:0;height:calc(60vh - 40px);
+    background:linear-gradient(180deg,rgba(0,0,0,0) 70%,rgba(0,0,0,.5) 100%);
+    pointer-events:none;
+  }
+  #rubox.has-video #rutitle{margin-top:18px}
+}
+</style>
+</head>
+<body>
+
+<div id="launcher">
+  <button onclick="testRankup()">🎬 Probar animación de Rank-Up</button>
+  <p>Redimensiona la ventana del navegador (o abre en el móvil) antes o después de pulsar, para comparar los dos layouts: pantalla completa en móvil (&lt;901px de ancho) vs tarjeta en escritorio (&ge;901px).</p>
+</div>
+
+<div id="ruov"><div id="rubox">
+  <video id="ruvideo" playsinline muted loop></video>
+  <span id="ruemoji">🎉</span>
+  <div id="rutitle">¡SUBISTE DE RANGO!</div>
+  <div id="runame">Hodler</div>
+  <div id="rubonus">+1 poder de tap desbloqueado</div>
+  <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show');document.getElementById('ruvideo').pause()">¡A MINAR! ⛏️</button>
+</div></div>
+
+<script>
+const VIDEO_URL = 'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4';
+
+function testRankup(){
+  const box = document.getElementById('rubox');
+  const vid = document.getElementById('ruvideo');
+  box.classList.remove('has-video');
+  vid.pause(); vid.removeAttribute('src'); vid.load();
+  document.getElementById('ruov').classList.add('show');
+
+  vid.src = VIDEO_URL;
+  vid.oncanplay = () => { box.classList.add('has-video'); vid.play().catch(()=>{}); };
+  vid.onerror = () => {
+    box.classList.remove('has-video');
+    alert('⚠️ El video no cargó. Revisa que la URL sea correcta y el repo público:\n' + VIDEO_URL);
+  };
+}
+</script>
+</body>
+</html>
