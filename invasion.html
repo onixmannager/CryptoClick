@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Invasión — Crypto Alien Click</title>
+
+<!-- PWA: manifest + iconos locales (mismos que el resto del sitio) -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b0a14">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<!-- iOS: comportamiento como app instalada -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crypto Click">
+
+<!-- Android/Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;--card3:#252342;
+  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
+  --blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--red:#EF4444;
+  --text:#fff;--muted:#6B68A0;--border:rgba(255,255,255,0.07);
+  --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
+  /* Glass panel tokens: mismo lenguaje visual "cockpit HUD" que index.html,
+     para que cuando esta sección tenga contenido las tarjetas encajen. */
+  --glass:rgba(10,12,22,.42);--glass2:rgba(12,14,26,.5);
+  --glass-border:rgba(255,255,255,.14);--glass-blur:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+/* ═══════════ FONDO: imagen vertical, mismo criterio que index.html ═══════════
+   Móvil: background-size:contain + position:center top → se ve la imagen
+   vertical COMPLETA, sin recortar, igual que en la pantalla principal.
+   Desktop (@media min-width:901px más abajo): cover + center center,
+   igual que hace index.html al pasar a layout de dos columnas. */
+html{
+  width:100%;min-height:100vh;background-color:#0b0a14;
+  background-image:
+    linear-gradient(180deg,rgba(6,6,14,.35) 0%,rgba(8,7,18,.45) 45%,rgba(9,8,20,.55) 100%),
+    url('images/fondo alien.jpg');
+  background-position:center top;background-size:contain;background-repeat:no-repeat;background-attachment:scroll;
+}
+body{width:100%;min-height:100vh;background:transparent;color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none;scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
+
+/* LOADING — idéntico al de index.html: barra de progreso + tips rotativos */
+#loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s}
+#loading.hide{opacity:0;pointer-events:none}
+.ll{font-family:var(--fh);font-size:28px;background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.lbw{width:200px;height:6px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden}
+.lb{height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#FF3CAC);border-radius:6px;transition:width .1s linear}
+.lt{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px}
+
+/* BG BLOBS — mismo fondo animado decorativo que index.html */
+#blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.1;animation:blobF 10s ease-in-out infinite alternate}
+.b1{width:500px;height:500px;background:#8B5CF6;top:-150px;left:-150px}
+.b2{width:400px;height:400px;background:#FF3CAC;bottom:-100px;right:-100px;animation-delay:-4s}
+.b3{width:300px;height:300px;background:#06B6D4;top:40%;left:60%;animation-delay:-7s}
+@keyframes blobF{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,30px) scale(1.1)}}
+
+/* APP — mismo ancho de "consola" que index.html en móvil (430px) */
+#app{position:relative;z-index:1;max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding-bottom:82px}
+
+/* TOPBAR — igual que index.html, con logo de vuelta al juego principal */
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+#logo{font-family:var(--fh);font-size:15px;color:var(--yellow);text-decoration:none;letter-spacing:.3px}
+#usermini{display:flex;align-items:center;gap:8px}
+#muteBtn{background:var(--card2);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;color:var(--text)}
+#muteBtn.off{opacity:.5}
+
+/* PLACEHOLDER — de momento la sección no tiene contenido propio */
+#placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 24px;text-align:center}
+#placeholder h1{font-family:var(--fh);font-size:22px;color:var(--yellow);letter-spacing:.5px}
+#placeholder p{font-size:13px;color:var(--muted);font-weight:700;max-width:280px;line-height:1.6}
+
+/* ═══════════════════ DESKTOP (>=901px) ═══════════════════
+   Mismo criterio que index.html: la imagen de fondo pasa a cover/center
+   para llenar el viewport ancho, y la "consola" se centra como panel. */
+@media (min-width:901px){
+  html{background-position:center center;background-size:cover}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 1200px 800px at 12% -10%, rgba(139,92,246,.16), transparent 60%),
+      radial-gradient(ellipse 1000px 700px at 100% 10%, rgba(255,60,172,.10), transparent 55%),
+      radial-gradient(ellipse 900px 900px at 50% 120%, rgba(6,182,212,.10), transparent 55%);
+    display:flex;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;
+  }
+  #blobs{opacity:1.4}
+  #app{
+    order:1;position:relative;max-width:560px;width:560px;min-height:0;margin:0;padding-bottom:26px;
+    background:linear-gradient(180deg,rgba(255,255,255,.025),transparent 220px),var(--card);
+    border:1px solid var(--border);border-radius:28px;
+    box-shadow:0 30px 90px -20px rgba(0,0,0,.65);
+    max-height:86vh;overflow-y:auto;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ll">👾 INVASIÓN</div>
+  <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png"
+       alt="alien"
+       style="width:170px;height:170px;animation:pulse 1s infinite;object-fit:contain;">
+  <div class="lbw"><div class="lb" id="lbar"></div></div>
+  <div class="lt" id="ltip">INICIANDO INVASIÓN...</div>
+</div>
+
+<div id="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<div id="app">
+
+  <div id="topbar">
+    <a href="index.html" id="logo">👾 INVASIÓN</a>
+    <div id="usermini">
+      <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
+    </div>
+  </div>
+
+  <!-- Música propia de esta sección, en loop, preload="auto" igual que bgMusic
+       en index.html. El archivo de audio se sube aparte al repo. -->
+  <audio id="bgMusic" src="sounds/audioinvasion.mp3" loop preload="auto"></audio>
+
+  <!-- Sin contenido todavía: esta sección se rellenará más adelante -->
+  <div id="placeholder">
+    <h1>👾 Próximamente</h1>
+    <p>La sección Invasión está en construcción.</p>
+  </div>
+
+</div>
+
+<!-- ============ FIREBASE (mismo proyecto que index.html) ============ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAEVcDHhKSyPd4n_U-DXzJI7lskY7BTiyI",
+  authDomain: "crypto-alien.firebaseapp.com",
+  projectId: "crypto-alien",
+  storageBucket: "crypto-alien.firebasestorage.app",
+  messagingSenderId: "61542154571",
+  appId: "1:61542154571:web:bddd5100632abc9f09a8ce"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+window.__fb = { auth, db };
+
+// Si no hay sesión iniciada, de momento no redirigimos: esta pantalla
+// aún no tiene lógica propia de juego/guardado, solo boot + fondo + música.
+onAuthStateChanged(auth, (user) => {
+  window.__fbUser = user || null;
+});
+</script>
+
+<!-- ============ PRELOAD + MÚSICA ============ -->
+<script>
+const TIPS=['CARGANDO SECTOR...','ESCANEANDO NAVES...','SINCRONIZANDO RADAR...','PREPARANDO DEFENSAS...','CONECTANDO A RED CLK...'];
+
+function runLoader(onDone){
+  const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');
+  let p=0,ti=0;
+  const iv=setInterval(()=>{
+    p+=Math.random()*18+4;if(p>100)p=100;
+    bar.style.width=p+'%';
+    tip.textContent=TIPS[ti%TIPS.length];ti++;
+    if(p>=100){
+      clearInterval(iv);
+      setTimeout(()=>{
+        document.getElementById('loading').classList.add('hide');
+        if(onDone)onDone();
+        setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);
+      },400);
+    }
+  },180);
+}
+
+// Música de fondo: mismo patrón que BGM en index.html — no puede sonar
+// hasta el primer gesto del usuario (política de autoplay del navegador).
+const BGM=(()=>{
+  const VOL=0.15;
+  let el=null,started=false,muted=false;
+  function getEl(){ if(!el)el=document.getElementById('bgMusic'); return el; }
+  function applyVolume(){ const a=getEl(); if(!a)return; a.volume=muted?0:VOL; }
+  function start(){
+    const a=getEl(); if(!a||started)return;
+    started=true;applyVolume();
+    a.play().catch(()=>{ started=false; });
+  }
+  return{
+    init(){
+      applyVolume();
+      ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,start,{once:true,passive:true}));
+    },
+    toggleMute(){
+      muted=!muted;applyVolume();
+      return muted;
+    },
+    isMuted(){ return muted; }
+  };
+})();
+BGM.init();
+
+function toggleMute(){
+  const muted=BGM.toggleMute();
+  const mb=document.getElementById('muteBtn');
+  if(mb){mb.textContent=muted?'🔇':'🔊';mb.classList.toggle('off',muted);}
+}
+
+window.addEventListener('load',()=>{ runLoader(); });
+</script>
+
+<!-- PWA: registro del service worker (mismo que index.html) -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch((err) => console.warn('SW registration failed:', err));
+  });
+}
+</script>
+
+</body>
+</html>
