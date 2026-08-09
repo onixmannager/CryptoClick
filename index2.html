@@ -335,6 +335,13 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #rubox{text-align:center;padding:32px 24px;animation:popin .55s cubic-bezier(.175,.885,.32,1.275)}
 @keyframes popin{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
 #ruemoji{font-size:80px;display:block;margin-bottom:6px;animation:bounce 1s ease-in-out infinite}
+/* Video de celebracion al subir de RANGO (no de nivel). Oculto por defecto;
+   showRankup() le agrega la clase .has-video solo cuando hay un video
+   configurado para ese rango y carga correctamente. Mientras el video esta
+   activo, se oculta el emoji rebotando para no competir visualmente. */
+#ruvideo{display:none;width:100%;max-width:280px;border-radius:20px;margin-bottom:10px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#rubox.has-video #ruvideo{display:block}
+#rubox.has-video #ruemoji{display:none}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 #rutitle{font-family:var(--fh);font-size:32px;color:var(--yellow);margin-bottom:4px}
 #runame{font-family:var(--fh);font-size:20px;color:var(--cyan);margin-bottom:6px}
@@ -893,11 +900,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 </div></div>
 
 <div id="ruov"><div id="rubox">
+  <video id="ruvideo" playsinline muted></video>
   <span id="ruemoji">🎉</span>
   <div id="rutitle">¡SUBISTE DE RANGO!</div>
   <div id="runame">Nombre</div>
   <div id="rubonus">Bonus</div>
-  <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show')">¡A MINAR! ⛏️</button>
+  <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show');document.getElementById('ruvideo').pause()">¡A MINAR! ⛏️</button>
 </div></div>
 
 <div id="dailyov"><div id="dailybox">
@@ -1137,6 +1145,21 @@ const RANKS=[
   {name:'Satoshi',      minLvl:30, e:'⚡',tapB:60 },
   {name:'Blockchain God',minLvl:50,e:'🌌',tapB:100},
 ];
+/* Video de celebracion por RANGO (no por nivel). Clave = nombre exacto del
+   rango en RANKS. Si un rango no tiene entrada aqui, showRankup() cae al
+   emoji+bounce de siempre, asi que no hace falta rellenar los 8 de una vez.
+   Para migrar a Cloudinary/Mux mas adelante, solo hay que cambiar las URLs
+   de este objeto; el resto del codigo no necesita tocarse. */
+const RANK_VIDEOS={
+  'Hodler':      'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-hodler.mp4',
+  'Trader Pro':  'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-trader-pro.mp4',
+  'DeFi Shark':  'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-defi-shark.mp4',
+  'Whale':       'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-whale.mp4',
+  'DeFi King':   'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-defi-king.mp4',
+  'Satoshi':     'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-satoshi.mp4',
+  'Blockchain God':'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-blockchain-god.mp4',
+};
+
 const SKINS=[
   {id:0,ico:'🌟',name:'Original',cls:'s0',lvl:1 },
   {id:1,ico:'🔵',name:'Ice',     cls:'s1',lvl:3 },
@@ -1668,7 +1691,7 @@ const AlienSprite = (function(){
   const BREATHE_FPS = 6;   // lento y sutil
   const WAVE_FPS = 14;     // saludo fluido
   const WAVE_EVERY_TAPS = 20;
-  const BREATHE_REPEAT_MS = 7000; // repite el idle cada 5s si no hay saludo en curso
+  const BREATHE_REPEAT_MS = 5000; // repite el idle cada 5s si no hay saludo en curso
 
   let el = null;
   let mode = 'breathe';
@@ -1995,7 +2018,25 @@ function toggleMute(){
   btn.classList.toggle('off',isMuted);
   if(!isMuted)SFX.toggle();
 }
-function showRankup(r){document.getElementById('ruemoji').textContent=r.e;document.getElementById('runame').textContent=r.name;document.getElementById('rubonus').textContent='+'+r.tapB+' poder de tap desbloqueado';document.getElementById('ruov').classList.add('show');SFX.rankUp();rankBurst();}
+function showRankup(r){
+  document.getElementById('ruemoji').textContent=r.e;
+  document.getElementById('runame').textContent=r.name;
+  document.getElementById('rubonus').textContent='+'+r.tapB+' poder de tap desbloqueado';
+  const box=document.getElementById('rubox');
+  const vid=document.getElementById('ruvideo');
+  const src=RANK_VIDEOS[r.name];
+  box.classList.remove('has-video');
+  vid.pause();vid.removeAttribute('src');vid.load();
+  document.getElementById('ruov').classList.add('show');
+  SFX.rankUp();rankBurst();
+  if(src){
+    // Solo activamos el modo video si carga bien; si falla (URL rota, sin red,
+    // etc.) nos quedamos con el emoji de siempre y el usuario ni lo nota.
+    vid.src=src;
+    vid.oncanplay=()=>{box.classList.add('has-video');vid.play().catch(()=>{});};
+    vid.onerror=()=>{box.classList.remove('has-video');};
+  }
+}
 
 function isDailyReady(){return Date.now()-S.lastDaily>86400000}
 function openDaily(){renderDG();document.getElementById('dailyov').classList.add('show');const cb=document.getElementById('dailyclaim');cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';}
