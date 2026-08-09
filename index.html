@@ -1642,16 +1642,29 @@ function sanitize(d){
 // En vez del modelo anterior "el timestamp más alto se queda con todo y el otro se descarta
 // entero" (que es la causa real de que los números no coincidan entre dispositivos: cada uno
 // pierde silenciosamente el progreso que hizo el otro), esto toma el MÁXIMO de cada contador
-// acumulativo. Como en este juego esos campos solo crecen con el juego normal (jamás bajan
-// salvo por gasto de $CLK, que ya está reflejado en el propio total al momento de guardar),
-// quedarse con el mayor de los dos nunca "inventa" progreso que no se ganó en ningún dispositivo.
+// ACUMULATIVO (totalClk, totalTaps, upsCount, etc.), que en este juego solo crecen con el
+// juego normal y jamás bajan, así que quedarse con el mayor de los dos nunca "inventa"
+// progreso que no se ganó en ningún dispositivo.
+// EXCEPCIÓN IMPORTANTE: 'clk' (el saldo GASTABLE actual) no es acumulativo, baja cada vez
+// que el jugador compra algo, así que tomar su máximo entre los dos lados duplicaría saldo
+// (el lado que gastó aportaría igualmente sus mejoras vía el merge de 'ups' de más abajo, y
+// el lado que no gastó nada aportaría encima su 'clk' alto). Por eso 'clk' se hereda del lado
+// 'base' tal cual, igual que se hace con 'lvl'/'xp' un poco más abajo.
 function mergeStates(a,b){
   const base=(a.lastSave||0)>=(b.lastSave||0)?{...a}:{...b};
   const other=base===a?b:a;
+  // 'clk' es el saldo GASTABLE actual: baja cada vez que el jugador compra una mejora
+  // (spendClk), a diferencia de totalClk/totalTaps que son contadores que solo suben.
+  // Por eso NO puede ir en maxFields (tomar el máximo de los dos lados duplicaría saldo:
+  // el lado que gastó su $CLK en mejoras aportaría esas mejoras al merge, y el lado que
+  // no gastó nada aportaría su 'clk' alto encima). Igual que con 'lvl'/'xp' más abajo, el
+  // saldo se hereda tal cual del lado 'base' (el de mayor lastSave), que es el único que
+  // refleja fielmente cuánto tenía ese jugador realmente disponible en ese momento.
+  base.clk=typeof base.clk==='number'?base.clk:0;
   // 'xp' va ligado al 'lvl' de la MISMA partida que lo produjo (100 xp en nivel 2 no es
   // comparable con 100 xp en nivel 5), así que no se puede tomar como máximo independiente:
   // primero se decide qué lado tiene el nivel más alto, y de ahí se hereda su par lvl+xp juntos.
-  const maxFields=['clk','totalClk','totalTaps','maxCombo','upsCount','refs','refEarned','dStreak','dailyDay'];
+  const maxFields=['totalClk','totalTaps','maxCombo','upsCount','refs','refEarned','dStreak','dailyDay'];
   for(const k of maxFields){
     const av=typeof a[k]==='number'?a[k]:0, bv=typeof b[k]==='number'?b[k]:0;
     base[k]=Math.max(av,bv);
