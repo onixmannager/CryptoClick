@@ -1706,7 +1706,12 @@ const AlienSprite = (function(){
   }
 
   function wave(){
-    if(!el || waving) return; // ya está saludando, no interrumpir
+    if(!el) return;
+    // Antes: "if(!el || waving) return;" podía dejar 'waving' atascado
+    // en true para siempre si el timer se interrumpía por cualquier
+    // motivo antes de llegar a startBreathe(), y entonces el alien
+    // dejaba de saludar en todos los clicks futuros. Ahora reiniciamos
+    // el saludo desde cero en vez de ignorar la llamada.
     waving = true; mode='wave'; frame=0;
     setBg(WAVE_SRC, WAVE_FRAMES);
     paint();
@@ -1715,7 +1720,8 @@ const AlienSprite = (function(){
       frame++;
       if(frame>=WAVE_FRAMES){
         clearInterval(timer);
-        startBreathe(); // vuelve al loop idle al terminar el saludo
+        timer = null;
+        startBreathe(); // vuelve al loop idle al terminar el saludo (resetea waving=false)
         return;
       }
       paint();
