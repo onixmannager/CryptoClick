@@ -456,6 +456,15 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #muteBtn:active{transform:scale(.88)}
 #muteBtn.off{opacity:.5;border-color:var(--border)}
 
+/* MÓVIL: el círculo de minar (coinout) queda un poco alto respecto al punto medio
+   entre la barra de XP y la de energía, porque debajo del círculo aún hay más
+   contenido (combo/boost + barra de minado en 2º plano) antes de llegar a #ensec.
+   Bajarlo unos px con margin-top lo centra mejor entre ambas barras SOLO en móvil;
+   en desktop (≥901px) esto no aplica y el layout queda exactamente igual que antes. */
+@media (max-width:900px){
+  #coinout{margin-top:10px}
+}
+
 /* ══════════════════════════════════════════════════════════════════
    DESKTOP — "Mining Station" shell.
    Everything above this line is the untouched mobile/APK layout.
@@ -1218,7 +1227,7 @@ const SFX=(()=>{
    controle sonido y música a la vez, como espera el jugador.
    ════════════════════════════════════════════════════════════════ */
 const BGM=(()=>{
-  const VOL=0.05; // más bajo que los efectos para no tapar el feedback de taps/compras
+  const VOL=0.35; // más bajo que los efectos para no tapar el feedback de taps/compras
   let el=null,started=false;
   function getEl(){
     if(!el)el=document.getElementById('bgMusic');
