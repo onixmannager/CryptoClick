@@ -410,6 +410,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
    que se entra a la app (antes de pedir el alias). Tiene su propio audio,
    por eso la música de fondo (BGM) se pausa mientras se reproduce (ver
    playIntroVideo()/BGM.pause() más abajo) y se reanuda al terminar.
+   Además, BGM ni siquiera puede ARRANCAR hasta BGM.allowStart(), que se
+   llama recién cuando se muestra el overlay para elegir alias/nick (o de
+   inmediato si no hay intro que reproducir) — así ningún click durante el
+   loading o el propio video enciende la música antes de tiempo.
 
    El video está grabado en vertical 9:16 (720x1280). En MOVIL ocupa todo
    el viewport con object-fit:cover. En ESCRITORIO (ver media query más
@@ -1257,6 +1261,15 @@ const SFX=(()=>{
 const BGM=(()=>{
   const VOL=0.15; // más bajo que los efectos para no tapar el feedback de taps/compras
   let el=null,started=false;
+  // La música NO puede sonar hasta que _canStart sea true. Se pone en true
+  // recién cuando ya no hay nada que deba tener el audio para sí sola: ni
+  // la pantalla de loading, ni el video de intro (que trae su propio
+  // audio). startGameForUser llama a allowStart() en el momento correcto
+  // (justo cuando se muestra el overlay de alias/nick, o de inmediato si
+  // no hay intro que reproducir). Antes de eso, cualquier click/touch en
+  // el login o el loading NO debe encender la música de fondo.
+  let _canStart=false;
+  let _pendingGesture=false; // hubo un gesto del usuario mientras _canStart era false
   function getEl(){
     if(!el)el=document.getElementById('bgMusic');
     return el;
@@ -1266,6 +1279,7 @@ const BGM=(()=>{
     a.volume=SFX.muted?0:VOL;
   }
   function start(){
+    if(!_canStart){ _pendingGesture=true; return; } // guardado para intentarlo en cuanto se permita
     // Los navegadores bloquean el autoplay con sonido sin gesto del usuario, así que
     // esto se llama desde el mismo listener 'once' que desbloquea el AudioContext de SFX.
     const a=getEl(); if(!a||started)return;
@@ -1277,6 +1291,14 @@ const BGM=(()=>{
     init(){
       applyVolume();
       ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,start,{once:true,passive:true}));
+    },
+    // Habilita que la música arranque. Si ya hubo un gesto del usuario
+    // mientras estaba bloqueada (p.ej. tocó "Continuar con Google", o
+    // "Saltar" en el video de intro), arranca inmediatamente con ese
+    // gesto ya gastado; si no, espera al próximo toque/click normal.
+    allowStart(){
+      _canStart=true;
+      if(_pendingGesture){ _pendingGesture=false; start(); }
     },
     onMuteChanged(){ applyVolume(); },
     pause(){ const a=getEl(); if(a&&!a.paused)a.pause(); },
@@ -2477,7 +2499,12 @@ let tTO=null;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(tTO)clearTimeout(tTO);tTO=setTimeout(()=>t.classList.remove('show'),2800);}
 
 const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
-function runLoader(){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);if(readLocalCandidate(window.__fbUser&&window.__fbUser.uid,true))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');},400);}},180);}
+/* runLoader ahora acepta un callback opcional (onDone) que se dispara justo
+   cuando la pantalla de carga terminó de ocultarse (clase .hide añadida),
+   NO cuando arranca. Esto es lo que usa startGameForUser para saber el
+   momento exacto en que ya no hay nada tapando el video de intro, en vez
+   de adivinarlo con un setTimeout de duración fija que podía solaparse. */
+function runLoader(onDone){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');if(readLocalCandidate(window.__fbUser&&window.__fbUser.uid,true))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');if(onDone)onDone();setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);},400);}},180);}
 
 /* ════════════════════════════════════════════════════════════════
    VIDEO DE INTRO — se reproduce una única vez, la primera vez que el
@@ -2495,7 +2522,7 @@ let _introPlaying=false;
    ni se le adelanta/retrasa el currentTime, ni pierde frames: sigue
    reproduciéndose completo por debajo del negro. Es solo "una pausa"
    visual antes de mostrarlo y antes de que se note el corte al terminar. */
-const INTRO_FADE_MS=2000;
+const INTRO_FADE_MS=1000;
 function playIntroVideo(onDone){
   const ov=document.getElementById('introov');
   const vid=document.getElementById('introvideo');
@@ -2575,18 +2602,26 @@ window.startGameForUser=async function(user){
   const mb=document.getElementById('muteBtn');
   if(mb){mb.textContent=SFX.muted?'🔇':'🔊';mb.classList.toggle('off',SFX.muted);}
   document.getElementById('app').style.display='';
-  runLoader();
   if(_cloudWritesEnabled)setSyncPill('ok');
-  if(!S.alias){
-    // Primera vez que entra: video de presentación primero y, al terminar
-    // (o si el usuario lo salta), el overlay para elegir alias de siempre.
-    _introShown=true;
-    setTimeout(()=>{
+  // El video de intro (si aplica) arranca SOLO cuando el loading ya
+  // terminó de ocultarse (callback de runLoader), nunca en paralelo con
+  // él. Así se evita que se oiga el audio del video mientras la pantalla
+  // de carga todavía lo está tapando.
+  runLoader(()=>{
+    if(!S.alias){
+      // Primera vez que entra: video de presentación primero y, al terminar
+      // (o si el usuario lo salta), el overlay para elegir alias de siempre.
+      _introShown=true;
       playIntroVideo(()=>{
         document.getElementById('aliasov').classList.add('show');
+        BGM.allowStart(); // la música de fondo solo puede empezar a sonar a partir de aquí
       });
-    },600);
-  }
+    } else {
+      // No hay intro que mostrar (alias ya existente): la música puede
+      // sonar normalmente desde ya con el próximo gesto del usuario.
+      BGM.allowStart();
+    }
+  });
 };
 </script>
 <!-- PWA: registro del service worker -->
