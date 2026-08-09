@@ -1011,7 +1011,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 </div></div>
 
 <div id="ruov"><div id="rubox">
-  <video id="ruvideo" playsinline muted></video>
+  <video id="ruvideo" playsinline></video>
   <span id="ruemoji">🎉</span>
   <div id="rutitle">¡SUBISTE DE RANGO!</div>
   <div id="runame">Nombre</div>
@@ -2232,11 +2232,15 @@ function showRankup(r){
   document.getElementById('ruov').classList.add('show');
   SFX.rankUp();rankBurst();
   if(src){
-    // Este video puede traer su propio audio, así que pausamos la música de
+    // Este video trae su propio audio, así que pausamos la música de
     // fondo mientras se reproduce (igual que con el video de intro) y la
     // reanudamos si falla la carga; si el usuario cierra con #ruclose, BGM.resume()
-    // se llama desde ese mismo botón.
+    // se llama desde ese mismo botón. vid.muted=false es necesario porque el
+    // <video> ya no trae el atributo muted en el HTML, pero por las dudas
+    // (algún navegador, o si el elemento quedó muteado de un intento previo)
+    // lo forzamos aquí explícitamente antes de reproducir.
     BGM.pause();
+    vid.muted=false;
     vid.src=src;
     vid.oncanplay=()=>{box.classList.add('has-video');vid.play().catch(()=>{});};
     vid.onerror=()=>{box.classList.remove('has-video');BGM.resume();};
