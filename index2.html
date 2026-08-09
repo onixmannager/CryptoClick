@@ -1668,6 +1668,7 @@ const AlienSprite = (function(){
   const BREATHE_FPS = 6;   // lento y sutil
   const WAVE_FPS = 14;     // saludo fluido
   const WAVE_EVERY_TAPS = 20;
+  const BREATHE_REPEAT_MS = 5000; // repite el idle cada 5s si no hay saludo en curso
 
   let el = null;
   let mode = 'breathe';
@@ -1675,6 +1676,7 @@ const AlienSprite = (function(){
   let timer = null;
   let tapsSinceWave = 0;
   let waving = false;
+  let breatheRepeater = null;
 
   function setBg(src, frames){
     el.style.backgroundImage = 'url("'+src+'")';
@@ -1703,6 +1705,14 @@ const AlienSprite = (function(){
       }
       paint();
     }, 1000/BREATHE_FPS);
+
+    // Repetidor del idle: cada BREATHE_REPEAT_MS relanza la respiración,
+    // salvo que el saludo (wave) esté en curso, para no cortarlo a mitad.
+    if(!breatheRepeater){
+      breatheRepeater = setInterval(()=>{
+        if(!waving) startBreathe();
+      }, BREATHE_REPEAT_MS);
+    }
   }
 
   function wave(){
