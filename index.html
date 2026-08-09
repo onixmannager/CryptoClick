@@ -409,11 +409,23 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 /* ── Video de INTRO/presentación — se muestra una sola vez, la primera vez
    que se entra a la app (antes de pedir el alias). Tiene su propio audio,
    por eso la música de fondo (BGM) se pausa mientras se reproduce (ver
-   playIntroVideo()/BGM.pause() más abajo) y se reanuda al terminar. ── */
+   playIntroVideo()/BGM.pause() más abajo) y se reanuda al terminar.
+
+   El video está grabado en vertical 9:16 (720x1280). En MOVIL ocupa todo
+   el viewport con object-fit:cover. En ESCRITORIO (ver media query más
+   abajo) se mantiene la MISMA proporción 9:16 y el mismo tamaño relativo
+   -no se estira a lo ancho- centrado sobre fondo negro a pantalla completa.
+
+   #introfade es una capa negra por encima del video que se usa SOLO para
+   la transición de entrada/salida (fundido de 1s). No recorta ni adelanta
+   el video: éste sigue su curso completo por debajo; el negro simplemente
+   tapa el primer y último segundo para dar sensación de pausa. ── */
 #introov{display:none;position:fixed;inset:0;background:#000;z-index:1000;align-items:center;justify-content:center}
 #introov.show{display:flex}
 #introvideo{width:100%;height:100%;object-fit:cover}
-#introskip{position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:1001;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;cursor:pointer;backdrop-filter:blur(4px)}
+#introfade{position:fixed;inset:0;background:#000;z-index:1002;opacity:1;pointer-events:none;transition:opacity 1s linear}
+#introfade.in{opacity:0}
+#introskip{position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:1003;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;cursor:pointer;backdrop-filter:blur(4px)}
 
 /* ALIAS (ranking) */
 #aliasov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:900;align-items:center;justify-content:center;padding:24px}
@@ -644,33 +656,43 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   }
   #aliasbox{max-width:400px}
 
-  /* ── Video de rank-up en ESCRITORIO: la tarjeta #rubox reemplaza la
-     pantalla completa de movil. El video llena la tarjeta (proporcion
-     16:9 vertical-ish via aspect-ratio) con bordes redondeados iguales
-     al resto de tarjetas del juego (uc/mc/sc), en vez de cubrir todo
-     el viewport del navegador. ──────────────────────────────────── */
+  /* ── Video de rank-up en ESCRITORIO: mismo criterio que movil -pantalla
+     completa, proporcion vertical 9:16 sin recortar ni deformar-. En vez
+     de encajarlo en una tarjeta chica, el video cubre todo el viewport
+     igual que en movil y el titulo/boton flotan encima con el mismo
+     degradado. Como el viewport de escritorio es mas ancho que 9:16,
+     se usa object-fit:contain sobre fondo negro para que se vea la
+     MISMA franja vertical que en movil, ni estirada ni recortada a
+     los lados. ──────────────────────────────────────────────────── */
   #rubox.has-video{
-    position:relative;inset:auto;width:100%;max-width:380px;height:auto;
-    display:block;padding:0 0 28px;
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:24px;
-    overflow:hidden;
-    box-shadow:0 30px 90px -20px rgba(0,0,0,.65);
+    position:fixed;inset:0;width:100%;max-width:none;height:100%;
+    display:flex;flex-direction:column;justify-content:flex-end;
+    padding:0 24px 40px;
+    background:#000;
+    border-radius:0;
+    box-shadow:none;
   }
   #rubox.has-video #ruvideo{
-    position:relative;inset:auto;
-    width:100%;height:auto;aspect-ratio:9/16;max-height:60vh;
-    border-radius:24px 24px 0 0;
+    position:fixed;inset:0;
+    width:100%;height:100%;
+    object-fit:contain;
+    border-radius:0;
     display:block;
   }
   #rubox.has-video::before{
     /* degradado suave para que el titulo no quede pegado al borde inferior del video */
-    content:'';position:absolute;left:0;right:0;top:0;height:calc(60vh - 40px);
-    background:linear-gradient(180deg,rgba(0,0,0,0) 70%,rgba(0,0,0,.5) 100%);
+    content:'';position:fixed;left:0;right:0;bottom:0;height:40%;
+    background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.75) 70%,rgba(0,0,0,.9) 100%);
     pointer-events:none;
   }
-  #rubox.has-video #rutitle{margin-top:18px}
+  #rubox.has-video #rutitle{margin-top:0}
+
+  /* ── Video de INTRO en ESCRITORIO: mismo tamaño y proporcion vertical
+     9:16 que en movil (no se estira a lo ancho de la pantalla). Como el
+     viewport de escritorio es mas ancho, se centra sobre fondo negro con
+     object-fit:contain -misma imagen que en movil, solo que con barras
+     negras a los lados en vez de recortarla-. ──────────────────────── */
+  #introvideo{width:100%;height:100%;object-fit:contain}
 
   /* login screen: give the centered card a console frame too, so the
      very first thing a desktop player sees already looks intentional */
@@ -1003,6 +1025,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
 <div id="introov">
   <video id="introvideo" src="videos/alieniniciocohete.mp4" playsinline></video>
+  <div id="introfade"></div>
   <button id="introskip" onclick="skipIntroVideo()">Saltar ⏭️</button>
 </div>
 
@@ -2466,11 +2489,20 @@ function runLoader(){const bar=document.getElementById('lbar'),tip=document.getE
    ════════════════════════════════════════════════════════════════ */
 let _introShown=false;
 let _introPlaying=false;
+/* Duración de la transición de entrada/salida. Es puramente visual: una
+   capa negra (#introfade) por encima del video que se desvanece al
+   empezar y vuelve a aparecer al final. El video en sí NUNCA se recorta,
+   ni se le adelanta/retrasa el currentTime, ni pierde frames: sigue
+   reproduciéndose completo por debajo del negro. Es solo "una pausa"
+   visual antes de mostrarlo y antes de que se note el corte al terminar. */
+const INTRO_FADE_MS=1000;
 function playIntroVideo(onDone){
   const ov=document.getElementById('introov');
   const vid=document.getElementById('introvideo');
+  const fade=document.getElementById('introfade');
   if(!ov||!vid){onDone();return}
   let done=false;
+  let outStarted=false;
   _introPlaying=true;
   // El primer toque/click/tecla del usuario (p.ej. tocar "Saltar", o cualquier
   // toque accidental sobre el video) es también el gesto que BGM.init() usa
@@ -2479,22 +2511,44 @@ function playIntroVideo(onDone){
   // que ese primer gesto NO deje sonando la música por encima del video.
   const reMute=()=>{ if(_introPlaying)BGM.pause(); };
   ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,reMute,{passive:true}));
+  // Fundido de SALIDA: arranca 1s antes de que el video termine, para que
+  // justo cuando llega a su último frame ya esté totalmente en negro. No
+  // toca la reproducción -el video sigue corriendo hasta el final real-,
+  // solo tapa visualmente ese último segundo.
+  const onTime=()=>{
+    if(outStarted||!vid.duration)return;
+    if(vid.duration-vid.currentTime<=INTRO_FADE_MS/1000){
+      outStarted=true;
+      fade.classList.remove('in');
+    }
+  };
+  vid.addEventListener('timeupdate',onTime);
   const finish=()=>{
     if(done)return; done=true;
     _introPlaying=false;
     ['touchstart','mousedown','click','keydown'].forEach(ev=>document.removeEventListener(ev,reMute));
+    vid.removeEventListener('timeupdate',onTime);
     vid.pause();
     ov.classList.remove('show');
+    fade.classList.remove('in'); // listo en negro para la próxima vez que se use el overlay
     BGM.resume();
     onDone();
   };
   BGM.pause(); // el video tiene su propio audio: la música de fondo no debe sonar a la vez
   vid.currentTime=0;
   vid.muted=false;
+  fade.style.transitionDuration=INTRO_FADE_MS+'ms';
+  fade.classList.remove('in'); // arranca tapado en negro
   ov.classList.add('show');
   vid.onended=finish;
   vid.onerror=finish; // si el archivo no carga (red, ruta, etc.), seguimos sin bloquear el alta
-  vid.play().catch(finish); // autoplay con sonido puede fallar sin gesto previo del usuario
+  // Fundido de ENTRADA: en cuanto el video empieza a reproducirse de verdad
+  // (no solo "play() resuelto", sino el primer frame ya avanzando) se
+  // desvanece el negro. requestAnimationFrame tras play() evita un
+  // parpadeo si el primer frame tarda un instante en pintarse.
+  vid.play().then(()=>{
+    requestAnimationFrame(()=>fade.classList.add('in'));
+  }).catch(finish); // autoplay con sonido puede fallar sin gesto previo del usuario
   window.__skipIntroVideo=finish;
 }
 function skipIntroVideo(){ if(window.__skipIntroVideo)window.__skipIntroVideo(); }
