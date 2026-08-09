@@ -754,6 +754,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     <button id="logoutBtn" onclick="logoutUser()">Salir</button>
   </div>
   </div>
+  <!-- Música de fondo en loop. preload="auto" para que esté lista en cuanto el
+       primer gesto del usuario desbloquee el audio; el volumen y el mute se
+       controlan por JS (ver BGM más abajo), no se usa el atributo "controls". -->
+  <audio id="bgMusic" src="sounds/audiojuegoalien.mp3" loop preload="auto"></audio>
 
   <!-- MINE -->
   <div id="screen-mine" class="screen active">
@@ -1206,6 +1210,43 @@ const SFX=(()=>{
     refJoin(){ [0,3,5].forEach((n,i)=>tone(PENTA[n],0.13,'triangle',0.2,i*0.07)); },
   };
 })();
+
+/* ════════════════════════════════════════════════════════════════
+   MÚSICA DE FONDO — <audio> en loop, independiente del motor SFX
+   (que solo sintetiza efectos cortos). Comparte el mismo estado de
+   mute que SFX (misma clave 'cck4_muted') para que un único botón
+   controle sonido y música a la vez, como espera el jugador.
+   ════════════════════════════════════════════════════════════════ */
+const BGM=(()=>{
+  const VOL=0.35; // más bajo que los efectos para no tapar el feedback de taps/compras
+  let el=null,started=false;
+  function getEl(){
+    if(!el)el=document.getElementById('bgMusic');
+    return el;
+  }
+  function applyVolume(){
+    const a=getEl(); if(!a)return;
+    a.volume=SFX.muted?0:VOL;
+  }
+  function start(){
+    // Los navegadores bloquean el autoplay con sonido sin gesto del usuario, así que
+    // esto se llama desde el mismo listener 'once' que desbloquea el AudioContext de SFX.
+    const a=getEl(); if(!a||started)return;
+    started=true;
+    applyVolume();
+    a.play().catch(()=>{ started=false; }); // si falla (autoplay policy), se reintenta en el próximo gesto
+  }
+  return{
+    init(){
+      applyVolume();
+      ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,start,{once:true,passive:true}));
+    },
+    onMuteChanged(){ applyVolume(); },
+    pause(){ const a=getEl(); if(a&&!a.paused)a.pause(); },
+    resume(){ const a=getEl(); if(a&&started&&a.paused&&!SFX.muted)a.play().catch(()=>{}); },
+  };
+})();
+BGM.init();
 
 const RANKS=[
   {name:'Crypto Noob',  minLvl:1,  e:'🐣',tapB:0  },
@@ -2093,8 +2134,9 @@ setInterval(()=>{
 setInterval(()=>{ if(window.__fbUser){ ensurePeriods(); cloudSaveNow(false); publishLeaderboard(false); } }, CLOUD_MIN_INTERVAL);
 
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); }
+  if(document.hidden){ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); BGM.pause(); }
   else{
+    BGM.resume();
     // Al volver a primer plano, el setInterval de 1000ms puede tardar un momento en
     // reanudarse (algunos navegadores móviles lo dejan completamente parado mientras la
     // pestaña estuvo oculta). Forzamos aquí mismo el catch-up de energía/minado con el
@@ -2116,6 +2158,7 @@ function toggleMute(){
   const btn=document.getElementById('muteBtn');
   btn.textContent=isMuted?'🔇':'🔊';
   btn.classList.toggle('off',isMuted);
+  BGM.onMuteChanged();
   if(!isMuted)SFX.toggle();
 }
 function showRankup(r){
