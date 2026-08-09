@@ -1570,7 +1570,13 @@ function mergeStates(a,b){
   base.ups=ups;
   // Misiones completadas en cualquiera de los dos lados quedan completadas.
   base.missions={...(a.missions||{}),...(b.missions||{})};
-  base.lastSave=Date.now();
+  // IMPORTANTE: lastSave debe quedarse con el momento real más reciente en el que se
+  // jugó de verdad en CUALQUIERA de los dos lados (el mayor de los dos), NO con Date.now().
+  // Antes esto se pisaba con "ahora", así que applyLoadedData calculaba offSec≈0 justo
+  // después de fusionar y la energía/el $CLK offline nunca se recuperaban al reabrir la
+  // app: el merge es el camino normal para cualquier usuario recurrente con nube activa,
+  // así que este bug se disparaba casi siempre.
+  base.lastSave=Math.max(a.lastSave||0,b.lastSave||0);
   return base;
 }
 function applyLoadedData(raw){
@@ -2064,7 +2070,16 @@ function tickMiningBar(now){
 }
 
 setInterval(()=>{
-  const now=Date.now(),dt=Math.min((now-S.lastPassive)/1000,5);S.lastPassive=now;
+  const now=Date.now(),rawDt=(now-S.lastPassive)/1000;S.lastPassive=now;
+  // Si el hueco es mayor a unos segundos, la pestaña estuvo en segundo plano y el navegador
+  // pausó/limitó este setInterval (los navegadores hacen esto para ahorrar batería en tabs
+  // no visibles) — NO es un salto de reloj erróneo. Antes se recortaba a 5s siempre, así que
+  // ese tiempo real en segundo plano se perdía sin más: minado y regeneración de energía se
+  // quedaban congelados mientras la app estaba minimizada, aunque la pestaña siguiera abierta
+  // (sin llegar a cerrarse ni recargarse, que es el único caso que applyLoadedData cubría).
+  // Ahora, un hueco grande se trata igual que el catch-up offline: se abona TODO el tiempo real
+  // transcurrido (con el mismo tope de 24h que ya usa applyLoadedData para el caso de recarga).
+  const dt=rawDt>5?Math.min(rawDt,86400):Math.max(0,rawDt);
   if(S.energy<S.eMax)S.energy=Math.min(S.eMax,S.energy+S.eRegen*dt);
   if(S.pph>0)addClk(S.pph/3600*dt,'passive');
   tickMiningBar(now);
@@ -2079,6 +2094,19 @@ setInterval(()=>{ if(window.__fbUser){ ensurePeriods(); cloudSaveNow(false); pub
 
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); }
+  else{
+    // Al volver a primer plano, el setInterval de 1000ms puede tardar un momento en
+    // reanudarse (algunos navegadores móviles lo dejan completamente parado mientras la
+    // pestaña estuvo oculta). Forzamos aquí mismo el catch-up de energía/minado con el
+    // tiempo real transcurrido, en vez de esperar a que el próximo tick lo detecte solo.
+    const now=Date.now(),rawDt=(now-S.lastPassive)/1000;S.lastPassive=now;
+    const dt=rawDt>5?Math.min(rawDt,86400):Math.max(0,rawDt);
+    if(dt>0){
+      if(S.energy<S.eMax)S.energy=Math.min(S.eMax,S.energy+S.eRegen*dt);
+      if(S.pph>0)addClk(S.pph/3600*dt,'passive');
+      upd();save();
+    }
+  }
 });
 window.addEventListener('beforeunload',()=>{ localSaveNow(); });
 window.addEventListener('pagehide',()=>{ localSaveNow(); if(window.__fbUser) cloudSaveNow(true); });
