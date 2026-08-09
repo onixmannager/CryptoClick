@@ -332,21 +332,50 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
 #ruov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;align-items:center;justify-content:center}
 #ruov.show{display:flex}
-#rubox{text-align:center;padding:32px 24px;animation:popin .55s cubic-bezier(.175,.885,.32,1.275)}
+#rubox{text-align:center;padding:32px 24px;animation:popin .55s cubic-bezier(.175,.885,.32,1.275);position:relative}
 @keyframes popin{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
 #ruemoji{font-size:80px;display:block;margin-bottom:6px;animation:bounce 1s ease-in-out infinite}
-/* Video de celebracion al subir de RANGO (no de nivel). Oculto por defecto;
-   showRankup() le agrega la clase .has-video solo cuando hay un video
-   configurado para ese rango y carga correctamente. Mientras el video esta
-   activo, se oculta el emoji rebotando para no competir visualmente. */
-#ruvideo{display:none;width:100%;max-width:280px;border-radius:20px;margin-bottom:10px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
-#rubox.has-video #ruvideo{display:block}
+
+/* ── Video de celebracion al subir de RANGO (no de nivel) ─────────────────
+   Oculto por defecto; showRankup() agrega .has-video a #rubox solo cuando
+   hay un video configurado para ese rango y carga correctamente.
+
+   MOVIL (por defecto, <901px): el video se muestra a pantalla completa
+   porque esta grabado a esa proporcion — tapa #ruov entero, texto y boton
+   se superponen encima con fondo oscuro degradado para que se lean.
+
+   ESCRITORIO (>=901px, ver media query mas abajo): el video ocupa toda la
+   tarjeta #rubox en vez de la pantalla completa del navegador, con bordes
+   redondeados a juego con el resto de tarjetas del juego (uc, mc, etc). */
+#ruvideo{display:none;object-fit:cover}
 #rubox.has-video #ruemoji{display:none}
+
+#rubox.has-video #ruvideo{
+  display:block;
+  position:fixed;inset:0;
+  width:100%;height:100%;
+  border-radius:0;
+  z-index:0;
+}
+/* Capa oscura + el resto del contenido (titulo, nombre, boton) flotan sobre
+   el video a pantalla completa en movil, con texto legible via degradado */
+#rubox.has-video{
+  position:fixed;inset:0;width:100%;max-width:none;height:100%;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:0 24px 40px;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,.75) 85%,rgba(0,0,0,.9) 100%);
+  border-radius:0;
+}
+#rubox.has-video #rutitle,#rubox.has-video #runame,#rubox.has-video #rubonus,#rubox.has-video #ruclose{
+  position:relative;z-index:1;
+}
+
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 #rutitle{font-family:var(--fh);font-size:32px;color:var(--yellow);margin-bottom:4px}
 #runame{font-family:var(--fh);font-size:20px;color:var(--cyan);margin-bottom:6px}
 #rubonus{font-size:13px;color:var(--muted);margin-bottom:22px}
 #ruclose{background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;padding:14px 44px;cursor:pointer;font-family:var(--fh);font-size:20px;color:#1a0a00;box-shadow:0 4px 20px rgba(255,107,53,.4)}
+
 
 #dailyov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;align-items:flex-end;justify-content:center}
 #dailyov.show{display:flex}
@@ -591,6 +620,34 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     animation:popin .4s cubic-bezier(.175,.885,.32,1.275);
   }
   #aliasbox{max-width:400px}
+
+  /* ── Video de rank-up en ESCRITORIO: la tarjeta #rubox reemplaza la
+     pantalla completa de movil. El video llena la tarjeta (proporcion
+     16:9 vertical-ish via aspect-ratio) con bordes redondeados iguales
+     al resto de tarjetas del juego (uc/mc/sc), en vez de cubrir todo
+     el viewport del navegador. ──────────────────────────────────── */
+  #rubox.has-video{
+    position:relative;inset:auto;width:100%;max-width:380px;height:auto;
+    display:block;padding:0 0 28px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 30px 90px -20px rgba(0,0,0,.65);
+  }
+  #rubox.has-video #ruvideo{
+    position:relative;inset:auto;
+    width:100%;height:auto;aspect-ratio:9/16;max-height:60vh;
+    border-radius:24px 24px 0 0;
+    display:block;
+  }
+  #rubox.has-video::before{
+    /* degradado suave para que el titulo no quede pegado al borde inferior del video */
+    content:'';position:absolute;left:0;right:0;top:0;height:calc(60vh - 40px);
+    background:linear-gradient(180deg,rgba(0,0,0,0) 70%,rgba(0,0,0,.5) 100%);
+    pointer-events:none;
+  }
+  #rubox.has-video #rutitle{margin-top:18px}
 
   /* login screen: give the centered card a console frame too, so the
      very first thing a desktop player sees already looks intentional */
@@ -1152,12 +1209,12 @@ const RANKS=[
    de este objeto; el resto del codigo no necesita tocarse. */
 const RANK_VIDEOS={
   'Hodler':      'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4',
-  'Trader Pro':  'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-trader-pro.mp4',
-  'DeFi Shark':  'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-defi-shark.mp4',
-  'Whale':       'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-whale.mp4',
-  'DeFi King':   'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-defi-king.mp4',
-  'Satoshi':     'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-satoshi.mp4',
-  'Blockchain God':'https://raw.githubusercontent.com/USUARIO/REPO/main/videos/rank-blockchain-god.mp4',
+  // 'Trader Pro':  'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/rank-trader-pro.mp4',
+  // 'DeFi Shark':  'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/rank-defi-shark.mp4',
+  // 'Whale':       'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/rank-whale.mp4',
+  // 'DeFi King':   'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/rank-defi-king.mp4',
+  // 'Satoshi':     'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/rank-satoshi.mp4',
+  // 'Blockchain God':'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/rank-blockchain-god.mp4',
 };
 
 const SKINS=[
