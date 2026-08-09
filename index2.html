@@ -1669,30 +1669,12 @@ const AlienSprite = (function(){
   const WAVE_FPS = 14;     // saludo fluido
   const WAVE_EVERY_TAPS = 20;
 
-  // ── Ciclo idle de 3 gestos (independiente del click) ──
-  // Cuando NO se está clicando, el alien alterna cada IDLE_GESTURE_MS entre:
-  //  1) 'breathe'      → respira hacia adelante (frames 0→N)
-  //  2) 'wave'         → saluda (el sprite de saludo ya existente)
-  //  3) 'breatheOut'   → "exhala": el mismo sprite de respirar pero en
-  //                      reversa (frames N→0), así de los 2 sprites que
-  //                      ya existen salen 3 gestos distintos sin pedir
-  //                      un asset nuevo.
-  // Este ciclo NO toca ni sustituye el saludo por combo/hito de tap
-  // (registerTap/WAVE_EVERY_TAPS): mientras ese saludo está en curso el
-  // ciclo idle se pausa, y al terminar retoma justo donde iba.
-  const IDLE_GESTURE_MS = 5000; // 5s por gesto, igual que pidió Onix
-  const IDLE_CYCLE = ['breathe', 'wave', 'breatheOut'];
-
   let el = null;
   let mode = 'breathe';
   let frame = 0;
   let timer = null;
   let tapsSinceWave = 0;
   let waving = false;
-
-  let idleTimer = null;      // reloj de 5s que avanza el ciclo idle
-  let idleCycleIdx = 0;      // posición actual dentro de IDLE_CYCLE
-  let idlePausedByTap = false; // true mientras un saludo por combo/hito está en curso
 
   function setBg(src, frames){
     el.style.backgroundImage = 'url("'+src+'")';
@@ -1723,27 +1705,6 @@ const AlienSprite = (function(){
     }, 1000/BREATHE_FPS);
   }
 
-  // Tercer gesto: mismo sprite de respirar, recorrido en reversa
-  // (último frame → primero), como si el alien exhalara. No requiere
-  // ningún asset adicional.
-  function startBreatheOut(){
-    mode='breatheOut'; frame=BREATHE_FRAMES-1;
-    setBg(BREATHE_SRC, BREATHE_FRAMES);
-    paint();
-    if(timer) clearInterval(timer);
-    timer = setInterval(()=>{
-      frame--;
-      if(frame<=0){
-        clearInterval(timer);
-        timer = null;
-        frame = 0; // se queda quieto en el primer frame
-        paint();
-        return;
-      }
-      paint();
-    }, 1000/BREATHE_FPS);
-  }
-
   function wave(){
     if(!el) return;
     // Antes: "if(!el || waving) return;" podía dejar 'waving' atascado
@@ -1767,40 +1728,12 @@ const AlienSprite = (function(){
     }, 1000/WAVE_FPS);
   }
 
-  // Avanza una posición en el ciclo idle de 3 gestos y la reproduce.
-  function playIdleGesture(gestureName){
-    if(gestureName==='wave') wave();
-    else if(gestureName==='breatheOut') startBreatheOut();
-    else startBreathe();
-  }
-
-  // Arranca (o reinicia) el reloj de 5s que alterna los 3 gestos idle.
-  // Se llama una sola vez desde init(); registerTap()/wave-por-combo NO
-  // lo tocan, solo lo pausan/reanudan vía idlePausedByTap.
-  function startIdleCycle(){
-    if(idleTimer) clearInterval(idleTimer);
-    idleTimer = setInterval(()=>{
-      if(idlePausedByTap) return; // hay un saludo por combo en curso: esperar
-      idleCycleIdx = (idleCycleIdx+1) % IDLE_CYCLE.length;
-      playIdleGesture(IDLE_CYCLE[idleCycleIdx]);
-    }, IDLE_GESTURE_MS);
-  }
-
   function registerTap(comboLevel){
     tapsSinceWave++;
     const milestoneCombo = comboLevel===10; // mismo hito que spawnBurst()/showSfire()
     if(tapsSinceWave>=WAVE_EVERY_TAPS || milestoneCombo){
       tapsSinceWave = 0;
-      // Pausamos el ciclo idle de 3 gestos mientras dura este saludo por
-      // combo, para que no se pisen entre sí, y lo reanudamos al terminar
-      // reseteando el ciclo desde 'breathe' (gesto 1).
-      idlePausedByTap = true;
       wave();
-      const waitMs = (WAVE_FRAMES/WAVE_FPS)*1000 + 50; // duración real del saludo + margen
-      setTimeout(()=>{
-        idlePausedByTap = false;
-        idleCycleIdx = 0;
-      }, waitMs);
     }
   }
 
@@ -1808,7 +1741,6 @@ const AlienSprite = (function(){
     el = document.getElementById('alienSprite');
     if(!el) return;
     startBreathe();
-    startIdleCycle();
   }
 
   return { init, wave, registerTap };
