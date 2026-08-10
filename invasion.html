@@ -71,7 +71,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #app{
   position:relative;z-index:1;width:100%;max-width:430px;min-height:100vh;
   display:flex;flex-direction:column;padding-bottom:82px;
-  background-image:url('images/fondoinvasion.jpeg');
+  background-image:url('images/fondoinvasion.jpg');
   background-position:center top;background-size:cover;background-repeat:no-repeat;background-attachment:scroll;
 }
 
@@ -91,11 +91,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #balMiniNum{font-family:var(--fh);font-size:16px;color:var(--yellow);line-height:1;letter-spacing:.3px;transition:transform .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #balMiniNum.bump{transform:scale(1.08)}
 #balMiniLabel{font-size:9px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:1px;white-space:nowrap}
-
-/* PLACEHOLDER — de momento la sección no tiene contenido propio */
-#placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 24px;text-align:center}
-#placeholder h1{font-family:var(--fh);font-size:22px;color:var(--yellow);letter-spacing:.5px}
-#placeholder p{font-size:13px;color:var(--muted);font-weight:700;max-width:280px;line-height:1.6}
 
 </style>
 </head>
@@ -131,11 +126,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <!-- Música propia de esta sección, en loop, preload="auto" igual que bgMusic
        en index.html. El archivo de audio se sube aparte al repo. -->
   <audio id="bgMusic" src="sounds/audioinvasion.mp3" loop preload="auto"></audio>
-
-  <!-- Sin contenido todavía: esta sección se rellenará más adelante -->
-  <div id="placeholder">
-    <p>La sección Invasión está en construcción.</p>
-  </div>
 
 </div>
 
