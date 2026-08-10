@@ -35,16 +35,14 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
-/* ═══════════ FONDO: imagen vertical, ajustada a pantalla completa ═══════════
-   background-size:cover + position:center top → la imagen vertical llena
-   TODO el viewport (móvil y escritorio), sin franjas vacías. Sin filtro
-   de color: se muestra la imagen tal cual, sin overlay oscuro. */
+/* ═══════════ FONDO base: color sólido detrás de todo ═══════════ */
 html{
   width:100%;min-height:100vh;background-color:#0b0a14;
-  background-image: url('images/fondoinvasion.jpeg');
-  background-position:center top;background-size:cover;background-repeat:no-repeat;background-attachment:scroll;
 }
-body{width:100%;min-height:100vh;background:transparent;color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none;scrollbar-width:none;-ms-overflow-style:none}
+/* body: fondo oscuro real de la app (--bg / #0b0a14), visible a los
+   lados de la consola en pantallas anchas; #app se centra pero SIN
+   limitar su alto — ocupa toda la pantalla igual que en móvil. */
+body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none;scrollbar-width:none;-ms-overflow-style:none;display:flex;justify-content:center}
 html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
 /* LOADING — idéntico al de index.html: barra de progreso + tips rotativos */
@@ -64,8 +62,18 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .b3{width:300px;height:300px;background:#06B6D4;top:40%;left:60%;animation-delay:-7s}
 @keyframes blobF{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,30px) scale(1.1)}}
 
-/* APP — mismo ancho de "consola" que index.html en móvil (430px) */
-#app{position:relative;z-index:1;max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding-bottom:82px}
+/* APP — misma "consola" de 430px que en móvil, SIEMPRE a pantalla
+   completa (100vh). El body la centra con flex; nunca se encajona
+   ni se le añade tarjeta/borde extra en escritorio. La imagen del
+   mapa vive AQUÍ (no en html/body) para no estirarse a todo el
+   ancho de pantalla en escritorio — background-size:cover llena
+   los 430px de alto sin franjas y sin ningún filtro/overlay. */
+#app{
+  position:relative;z-index:1;width:100%;max-width:430px;min-height:100vh;
+  display:flex;flex-direction:column;padding-bottom:82px;
+  background-image:url('images/fondoinvasion.jpeg');
+  background-position:center top;background-size:cover;background-repeat:no-repeat;background-attachment:scroll;
+}
 
 /* TOPBAR — igual que index.html, con logo de vuelta al juego principal */
 #topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
