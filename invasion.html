@@ -76,11 +76,21 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 }
 
 /* TOPBAR — igual que index.html, con logo de vuelta al juego principal */
-#topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
-#logo{font-family:var(--fh);font-size:15px;color:var(--yellow);text-decoration:none;letter-spacing:.3px}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;gap:10px}
+#logo{font-family:var(--fh);font-size:15px;color:var(--yellow);text-decoration:none;letter-spacing:.3px;flex-shrink:0}
 #usermini{display:flex;align-items:center;gap:8px}
 #muteBtn{background:var(--card2);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;color:var(--text)}
 #muteBtn.off{opacity:.5}
+
+/* BALANCE CLK — mismo lenguaje visual "glass panel" que el resto del sitio.
+   Vive en el topbar, así que se ve igual en móvil y en escritorio (el topbar
+   es parte de #app, que siempre está centrado y a tamaño fijo de 430px).
+   Lee el mismo documento saves/{uid} que usa index.html para el saldo. */
+#balMini{display:flex;align-items:center;gap:7px;background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:12px;padding:6px 12px;min-width:0}
+#balMiniIcon{font-size:15px;flex-shrink:0}
+#balMiniNum{font-family:var(--fh);font-size:16px;color:var(--yellow);line-height:1;letter-spacing:.3px;transition:transform .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#balMiniNum.bump{transform:scale(1.08)}
+#balMiniLabel{font-size:9px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:1px;white-space:nowrap}
 
 /* PLACEHOLDER — de momento la sección no tiene contenido propio */
 #placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 24px;text-align:center}
@@ -106,6 +116,13 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
   <div id="topbar">
     <a href="index.html" id="logo">👾 INVASIÓN</a>
+    <div id="balMini">
+      <span id="balMiniIcon">🪙</span>
+      <div>
+        <div id="balMiniNum">–</div>
+        <div id="balMiniLabel">$CLK</div>
+      </div>
+    </div>
     <div id="usermini">
       <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
     </div>
@@ -117,7 +134,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
   <!-- Sin contenido todavía: esta sección se rellenará más adelante -->
   <div id="placeholder">
-    <h1>👾 Próximamente</h1>
     <p>La sección Invasión está en construcción.</p>
   </div>
 
@@ -130,7 +146,7 @@ import {
   getAuth, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
-  getFirestore
+  getFirestore, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -145,13 +161,51 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
-window.__fb = { auth, db };
+window.__fb = { auth, db, doc, getDoc };
 
 // Si no hay sesión iniciada, de momento no redirigimos: esta pantalla
 // aún no tiene lógica propia de juego/guardado, solo boot + fondo + música.
 onAuthStateChanged(auth, (user) => {
   window.__fbUser = user || null;
+  loadClkBalance(user || null);
 });
+
+// ============ SALDO $CLK (solo lectura) ============
+// Lee el mismo documento saves/{uid} que index.html usa para todo el
+// progreso del juego. El campo "clk" ahí es el saldo GASTABLE actual
+// (baja al comprar mejoras), igual que el balance mostrado en index.html.
+// Esta pantalla NO escribe nada, solo refleja el saldo ya guardado.
+function fmtClk(n){
+  n=Math.floor(n);
+  if(n>=1e12)return(n/1e12).toFixed(2)+'T';
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return n+'';
+}
+async function loadClkBalance(user){
+  const numEl=document.getElementById('balMiniNum');
+  if(!numEl)return;
+  if(!user){
+    numEl.textContent='–';
+    return;
+  }
+  try{
+    const snap=await getDoc(doc(db,'saves',user.uid));
+    if(snap.exists()){
+      const raw=snap.data().data;
+      const parsed=JSON.parse(raw);
+      const clk=typeof parsed.clk==='number'?parsed.clk:0;
+      numEl.textContent=fmtClk(clk);
+      numEl.classList.remove('bump');void numEl.offsetWidth;numEl.classList.add('bump');
+    }else{
+      numEl.textContent='0';
+    }
+  }catch(err){
+    console.warn('No se pudo cargar el saldo $CLK:', err);
+    numEl.textContent='–';
+  }
+}
 </script>
 
 <!-- ============ PRELOAD + MÚSICA ============ -->
