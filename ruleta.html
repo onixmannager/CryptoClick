@@ -62,6 +62,48 @@
     50%{opacity:.9;}
   }
 
+  /* ---------- estrellas fugaces (se disparan mientras la rueda gira) ---------- */
+  .shooting-star{
+    position:fixed;
+    top:0;
+    left:0;
+    width:2px;
+    height:2px;
+    z-index:1;
+    pointer-events:none;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 0 6px 1px rgba(255,255,255,.9), 0 0 14px 3px rgba(123,47,214,.5);
+    opacity:0;
+    will-change:transform, opacity;
+  }
+  .shooting-star::after{
+    content:'';
+    position:absolute;
+    top:50%;
+    right:100%;
+    width:110px;
+    height:1.5px;
+    transform:translateY(-50%);
+    background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(191,230,255,.85) 100%);
+  }
+  @keyframes shoot{
+    0%{opacity:0; transform:translate(0,0) rotate(var(--ang));}
+    6%{opacity:1;}
+    85%{opacity:1;}
+    100%{opacity:0; transform:translate(var(--dx),var(--dy)) rotate(var(--ang));}
+  }
+
+  /* ---------- lienzo de fuegos artificiales (se dispara al ganar) ---------- */
+  #fireworksCanvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:40;
+    pointer-events:none;
+  }
+
   /* ---------- contenedor de la rueda ---------- */
   .wheel-wrap{
     position:relative;
@@ -236,6 +278,7 @@
 <body>
 
 <div class="stars" id="starsField"></div>
+<canvas id="fireworksCanvas"></canvas>
 
 <div class="stage">
 
@@ -730,6 +773,11 @@
     rotor.style.transition = 'transform 5.2s cubic-bezier(.11,.82,.1,1)';
     rotor.style.transform = `rotate(${currentRotation}deg)`;
 
+    // Mientras la rueda gira (los 5.2s de suspense), el fondo cobra vida con
+    // estrellas fugaces cruzando la pantalla — refuerza la sensación de estar
+    // "en juego" en vez de mirar una espera vacía.
+    startShootingStars();
+
     setTimeout(() => {
       spinning = false;
       spinCtaBtn.disabled = false;
@@ -737,11 +785,167 @@
       resultPill.textContent = `¡Ganaste ${prize.label}!`;
       resultBox.classList.add('show');
 
+      // El suspense termina: apagamos las estrellas fugaces y celebramos el
+      // premio con una tanda de fuegos artificiales, el "momento de recompensa"
+      // que hace que apetezca volver a girar.
+      stopShootingStars();
+      runFireworksShow();
+
       // Evento personalizado para que la web anfitriona pueda escuchar el resultado
       window.dispatchEvent(new CustomEvent('ruletaResultado', {
         detail: { label: prize.label, value: prize.value }
       }));
     }, 5300);
+  }
+
+  // ============================================================================
+  // Estrellas fugaces: se disparan varias veces mientras la rueda está girando,
+  // para que el fondo se sienta "vivo" durante los 5.2s de tensión antes del
+  // premio. Cada una es un <div> efímero que se autodestruye al terminar su
+  // animación CSS (evita ir acumulando nodos en el DOM sesión tras sesión).
+  // ============================================================================
+  function launchShootingStar(){
+    const star = document.createElement('div');
+    star.className = 'shooting-star';
+
+    // Punto de partida en un borde aleatorio (arriba o a la izquierda), ángulo
+    // de vuelo hacia abajo-derecha, como una estrella fugaz real cruzando el cielo.
+    const startFromTop = Math.random() < 0.5;
+    const startX = startFromTop ? Math.random() * window.innerWidth * 0.7 : -40;
+    const startY = startFromTop ? -20 : Math.random() * window.innerHeight * 0.5;
+    const angleDeg = 25 + Math.random() * 20; // trayectoria diagonal, 25°-45°
+    const distance = Math.max(window.innerWidth, window.innerHeight) * 0.9;
+    const rad = angleDeg * Math.PI / 180;
+    const dx = Math.cos(rad) * distance;
+    const dy = Math.sin(rad) * distance;
+    const duration = 0.9 + Math.random() * 0.6;
+
+    star.style.left = startX + 'px';
+    star.style.top = startY + 'px';
+    star.style.setProperty('--ang', angleDeg + 'deg');
+    star.style.setProperty('--dx', dx + 'px');
+    star.style.setProperty('--dy', dy + 'px');
+    star.style.animation = `shoot ${duration}s linear forwards`;
+
+    document.body.appendChild(star);
+    setTimeout(() => star.remove(), duration * 1000 + 100);
+  }
+
+  let shootingStarInterval = null;
+  function startShootingStars(){
+    stopShootingStars();
+    launchShootingStar(); // una inmediata, no esperar al primer intervalo
+    shootingStarInterval = setInterval(launchShootingStar, 650);
+  }
+  function stopShootingStars(){
+    if (shootingStarInterval){
+      clearInterval(shootingStarInterval);
+      shootingStarInterval = null;
+    }
+  }
+
+  // ============================================================================
+  // Fuegos artificiales: lienzo canvas a pantalla completa, dibuja varias
+  // explosiones de partículas (física simple: velocidad + gravedad + fricción +
+  // desvanecimiento) cuando se revela el premio. Pensado para reforzar el
+  // "momento de recompensa" y dar ganas de volver a girar.
+  // ============================================================================
+  const fwCanvas = document.getElementById('fireworksCanvas');
+  const fwCtx = fwCanvas.getContext('2d');
+  let fwParticles = [];
+  let fwAnimId = null;
+  let fwDPR = Math.max(1, window.devicePixelRatio || 1);
+
+  function resizeFireworksCanvas(){
+    fwDPR = Math.max(1, window.devicePixelRatio || 1);
+    fwCanvas.width = window.innerWidth * fwDPR;
+    fwCanvas.height = window.innerHeight * fwDPR;
+    fwCanvas.style.width = window.innerWidth + 'px';
+    fwCanvas.style.height = window.innerHeight + 'px';
+    fwCtx.setTransform(fwDPR, 0, 0, fwDPR, 0, 0);
+  }
+  window.addEventListener('resize', resizeFireworksCanvas);
+  resizeFireworksCanvas();
+
+  const FW_COLORS = ['#7ff2ff', '#f5d68a', '#e6b3ff', '#4bd8ff', '#ffe08a', '#c9a6ff'];
+
+  function spawnFireworkBurst(cx, cy, scale){
+    scale = scale || 1;
+    const particleCount = Math.round((46 + Math.floor(Math.random() * 18)) * scale);
+    const color = FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)];
+    for (let i = 0; i < particleCount; i++){
+      const angle = (i / particleCount) * Math.PI * 2 + Math.random() * 0.2;
+      const speed = (2.4 + Math.random() * 4.2) * Math.sqrt(scale);
+      fwParticles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        // decaimiento lento -> cada estallido tarda ~2-3.7s en apagarse del
+        // todo, así el cielo se mantiene "lleno" en vez de flashear y
+        // desaparecer de golpe entre una tanda y la siguiente
+        decay: 0.0045 + Math.random() * 0.0055,
+        size: (1.6 + Math.random() * 2.2) * Math.sqrt(scale),
+        color: Math.random() < 0.75 ? color : '#ffffff'
+      });
+    }
+  }
+
+  function runFireworksShow(){
+    // Estallido principal, grande y centrado sobre la rueda, justo en el
+    // instante en que se revela el premio: es el "boom" de impacto que marca
+    // el momento exacto de la recompensa.
+    spawnFireworkBurst(window.innerWidth * 0.5, window.innerHeight * 0.34, 1.9);
+
+    // Después, una tanda larga y escalonada de estallidos secundarios
+    // repartidos por la pantalla a lo largo de ~3.6s, como un castillo de
+    // fuegos artificiales que se sostiene varios segundos -- nunca se quedan
+    // más de ~450ms sin que nazca un estallido nuevo, así el show no tiene
+    // huecos donde se sienta que ya terminó antes de tiempo.
+    const bursts = 10 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < bursts; i++){
+      setTimeout(() => {
+        const bx = window.innerWidth * (0.14 + Math.random() * 0.72);
+        const by = window.innerHeight * (0.14 + Math.random() * 0.4);
+        spawnFireworkBurst(bx, by, 0.75 + Math.random() * 0.55);
+      }, 200 + i * 340);
+    }
+    if (!fwAnimId) fwAnimId = requestAnimationFrame(fireworksLoop);
+  }
+
+  function fireworksLoop(){
+    fwCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    fwCtx.globalCompositeOperation = 'lighter';
+
+    for (let i = fwParticles.length - 1; i >= 0; i--){
+      const p = fwParticles[i];
+      p.vy += 0.045;      // gravedad suave
+      p.vx *= 0.985;      // fricción del aire
+      p.vy *= 0.985;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+
+      if (p.life <= 0){
+        fwParticles.splice(i, 1);
+        continue;
+      }
+
+      fwCtx.globalAlpha = Math.max(0, p.life);
+      fwCtx.fillStyle = p.color;
+      fwCtx.beginPath();
+      fwCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      fwCtx.fill();
+    }
+
+    fwCtx.globalAlpha = 1;
+    fwCtx.globalCompositeOperation = 'source-over';
+
+    if (fwParticles.length > 0){
+      fwAnimId = requestAnimationFrame(fireworksLoop);
+    } else {
+      fwAnimId = null; // deja de dibujar cuando ya no queda ninguna partícula viva
+    }
   }
 
   spinCtaBtn.addEventListener('click', spin);
