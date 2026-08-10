@@ -88,9 +88,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
    Lee el mismo documento saves/{uid} que usa index.html para el saldo. */
 #balMini{display:flex;align-items:center;gap:7px;background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:12px;padding:6px 12px;min-width:0}
 #balMiniIcon{font-size:15px;flex-shrink:0}
-#balMiniNum{font-family:var(--fh);font-size:16px;color:var(--yellow);line-height:1;letter-spacing:.3px;transition:transform .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#balMiniNum{font-family:var(--fh);font-size:20px;color:var(--yellow);line-height:1;letter-spacing:.3px;transition:transform .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #balMiniNum.bump{transform:scale(1.08)}
-#balMiniLabel{font-size:9px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:1px;white-space:nowrap}
+#balMiniLabel{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:1px;white-space:nowrap}
+
+/* grupo izquierdo: logo + balance en columna */
+.left-group{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 
 </style>
 </head>
@@ -110,12 +113,14 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 <div id="app">
 
   <div id="topbar">
-    <a href="index.html" id="logo">👾 INVASIÓN</a>
-    <div id="balMini">
-      <span id="balMiniIcon">🪙</span>
-      <div>
-        <div id="balMiniNum">–</div>
-        <div id="balMiniLabel">$CLK</div>
+    <div class="left-group">
+      <a href="index.html" id="logo">👾 INVASIÓN</a>
+      <div id="balMini">
+        <span id="balMiniIcon">🪙</span>
+        <div>
+          <div id="balMiniNum">–</div>
+          <div id="balMiniLabel">$CLK</div>
+        </div>
       </div>
     </div>
     <div id="usermini">
