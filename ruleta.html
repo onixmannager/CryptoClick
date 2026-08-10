@@ -111,8 +111,8 @@
     font-family:'Arial Black', 'Segoe UI', sans-serif;
     font-weight:900;
     fill:url(#textGoldBevel);
-    stroke:#5c3a0f;
-    stroke-width:2.5;
+    stroke:#4a2b06;
+    stroke-width:3;
     paint-order:stroke fill;
     letter-spacing:.5px;
     filter:url(#textEmboss);
@@ -340,6 +340,27 @@
           <stop offset="88%" stop-color="#a9caff"/>
           <stop offset="100%" stop-color="#e2edff"/>
         </radialGradient>
+        <radialGradient id="secRed" cx="50%" cy="50%" r="75%">
+          <stop offset="0%" stop-color="#3a0a10"/>
+          <stop offset="38%" stop-color="#a3182b"/>
+          <stop offset="68%" stop-color="#e8536a"/>
+          <stop offset="88%" stop-color="#ffa7b6"/>
+          <stop offset="100%" stop-color="#ffe1e6"/>
+        </radialGradient>
+        <radialGradient id="secOrange" cx="50%" cy="50%" r="75%">
+          <stop offset="0%" stop-color="#3a1c02"/>
+          <stop offset="38%" stop-color="#c1650f"/>
+          <stop offset="68%" stop-color="#f5a13a"/>
+          <stop offset="88%" stop-color="#ffcf8f"/>
+          <stop offset="100%" stop-color="#ffedd0"/>
+        </radialGradient>
+        <radialGradient id="secTeal" cx="50%" cy="50%" r="75%">
+          <stop offset="0%" stop-color="#022f30"/>
+          <stop offset="38%" stop-color="#0d8b8f"/>
+          <stop offset="68%" stop-color="#3fd6da"/>
+          <stop offset="88%" stop-color="#a0f2f3"/>
+          <stop offset="100%" stop-color="#e0fdfd"/>
+        </radialGradient>
 
         <!-- sombra curva de "cuenco" superpuesta a cada sector, independiente del color -->
         <radialGradient id="bowlShade" cx="50%" cy="50%" r="72%">
@@ -358,16 +379,16 @@
 
         <!-- relieve dorado para texto: bisel metálico con luz arriba-izq y sombra abajo-der -->
         <linearGradient id="textGoldBevel" x1="0.2" y1="0" x2="0.75" y2="1">
-          <stop offset="0%" stop-color="#fff8e0"/>
-          <stop offset="35%" stop-color="#ffe9a8"/>
-          <stop offset="55%" stop-color="#e0ac3e"/>
-          <stop offset="80%" stop-color="#a9701f"/>
+          <stop offset="0%" stop-color="#fffdf5"/>
+          <stop offset="30%" stop-color="#fff1bf"/>
+          <stop offset="55%" stop-color="#f0bd4e"/>
+          <stop offset="80%" stop-color="#b3792a"/>
           <stop offset="100%" stop-color="#7a4d16"/>
         </linearGradient>
 
         <filter id="textEmboss" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="0" dy="2.5" stdDeviation="0" flood-color="#3a2200" flood-opacity="0.9"/>
-          <feDropShadow dx="0" dy="-1.5" stdDeviation="0" flood-color="#fff6d8" flood-opacity="0.55"/>
+          <feDropShadow dx="0" dy="2.5" stdDeviation="0" flood-color="#2a1503" flood-opacity="0.95"/>
+          <feDropShadow dx="0" dy="-1.5" stdDeviation="0" flood-color="#fff6d8" flood-opacity="0.6"/>
         </filter>
 
         <filter id="neonGlow" x="-60%" y="-60%" width="220%" height="220%">
@@ -460,45 +481,19 @@
       <!-- bombillas del canal hundido, radio intermedio entre los dos anillos dorados -->
       <g class="ring-lights" id="bulbsOuter"></g>
 
-      <!-- ===== rueda giratoria (sectores + textos) ===== -->
+      <!-- ===== rueda giratoria (sectores + textos) — generada 100% por JS con trigonometría exacta ===== -->
       <g id="wheelRotor">
 
         <!-- disco base -->
         <circle cx="250" cy="250" r="196" fill="#08101f"/>
 
-        <!-- 6 sectores de 60° cada uno, empezando arriba (100K), sentido horario -->
-        <!-- 100K arriba (verde) -->
-        <path d="M250,250 L250,54 A196,196 0 0,1 419.7,152 Z" fill="url(#secGreen)"/>
-        <!-- 5K arriba-derecha (púrpura) -->
-        <path d="M250,250 L419.7,152 A196,196 0 0,1 419.7,348 Z" fill="url(#secPurple)"/>
-        <!-- 10K abajo-derecha (azul) -->
-        <path d="M250,250 L419.7,348 A196,196 0 0,1 250,446 Z" fill="url(#secBlue)"/>
-        <!-- 25K abajo (verde) -->
-        <path d="M250,250 L250,446 A196,196 0 0,1 80.3,348 Z" fill="url(#secGreen)"/>
-        <!-- 50K abajo-izquierda (púrpura) -->
-        <path d="M250,250 L80.3,348 A196,196 0 0,1 80.3,152 Z" fill="url(#secPurple)"/>
-        <!-- 1K arriba-izquierda (azul) -->
-        <path d="M250,250 L80.3,152 A196,196 0 0,1 250,54 Z" fill="url(#secBlue)"/>
+        <!-- los <path> de cada sector y sus <text> se insertan aquí por JavaScript,
+             calculados con el mismo ángulo exacto que define el premio, así que
+             SIEMPRE coinciden sector <-> etiqueta <-> resultado del giro -->
+        <g id="sectorsGroup"></g>
 
-        <!-- líneas divisoras: doble trazo (dorado grueso + cian brillante fino) para simular separación física de gajos -->
-        <g stroke-linecap="round">
-          <g stroke="#7a4d16" stroke-width="5" opacity="0.55">
-            <line x1="250" y1="250" x2="250" y2="54"/>
-            <line x1="250" y1="250" x2="419.7" y2="152"/>
-            <line x1="250" y1="250" x2="419.7" y2="348"/>
-            <line x1="250" y1="250" x2="250" y2="446"/>
-            <line x1="250" y1="250" x2="80.3" y2="348"/>
-            <line x1="250" y1="250" x2="80.3" y2="152"/>
-          </g>
-          <g stroke="#7ff2ff" stroke-width="2.5" opacity="0.95" filter="url(#neonGlow)">
-            <line x1="250" y1="250" x2="250" y2="54"/>
-            <line x1="250" y1="250" x2="419.7" y2="152"/>
-            <line x1="250" y1="250" x2="419.7" y2="348"/>
-            <line x1="250" y1="250" x2="250" y2="446"/>
-            <line x1="250" y1="250" x2="80.3" y2="348"/>
-            <line x1="250" y1="250" x2="80.3" y2="152"/>
-          </g>
-        </g>
+        <!-- líneas divisoras: doble trazo (dorado grueso + cian brillante fino) -->
+        <g id="dividersGroup" stroke-linecap="round"></g>
 
         <!-- sombra curva tipo "cuenco" — da profundidad de plato hondo a cada sector -->
         <circle cx="250" cy="250" r="196" fill="url(#bowlShade)"/>
@@ -512,29 +507,12 @@
         <circle cx="250" cy="250" r="196" fill="none" stroke="#c99a3a" stroke-width="4"/>
         <circle cx="250" cy="250" r="192" fill="none" stroke="#fff6d8" stroke-width="1.5" opacity="0.5"/>
 
-        <!-- ===== textos de premios — centrados por trigonometría real en el centroide de cada sector ===== -->
-        <!-- 100K arriba: (325, 120) -->
-        <text class="sector-label" x="325" y="120" font-size="40" text-anchor="middle" dominant-baseline="middle">100K</text>
-        <!-- 5K arriba-derecha: (400, 250) -->
-        <text class="sector-label" x="400" y="250" font-size="44" text-anchor="middle" dominant-baseline="middle" transform="rotate(60 400 250)">5K</text>
-        <!-- 10K abajo-derecha: (325, 380) -->
-        <text class="sector-label" x="325" y="380" font-size="42" text-anchor="middle" dominant-baseline="middle" transform="rotate(-60 325 380)">10K</text>
-        <!-- 25K abajo: (175, 380) -->
-        <text class="sector-label" x="175" y="380" font-size="42" text-anchor="middle" dominant-baseline="middle">25K</text>
-        <!-- 50K abajo-izquierda: (100, 250) -->
-        <text class="sector-label" x="100" y="250" font-size="42" text-anchor="middle" dominant-baseline="middle" transform="rotate(60 100 250)">50K</text>
-        <!-- 1K arriba-izquierda: (175, 120) -->
-        <text class="sector-label" x="175" y="120" font-size="44" text-anchor="middle" dominant-baseline="middle" transform="rotate(-60 175 120)">1K</text>
+        <!-- ===== textos de premios: insertados por JS, centrados por trigonometría real
+             en el centroide de cada sector y orientados como un rayo recto desde el centro ===== -->
+        <g id="labelsGroup"></g>
 
-        <!-- marcadores triangulares dorados en los bordes -->
-        <g fill="url(#frameGold)" stroke="#5c3a0f" stroke-width="1.5">
-          <path d="M250,54 l10,16 l-20,0 Z"/>
-          <path d="M419.7,152 l16,10 l-18,10 Z" transform="translate(-6,-8)"/>
-          <path d="M419.7,348 l16,-10 l-18,-10 Z" transform="translate(-6,8)"/>
-          <path d="M250,446 l10,-16 l-20,0 Z"/>
-          <path d="M80.3,348 l-16,-10 l18,-10 Z" transform="translate(6,8)"/>
-          <path d="M80.3,152 l-16,10 l18,10 Z" transform="translate(6,-8)"/>
-        </g>
+        <!-- marcadores triangulares dorados en los bordes: uno por cada límite entre sectores -->
+        <g id="markersGroup" fill="url(#frameGold)" stroke="#5c3a0f" stroke-width="1.5"></g>
       </g>
 
       <!-- ===== hub central fijo (no gira) — esfera de cristal con profundidad real ===== -->
@@ -569,29 +547,31 @@
 
 <script>
 (function(){
-  // Premios en el ORDEN ANGULAR de la rueda, empezando en el sector de arriba (100K)
-  // y avanzando en sentido HORARIO, tal como en la imagen de referencia.
+  // ============================================================================
+  // ÚNICA FUENTE DE VERDAD DE LOS PREMIOS.
+  // Todo lo demás (sectores de colores, textos, marcadores, cálculo del giro y
+  // el resultado mostrado) se genera a partir de ESTE array, así que nunca puede
+  // haber un desajuste entre lo que se ve pintado y lo que realmente se gana.
+  //
+  // "angle" = ángulo del CENTRO del sector, medido en sentido horario desde
+  // arriba (12 en punto = 0°). No hace falta tocarlo si quieres añadir/quitar
+  // premios: el ancho de sector (arc) se reparte solo entre 360°.
+  // ============================================================================
   const prizes = [
-    { label: "100K", value: 100000, angle: 0   }, // arriba
-    { label: "5K",   value: 5000,   angle: 60  }, // arriba-derecha
-    { label: "10K",  value: 10000,  angle: 120 }, // abajo-derecha
-    { label: "25K",  value: 25000,  angle: 180 }, // abajo
-    { label: "50K",  value: 50000,  angle: 240 }, // abajo-izquierda
-    { label: "1K",   value: 1000,   angle: 300 }  // arriba-izquierda
+    { label: "100K", value: 100000, gradient: "secGreen"  },
+    { label: "5K",   value: 5000,   gradient: "secPurple" },
+    { label: "10K",  value: 10000,  gradient: "secBlue"   },
+    { label: "25K",  value: 25000,  gradient: "secRed"    },
+    { label: "50K",  value: 50000,  gradient: "secOrange" },
+    { label: "1K",   value: 1000,   gradient: "secTeal"   }
   ];
 
-  const rotor       = document.getElementById('wheelRotor');
-  const spinCtaBtn   = document.getElementById('spinCtaBtn');
-  const spinHubBtn   = document.getElementById('spinHubBtn');
-  const resultBox    = document.getElementById('resultBox');
-  const resultPill   = document.getElementById('resultPill');
-
-  let currentRotation = 0;
-  let spinning = false;
-
   // ---- probabilidades (opcional, editable) ----
-  // Pon aquí el "peso" relativo de cada premio para controlar la probabilidad.
-  // Por defecto son equiprobables (1 cada uno = 16.6% cada sector).
+  // "Peso" relativo de cada premio. Por defecto son equiprobables.
+  // Puedes cambiar estos números libremente: la geometría de la rueda (tamaño
+  // de cada sector, posición del texto) siempre se mantendrá coherente porque
+  // se recalcula a partir de "prizes", que es fijo; solo cambia la PROBABILIDAD
+  // de caer en cada sector, no su tamaño visual ni su etiqueta.
   const weights = {
     "100K": 1,
     "5K":   1,
@@ -600,6 +580,119 @@
     "50K":  1,
     "1K":   1
   };
+
+  const CX = 250, CY = 250;
+  const R_SECTOR   = 196;   // radio del disco de sectores
+  const R_LABEL    = 128;   // radio donde se centra el texto de cada premio
+  const R_MARK_IN  = 190;   // radio interior del marcador triangular
+  const R_MARK_OUT = 202;   // radio exterior del marcador triangular
+  const arc = 360 / prizes.length; // ancho angular de cada sector (60° con 6 premios)
+
+  // Convierte un ángulo "horario desde arriba" a coordenadas cartesianas del SVG.
+  // ángulo 0° = arriba (12 en punto), 90° = derecha, 180° = abajo, 270° = izquierda.
+  function polarToXY(angleDeg, radius){
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    return {
+      x: CX + radius * Math.cos(rad),
+      y: CY + radius * Math.sin(rad)
+    };
+  }
+
+  // Precalcula, para cada premio, su ángulo de inicio/centro/fin de sector.
+  // Esto es lo que garantiza la coherencia total: el mismo "centerAngle" se usa
+  // para dibujar el sector, para rotar+colocar su texto, y para calcular a qué
+  // ángulo debe parar la rueda cuando ese premio es el elegido.
+  prizes.forEach((p, i) => {
+    p.startAngle  = i * arc;
+    p.centerAngle = i * arc + arc / 2;
+    p.endAngle    = (i + 1) * arc;
+  });
+
+  const sectorsGroup  = document.getElementById('sectorsGroup');
+  const dividersGroup = document.getElementById('dividersGroup');
+  const labelsGroup   = document.getElementById('labelsGroup');
+  const markersGroup  = document.getElementById('markersGroup');
+
+  // ---- 1) Dibuja los 6 sectores (arcos) ----
+  prizes.forEach(p => {
+    const start = polarToXY(p.startAngle, R_SECTOR);
+    const end   = polarToXY(p.endAngle,   R_SECTOR);
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    // arco de más de 180°? con 6 sectores de 60° nunca ocurre, pero se calcula
+    // por si se cambia el número de premios en el futuro.
+    const largeArc = (p.endAngle - p.startAngle) > 180 ? 1 : 0;
+    path.setAttribute('d',
+      `M${CX},${CY} L${start.x.toFixed(2)},${start.y.toFixed(2)} A${R_SECTOR},${R_SECTOR} 0 ${largeArc},1 ${end.x.toFixed(2)},${end.y.toFixed(2)} Z`
+    );
+    path.setAttribute('fill', `url(#${p.gradient})`);
+    sectorsGroup.appendChild(path);
+  });
+
+  // ---- 2) Líneas divisoras en cada límite entre sectores (doble trazo) ----
+  const dividerAngles = prizes.map(p => p.startAngle); // un límite antes de cada sector
+  const thickLines = [];
+  const glowLines  = [];
+  dividerAngles.forEach(a => {
+    const pt = polarToXY(a, R_SECTOR);
+    thickLines.push(`<line x1="${CX}" y1="${CY}" x2="${pt.x.toFixed(2)}" y2="${pt.y.toFixed(2)}"/>`);
+    glowLines.push(`<line x1="${CX}" y1="${CY}" x2="${pt.x.toFixed(2)}" y2="${pt.y.toFixed(2)}"/>`);
+  });
+  dividersGroup.innerHTML = `
+    <g stroke="#7a4d16" stroke-width="5" opacity="0.55">${thickLines.join('')}</g>
+    <g stroke="#7ff2ff" stroke-width="2.5" opacity="0.95" filter="url(#neonGlow)">${glowLines.join('')}</g>
+  `;
+
+  // ---- 3) Etiquetas de texto: SIEMPRE centradas en el centroide real del
+  // sector y orientadas como un rayo recto (radial) desde el centro hacia
+  // afuera, nunca "de cabeza" en la mitad inferior de la rueda. ----
+  prizes.forEach(p => {
+    const pos = polarToXY(p.centerAngle, R_LABEL);
+    // Ángulo de rotación del texto = mismo ángulo del sector, para que quede
+    // perfectamente alineado como una línea recta (radial) desde el centro.
+    // Se normaliza matemáticamente al rango (-90°, 90°] usando módulo puro
+    // (sin condiciones con bordes ambiguos), así el texto nunca aparece
+    // invertido/patas arriba, ni siquiera en los ángulos exactos 90°/270°.
+    let textAngle = ((p.centerAngle + 180) % 360 + 360) % 360 - 180;
+    if (textAngle > 90) textAngle -= 180;
+    if (textAngle < -90) textAngle += 180;
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('class', 'sector-label');
+    text.setAttribute('x', pos.x.toFixed(2));
+    text.setAttribute('y', pos.y.toFixed(2));
+    text.setAttribute('font-size', '42');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('transform', `rotate(${textAngle.toFixed(2)} ${pos.x.toFixed(2)} ${pos.y.toFixed(2)})`);
+    text.textContent = p.label;
+    labelsGroup.appendChild(text);
+  });
+
+  // ---- 4) Marcadores triangulares dorados en cada límite entre sectores ----
+  dividerAngles.forEach(a => {
+    const tipIn  = polarToXY(a, R_MARK_IN);
+    const tipOut = polarToXY(a, R_MARK_OUT);
+    // perpendicular al radio, para dar ancho al triángulo
+    const perpRad = (a) * Math.PI / 180;
+    const nx = Math.cos(perpRad), ny = Math.sin(perpRad);
+    const widthPx = 9;
+    const p1x = tipOut.x + (-ny) * widthPx, p1y = tipOut.y + (nx) * widthPx;
+    const p2x = tipOut.x + (ny)  * widthPx, p2y = tipOut.y + (-nx) * widthPx;
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    poly.setAttribute('d', `M${tipIn.x.toFixed(2)},${tipIn.y.toFixed(2)} L${p1x.toFixed(2)},${p1y.toFixed(2)} L${p2x.toFixed(2)},${p2y.toFixed(2)} Z`);
+    markersGroup.appendChild(poly);
+  });
+
+  // ============================================================================
+  // Lógica de giro
+  // ============================================================================
+  const rotor       = document.getElementById('wheelRotor');
+  const spinCtaBtn   = document.getElementById('spinCtaBtn');
+  const spinHubBtn   = document.getElementById('spinHubBtn');
+  const resultBox    = document.getElementById('resultBox');
+  const resultPill   = document.getElementById('resultPill');
+
+  let currentRotation = 0;
+  let spinning = false;
 
   function pickWeightedPrize(){
     const pool = [];
@@ -621,13 +714,16 @@
 
     // El puntero está fijo arriba (0°). Para que el sector del premio quede
     // exactamente bajo el puntero, la rueda debe rotar de forma que
-    // (anguloSector + rotacionFinal) % 360 === 0.
-    // Añadimos vueltas completas extra para el efecto de giro, más un
-    // pequeño offset aleatorio dentro del sector para que no caiga siempre
-    // en el centro exacto (más natural).
+    // (anguloCentroSector + rotacionFinal) % 360 === 0.
+    // Se usa el mismo "centerAngle" que se usó para dibujar el sector y su
+    // texto, así el resultado mostrado SIEMPRE es el sector que queda bajo
+    // el puntero — no puede haber premio "de mentira".
     const extraSpins = 6 + Math.floor(Math.random() * 3); // 6-8 vueltas completas
-    const randomOffset = (Math.random() * 30) - 15; // +/-15° dentro del sector de 60°
-    const targetAngle = 360 * extraSpins - prize.angle + randomOffset;
+    // offset aleatorio dentro del sector, dejando un margen de seguridad para
+    // que nunca caiga demasiado cerca de una línea divisoria
+    const margin = arc * 0.28;
+    const randomOffset = (Math.random() * (arc - margin * 2)) - (arc / 2 - margin);
+    const targetAngle = 360 * extraSpins - prize.centerAngle + randomOffset;
 
     currentRotation += targetAngle;
 
