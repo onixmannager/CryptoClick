@@ -980,13 +980,15 @@ window.ALIEN_FRAMES = [
       img.src = src;
       return img;
     });
-    // pinta el primer frame en cuanto esté listo, para que el widget no
-    // aparezca vacío si el usuario mira antes de darle a girar
+    // pinta el primer frame en cuanto esté listo y hace visible el widget de
+    // una vez — así el alien queda estático desde el momento en que carga la
+    // página, sin esperar a que el usuario pulse GIRAR por primera vez
     alienImages[0].onload = () => {
       loaded++;
       if (loaded === ALIEN_FRAME_COUNT) alienImagesReady = true;
       alienAnimCtx.drawImage(alienImages[0], 0, 0, alienAnimCanvas.width, alienAnimCanvas.height);
       alignAlienToSpinButton(); // el canvas ya tiene su tamaño final renderizado
+      alienAnimWrap.classList.add('show');
     };
   })();
 
