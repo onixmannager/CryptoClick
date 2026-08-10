@@ -767,7 +767,14 @@
     // que nunca caiga demasiado cerca de una línea divisoria
     const margin = arc * 0.28;
     const randomOffset = (Math.random() * (arc - margin * 2)) - (arc / 2 - margin);
-    const targetAngle = 360 * extraSpins - prize.centerAngle + randomOffset;
+    // La fórmula de abajo asume que la rueda arranca desde una posición
+    // normalizada (0-360°). currentRotation es acumulativo entre tiradas, así
+    // que se normaliza aquí con modulo 360 antes de sumar el nuevo giro; si no,
+    // a partir de la 2ª tirada el giro seguiría sumándose sobre el ángulo bruto
+    // acumulado (miles de grados) y el sector que queda bajo el puntero se iría
+    // desalineando del premio real cada vez más.
+    const normalizedRotation = ((currentRotation % 360) + 360) % 360;
+    const targetAngle = 360 * extraSpins - prize.centerAngle + randomOffset - normalizedRotation;
 
     currentRotation += targetAngle;
 
