@@ -275,14 +275,16 @@
     .spin-cta{font-size:.85rem; padding:11px 30px;}
   }
 
-  /* ---------- alien animado, a la derecha de la pantalla, junto al botón GIRAR ---------- */
+  /* ---------- alien animado, pegado al lado derecho del botón GIRAR ---------- */
+  /* position:fixed a propósito: el <body> tiene overflow:hidden, así que un
+     elemento position:absolute dentro de .stage que se salga hacia la derecha
+     quedaría recortado sin más — fixed se posiciona contra el viewport y no
+     lo afecta. Su left/top exactos los calcula JS (alignAlienToSpinButton),
+     tomando como referencia la posición real del botón GIRAR en cada momento. */
   .alien-anim-wrap{
     position:fixed;
-    right:2.2vw;
-    top:50%;
-    transform:translateY(-50%);
     z-index:35;
-    width:min(30vw, 260px);
+    width:min(30vw, 200px);
     pointer-events:none;
     display:flex;
     align-items:center;
@@ -300,13 +302,11 @@
     filter:drop-shadow(0 10px 26px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(75,216,255,.35));
   }
 
-  /* en pantallas estrechas no cabe al lado de la rueda sin superponerse, así
-     que se encoge y se coloca en la esquina superior derecha */
+  /* en pantallas estrechas no cabe al lado del botón sin salirse de la
+     pantalla, así que se encoge y se coloca en la esquina superior derecha
+     (alignAlienToSpinButton respeta esto y no lo recoloca por JS aquí) */
   @media (max-width:860px){
     .alien-anim-wrap{
-      right:2vw;
-      top:1.5vh;
-      transform:none;
       width:min(26vw, 120px);
     }
   }
@@ -928,6 +928,45 @@ window.ALIEN_FRAMES = [
   let alienImages = [];
   let alienImagesReady = false;
 
+  // ----------------------------------------------------------------------------
+  // Coloca el widget pegado al lado derecho del botón GIRAR (#spinCtaBtn),
+  // leyendo su posición REAL en pantalla con getBoundingClientRect(). Así
+  // queda "al lado del botón" de verdad, sin importar el tamaño de ventana —
+  // en vez de un right/top fijo en el CSS que solo aproxima esa posición.
+  // En pantallas estrechas (<860px, ver media query del CSS) no hay espacio a
+  // la derecha del botón sin salirse de la pantalla, así que en ese caso se
+  // ancla a la esquina superior derecha en su lugar.
+  // ----------------------------------------------------------------------------
+  const ALIEN_NARROW_BREAKPOINT = 860;
+  function alignAlienToSpinButton(){
+    if (window.innerWidth < ALIEN_NARROW_BREAKPOINT){
+      alienAnimWrap.style.left = 'auto';
+      alienAnimWrap.style.top = '1.5vh';
+      alienAnimWrap.style.right = '2vw';
+      return;
+    }
+    const btnRect = spinCtaBtnRef().getBoundingClientRect();
+    const wrapWidth = alienAnimWrap.offsetWidth;
+    const gap = 24; // separación entre el botón y el alien
+    alienAnimWrap.style.right = 'auto';
+    alienAnimWrap.style.left = (btnRect.right + gap) + 'px';
+    // centrado verticalmente respecto al botón
+    alienAnimWrap.style.top = (btnRect.top + btnRect.height / 2 - alienAnimCanvas.getBoundingClientRect().height / 2) + 'px';
+
+    // si aun así no cupiera (ventana justa, wrap muy ancho), lo recoloca
+    // pegado al borde derecho de la pantalla en vez de salirse
+    const wouldOverflow = btnRect.right + gap + wrapWidth > window.innerWidth;
+    if (wouldOverflow){
+      alienAnimWrap.style.left = 'auto';
+      alienAnimWrap.style.right = '1.5vw';
+    }
+  }
+  // referencia perezosa porque spinCtaBtn se define más abajo en este mismo script
+  function spinCtaBtnRef(){ return document.getElementById('spinCtaBtn'); }
+
+  window.addEventListener('resize', alignAlienToSpinButton);
+  alignAlienToSpinButton();
+
   (function preloadAlienFrames(){
     let loaded = 0;
     alienImages = window.ALIEN_FRAMES.map((src) => {
@@ -945,6 +984,7 @@ window.ALIEN_FRAMES = [
       loaded++;
       if (loaded === ALIEN_FRAME_COUNT) alienImagesReady = true;
       alienAnimCtx.drawImage(alienImages[0], 0, 0, alienAnimCanvas.width, alienAnimCanvas.height);
+      alignAlienToSpinButton(); // el canvas ya tiene su tamaño final renderizado
     };
   })();
 
