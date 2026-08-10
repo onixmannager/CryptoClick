@@ -279,18 +279,20 @@
   /* position:fixed a propósito: el <body> tiene overflow:hidden, así que un
      elemento position:absolute dentro de .stage que se salga hacia la derecha
      quedaría recortado sin más — fixed se posiciona contra el viewport y no
-     lo afecta. Su left/top exactos los calcula JS (alignAlienToSpinButton),
-     tomando como referencia la posición real del botón GIRAR en cada momento. */
+     lo afecta. Su left/top/width exactos los calcula JS
+     (alignAlienToSpinButton) a partir de la posición real del botón GIRAR y
+     del espacio disponible en cada momento — por eso aquí NO hay media query
+     con un ancho fijo por breakpoint; el ancho es 100% dinámico. */
   .alien-anim-wrap{
     position:fixed;
     z-index:35;
-    width:min(30vw, 200px);
+    width:200px;
     pointer-events:none;
     display:flex;
     align-items:center;
     justify-content:center;
     opacity:0;
-    transition:opacity .35s ease;
+    transition:opacity .35s ease, width .2s ease;
   }
   .alien-anim-wrap.show{
     opacity:1;
@@ -300,15 +302,6 @@
     width:100%;
     height:auto;
     filter:drop-shadow(0 10px 26px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(75,216,255,.35));
-  }
-
-  /* en pantallas estrechas no cabe al lado del botón sin salirse de la
-     pantalla, así que se encoge y se coloca en la esquina superior derecha
-     (alignAlienToSpinButton respeta esto y no lo recoloca por JS aquí) */
-  @media (max-width:860px){
-    .alien-anim-wrap{
-      width:min(26vw, 120px);
-    }
   }
 </style>
 </head>
@@ -931,34 +924,43 @@ window.ALIEN_FRAMES = [
   // ----------------------------------------------------------------------------
   // Coloca el widget pegado al lado derecho del botón GIRAR (#spinCtaBtn),
   // leyendo su posición REAL en pantalla con getBoundingClientRect(). Así
-  // queda "al lado del botón" de verdad, sin importar el tamaño de ventana —
-  // en vez de un right/top fijo en el CSS que solo aproxima esa posición.
-  // En pantallas estrechas (<860px, ver media query del CSS) no hay espacio a
-  // la derecha del botón sin salirse de la pantalla, así que en ese caso se
-  // ancla a la esquina superior derecha en su lugar.
+  // queda "al lado del botón" de verdad, sin importar el tamaño de ventana.
+  //
+  // En vez de un breakpoint fijo (ej. "si la ventana mide menos de 860px, vete
+  // arriba"), se calcula el espacio real que queda a la derecha del botón en
+  // cada momento. Si no alcanza para el ancho normal del widget, este se
+  // encoge hasta un mínimo utilizable; solo si NI ASÍ cabe (pantallas muy
+  // angostas, tipo móvil en vertical) se coloca DEBAJO del botón — nunca
+  // arriba del todo, para que siga leyéndose como "al lado de GIRAR".
   // ----------------------------------------------------------------------------
-  const ALIEN_NARROW_BREAKPOINT = 860;
-  function alignAlienToSpinButton(){
-    if (window.innerWidth < ALIEN_NARROW_BREAKPOINT){
-      alienAnimWrap.style.left = 'auto';
-      alienAnimWrap.style.top = '1.5vh';
-      alienAnimWrap.style.right = '2vw';
-      return;
-    }
-    const btnRect = spinCtaBtnRef().getBoundingClientRect();
-    const wrapWidth = alienAnimWrap.offsetWidth;
-    const gap = 24; // separación entre el botón y el alien
-    alienAnimWrap.style.right = 'auto';
-    alienAnimWrap.style.left = (btnRect.right + gap) + 'px';
-    // centrado verticalmente respecto al botón
-    alienAnimWrap.style.top = (btnRect.top + btnRect.height / 2 - alienAnimCanvas.getBoundingClientRect().height / 2) + 'px';
+  const ALIEN_MAX_WIDTH = 200; // ancho "normal" (coincide con el CSS)
+  const ALIEN_MIN_WIDTH = 70;  // por debajo de esto ya no vale la pena encogerlo más
+  const ALIEN_GAP = 20;        // separación entre el botón y el alien
 
-    // si aun así no cupiera (ventana justa, wrap muy ancho), lo recoloca
-    // pegado al borde derecho de la pantalla en vez de salirse
-    const wouldOverflow = btnRect.right + gap + wrapWidth > window.innerWidth;
-    if (wouldOverflow){
-      alienAnimWrap.style.left = 'auto';
-      alienAnimWrap.style.right = '1.5vw';
+  function alignAlienToSpinButton(){
+    const btnRect = spinCtaBtnRef().getBoundingClientRect();
+    const spaceRight = window.innerWidth - btnRect.right - ALIEN_GAP - 8; // 8px margen de seguridad
+
+    if (spaceRight >= ALIEN_MIN_WIDTH){
+      // cabe al lado (a tamaño normal o encogido para que quepa)
+      const targetWidth = Math.min(ALIEN_MAX_WIDTH, spaceRight);
+      alienAnimWrap.style.width = targetWidth + 'px';
+      alienAnimWrap.style.left = (btnRect.right + ALIEN_GAP) + 'px';
+      alienAnimWrap.style.right = 'auto';
+      alienAnimWrap.style.bottom = 'auto';
+      // centrado verticalmente respecto al botón
+      const wrapHeight = alienAnimWrap.offsetHeight;
+      alienAnimWrap.style.top = (btnRect.top + btnRect.height / 2 - wrapHeight / 2) + 'px';
+    } else {
+      // no hay espacio horizontal ni encogido al mínimo: se coloca debajo del
+      // botón, centrado con él, para seguir estando "junto a GIRAR" en vez de
+      // saltar a una esquina lejana de la pantalla
+      const targetWidth = Math.min(ALIEN_MAX_WIDTH, window.innerWidth * 0.5);
+      alienAnimWrap.style.width = targetWidth + 'px';
+      alienAnimWrap.style.left = (btnRect.left + btnRect.width / 2 - targetWidth / 2) + 'px';
+      alienAnimWrap.style.right = 'auto';
+      alienAnimWrap.style.top = (btnRect.bottom + ALIEN_GAP) + 'px';
+      alienAnimWrap.style.bottom = 'auto';
     }
   }
   // referencia perezosa porque spinCtaBtn se define más abajo en este mismo script
