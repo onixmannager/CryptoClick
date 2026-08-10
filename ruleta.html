@@ -611,18 +611,26 @@
   ];
 
   // ---- probabilidades (opcional, editable) ----
-  // "Peso" relativo de cada premio. Por defecto son equiprobables.
-  // Puedes cambiar estos números libremente: la geometría de la rueda (tamaño
-  // de cada sector, posición del texto) siempre se mantendrá coherente porque
-  // se recalcula a partir de "prizes", que es fijo; solo cambia la PROBABILIDAD
-  // de caer en cada sector, no su tamaño visual ni su etiqueta.
+  // "Peso" relativo de cada premio. Puedes cambiar estos números libremente:
+  // la geometría de la rueda (tamaño de cada sector, posición del texto)
+  // siempre se mantendrá coherente porque se recalcula a partir de "prizes",
+  // que es fijo; solo cambia la PROBABILIDAD de caer en cada sector, no su
+  // tamaño visual ni su etiqueta.
+  //
+  // Reparto actual (sobre un total de 100): 1K+5K+10K suman 82% -> premios
+  // "normales", casi siempre caen; 25K+50K suman 16% -> más difíciles;
+  // 100K es 2% (1 de cada 50 tiradas en promedio) -> premio especial.
+  // OJO: el peso de "100K" de aquí abajo es solo el peso BASE. La probabilidad
+  // real de 100K sube con cada tirada que pasa sin que salga, para que nunca
+  // quede eternamente ausente pero tampoco se vuelva común (ver la "racha del
+  // premio mayor" en pickWeightedPrize, más abajo).
   const weights = {
-    "100K": 1,
-    "5K":   1,
-    "10K":  1,
-    "25K":  1,
-    "50K":  1,
-    "1K":   1
+    "100K": 2,
+    "5K":   28,
+    "10K":  22,
+    "25K":  10,
+    "50K":  6,
+    "1K":   32
   };
 
   const CX = 250, CY = 250;
@@ -738,13 +746,44 @@
   let currentRotation = 0;
   let spinning = false;
 
+  // ---- racha ("pity") del premio mayor (100K) ----
+  // Objetivo pedido: 1K/5K/10K salen casi siempre, 25K/50K son más difíciles,
+  // y 100K es "especial", casi nunca sale... pero tampoco debe quedar
+  // eternamente ausente. Por eso su peso no es fijo: se usa el peso BASE
+  // (2, definido arriba en "weights") mientras la racha sin 100K sea corta,
+  // y a partir de PITY_GRACE_SPINS tiradas sin que salga, ese peso empieza a
+  // subir poco a poco (sin techo) hasta que vuelve a tocar — momento en el
+  // que la racha se reinicia a 0. Además, 100K nunca puede salir dos veces
+  // seguidas (se excluye del sorteo justo en la tirada siguiente a haberlo
+  // ganado). Esta racha vive solo en memoria: no se guarda en ningún sitio,
+  // así que se reinicia si se recarga la página (a propósito, por ahora).
+  let spinsSinceLast100K = 0;
+  let lastPrizeLabel = null;
+  const PITY_GRACE_SPINS = 15; // tiradas de gracia antes de que el peso empiece a subir
+  const PITY_STEP_SPINS  = 8;  // cada cuántas tiradas (tras la gracia) sube un escalón
+  const PITY_STEP_AMOUNT = 3;  // cuánto sube el peso en cada escalón
+
+  function get100KWeight(){
+    const base = weights["100K"];
+    if (spinsSinceLast100K <= PITY_GRACE_SPINS) return base;
+    const stepsPast = Math.floor((spinsSinceLast100K - PITY_GRACE_SPINS) / PITY_STEP_SPINS);
+    return base + stepsPast * PITY_STEP_AMOUNT;
+  }
+
   function pickWeightedPrize(){
     const pool = [];
     prizes.forEach(p => {
-      const w = weights[p.label] ?? 1;
+      // nunca dos 100K seguidos: se excluye del sorteo en esta tirada
+      if (p.label === "100K" && lastPrizeLabel === "100K") return;
+      const w = (p.label === "100K") ? get100KWeight() : (weights[p.label] ?? 1);
       for (let i = 0; i < w; i++) pool.push(p);
     });
-    return pool[Math.floor(Math.random() * pool.length)];
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
+
+    spinsSinceLast100K = (chosen.label === "100K") ? 0 : spinsSinceLast100K + 1;
+    lastPrizeLabel = chosen.label;
+
+    return chosen;
   }
 
   function spin(){
