@@ -79,24 +79,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #placeholder h1{font-family:var(--fh);font-size:22px;color:var(--yellow);letter-spacing:.5px}
 #placeholder p{font-size:13px;color:var(--muted);font-weight:700;max-width:280px;line-height:1.6}
 
-/* ═══════════════════ DESKTOP (>=901px) ═══════════════════
-   El fondo sigue en background-size:cover + position:center top,
-   llenando toda la pantalla sin overlay de color; solo cambia la
-   "consola" #app, que se centra como panel flotante. */
-@media (min-width:901px){
-  body{
-    min-height:100vh;
-    display:flex;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;
-  }
-  #blobs{opacity:1.4}
-  #app{
-    order:1;position:relative;max-width:560px;width:560px;min-height:0;margin:0;padding-bottom:26px;
-    background:linear-gradient(180deg,rgba(255,255,255,.025),transparent 220px),var(--card);
-    border:1px solid var(--border);border-radius:28px;
-    box-shadow:0 30px 90px -20px rgba(0,0,0,.65);
-    max-height:86vh;overflow-y:auto;
-  }
-}
 </style>
 </head>
 <body>
