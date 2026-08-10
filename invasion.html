@@ -35,16 +35,14 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
-/* ═══════════ FONDO: imagen vertical, mismo criterio que index.html ═══════════
-   background-size:contain + position:center top → se ve la imagen vertical
-   COMPLETA, sin recortar. Igual en móvil y en escritorio (index.html NO
-   cambia esto en su media query desktop, solo centra la "consola" #app). */
+/* ═══════════ FONDO: imagen vertical, ajustada a pantalla completa ═══════════
+   background-size:cover + position:center top → la imagen vertical llena
+   TODO el viewport (móvil y escritorio), sin franjas vacías. Sin filtro
+   de color: se muestra la imagen tal cual, sin overlay oscuro. */
 html{
   width:100%;min-height:100vh;background-color:#0b0a14;
-  background-image:
-    linear-gradient(180deg,rgba(6,6,14,.35) 0%,rgba(8,7,18,.45) 45%,rgba(9,8,20,.55) 100%),
-    url('images/fondoinvasion.jpeg');
-  background-position:center top;background-size:contain;background-repeat:no-repeat;background-attachment:scroll;
+  background-image: url('images/fondoinvasion.jpeg');
+  background-position:center top;background-size:cover;background-repeat:no-repeat;background-attachment:scroll;
 }
 body{width:100%;min-height:100vh;background:transparent;color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none;scrollbar-width:none;-ms-overflow-style:none}
 html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
@@ -82,16 +80,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #placeholder p{font-size:13px;color:var(--muted);font-weight:700;max-width:280px;line-height:1.6}
 
 /* ═══════════════════ DESKTOP (>=901px) ═══════════════════
-   Mismo criterio que index.html: el fondo sigue en background-size:contain
-   + position:center top (imagen vertical COMPLETA, sin recortar); solo
-   cambia la "consola" #app, que se centra como panel flotante. */
+   El fondo sigue en background-size:cover + position:center top,
+   llenando toda la pantalla sin overlay de color; solo cambia la
+   "consola" #app, que se centra como panel flotante. */
 @media (min-width:901px){
   body{
     min-height:100vh;
-    background:
-      radial-gradient(ellipse 1200px 800px at 12% -10%, rgba(139,92,246,.16), transparent 60%),
-      radial-gradient(ellipse 1000px 700px at 100% 10%, rgba(255,60,172,.10), transparent 55%),
-      radial-gradient(ellipse 900px 900px at 50% 120%, rgba(6,182,212,.10), transparent 55%);
     display:flex;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;
   }
   #blobs{opacity:1.4}
