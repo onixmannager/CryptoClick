@@ -231,260 +231,11 @@
     .result-pill{font-size:.9rem; padding:9px 20px;}
     .spin-cta{font-size:.85rem; padding:11px 30px;}
   }
-
-  /* ============================================================================
-     ALIEN MASCOTA ANIMADA — esquina inferior izquierda
-     ============================================================================
-     Estructura de capas (todas ancladas al mismo pie/base para que ningún
-     movimiento "flote" ni se desconecte del suelo):
-       .alien-mascot        -> contenedor fijo en la esquina, define posición y tamaño
-         .alien-bob         -> capa de balanceo/salto vertical global (Y)
-           .alien-tilt      -> capa de inclinación de todo el cuerpo (rotación leve)
-             .alien-sprite  -> la imagen PNG real, con foco de transform-origin en los pies
-       .alien-shadow        -> sombra elíptica en el suelo, se comprime/expande con el salto
-
-     Dos animaciones CSS independientes controladas por clases JS:
-       .is-waiting    -> intriga/emoción mientras la ruleta gira (bucle continuo)
-       .is-celebrating -> festejo al anunciar el premio (una sola pasada, luego vuelve a idle)
-     Por defecto (sin clase) el alien respira suavemente en idle.
-  ---------------------------------------------------------------------------- */
-
-  .alien-mascot{
-    position:fixed;
-    left:clamp(8px, 2.5vw, 26px);
-    bottom:clamp(8px, 2.5vh, 26px);
-    width:clamp(78px, 16vw, 140px);
-    z-index:50;
-    pointer-events:none;
-    filter:drop-shadow(0 8px 14px rgba(0,0,0,.55));
-  }
-
-  .alien-shadow{
-    position:absolute;
-    left:50%;
-    bottom:-6%;
-    width:62%;
-    height:14%;
-    transform:translateX(-50%);
-    background:radial-gradient(ellipse at center, rgba(0,0,0,.55) 0%, rgba(0,0,0,.25) 55%, rgba(0,0,0,0) 80%);
-    border-radius:50%;
-    animation:shadowIdle 3.6s ease-in-out infinite;
-    transform-origin:center;
-  }
-
-  .alien-bob{
-    width:100%;
-    transform-origin:50% 100%;
-    animation:bobIdle 3.6s ease-in-out infinite;
-  }
-
-  .alien-tilt{
-    width:100%;
-    transform-origin:50% 96%;
-    animation:tiltIdle 3.6s ease-in-out infinite;
-  }
-
-  .alien-sprite{
-    display:block;
-    width:100%;
-    height:auto;
-    -webkit-user-select:none;
-    user-select:none;
-    transform-origin:50% 96%;
-  }
-
-  /* ---------------- IDLE: respiración suave, en bucle permanente ---------------- */
-  @keyframes bobIdle{
-    0%,100%{ transform:translateY(0); }
-    50%{ transform:translateY(-3%); }
-  }
-  @keyframes tiltIdle{
-    0%,100%{ transform:rotate(-1.2deg); }
-    50%{ transform:rotate(1.2deg); }
-  }
-  @keyframes shadowIdle{
-    0%,100%{ transform:translateX(-50%) scaleX(1); opacity:.75; }
-    50%{ transform:translateX(-50%) scaleX(.92); opacity:.55; }
-  }
-
-  /* ================================================================
-     FASE 1 — is-waiting: intriga / emoción mientras gira la ruleta
-     El cuerpo se inclina hacia adelante como "asomándose" a mirar,
-     la cabeza-cuerpo oscila siguiendo el giro imaginario de la rueda,
-     hay un ligero temblor de expectación y un salto de impaciencia
-     cada cierto tiempo. Bucle continuo (se corta cuando llega el
-     resultado y se cambia a is-celebrating).
-     ================================================================ */
-  .alien-mascot.is-waiting .alien-bob{
-    animation:bobWaiting 0.62s ease-in-out infinite;
-  }
-  .alien-mascot.is-waiting .alien-tilt{
-    animation:tiltWaiting 1.85s cubic-bezier(.45,0,.55,1) infinite;
-  }
-  .alien-mascot.is-waiting .alien-shadow{
-    animation:shadowWaiting 0.62s ease-in-out infinite;
-  }
-  .alien-mascot.is-waiting .alien-sprite{
-    animation:squashWaiting 0.62s ease-in-out infinite;
-  }
-
-  @keyframes bobWaiting{
-    0%,100%{ transform:translateY(0); }
-    50%{ transform:translateY(-5%); }
-  }
-
-  /* inclinación pronunciada hacia adelante + balanceo lateral tipo
-     "siguiendo la rueda con la mirada", con un pico de tensión donde
-     se inclina más hacia el centro de la escena (derecha) como si
-     estirara el cuello para ver mejor el premio */
-  @keyframes tiltWaiting{
-    0%      { transform:rotate(-3deg)  translateX(0); }
-    12%     { transform:rotate(6deg)   translateX(2%); }
-    25%     { transform:rotate(-8deg)  translateX(-1%); }
-    37%     { transform:rotate(9deg)   translateX(3%); }
-    50%     { transform:rotate(-10deg) translateX(-2%); }
-    62%     { transform:rotate(10deg)  translateX(4%) scale(1.04); }
-    75%     { transform:rotate(-7deg)  translateX(-1%); }
-    87%     { transform:rotate(5deg)   translateX(2%); }
-    100%    { transform:rotate(-3deg)  translateX(0); }
-  }
-
-  @keyframes shadowWaiting{
-    0%,100%{ transform:translateX(-50%) scaleX(1); opacity:.7; }
-    50%{ transform:translateX(-50%) scaleX(.82); opacity:.45; }
-  }
-
-  /* micro "squash & stretch" nervioso en la propia imagen, como si
-     contuviera la respiración por la emoción */
-  @keyframes squashWaiting{
-    0%,100%{ transform:scaleY(1) scaleX(1); }
-    50%{ transform:scaleY(1.03) scaleX(.985); }
-  }
-
-  /* ================================================================
-     FASE 2 — is-celebrating: festejo al ganar el premio
-     Secuencia única (no infinita): sorpresa breve -> salto grande con
-     giro de alegría -> rebotes decrecientes -> pose final feliz con
-     balanceo idle de nuevo. Duración pensada para encajar con el
-     tiempo que el result-box tarda en mostrarse (~1.9s).
-     ================================================================ */
-  .alien-mascot.is-celebrating .alien-bob{
-    animation:bobCelebrate 1.9s cubic-bezier(.34,1.56,.64,1) 1;
-  }
-  .alien-mascot.is-celebrating .alien-tilt{
-    animation:tiltCelebrate 1.9s cubic-bezier(.34,1.56,.64,1) 1;
-  }
-  .alien-mascot.is-celebrating .alien-shadow{
-    animation:shadowCelebrate 1.9s cubic-bezier(.34,1.56,.64,1) 1;
-  }
-  .alien-mascot.is-celebrating .alien-sprite{
-    animation:squashCelebrate 1.9s cubic-bezier(.34,1.56,.64,1) 1;
-  }
-
-  @keyframes bobCelebrate{
-    0%    { transform:translateY(0); }
-    8%    { transform:translateY(6%); }               /* se agacha para tomar impulso */
-    22%   { transform:translateY(-68%); }              /* salto grande de alegría */
-    34%   { transform:translateY(-56%); }
-    46%   { transform:translateY(-3%); }               /* aterriza */
-    56%   { transform:translateY(-26%); }              /* rebote 2 */
-    68%   { transform:translateY(0%); }
-    78%   { transform:translateY(-11%); }              /* rebote 3, más pequeño */
-    88%   { transform:translateY(0%); }
-    100%  { transform:translateY(0); }
-  }
-
-  @keyframes tiltCelebrate{
-    0%    { transform:rotate(-2deg)   scale(1); }
-    8%    { transform:rotate(-9deg)   scale(.94); }    /* se encoge de sorpresa/emoción */
-    22%   { transform:rotate(20deg)   scale(1.14); }   /* salto con giro hacia un lado */
-    34%   { transform:rotate(-22deg)  scale(1.14); }   /* giro hacia el otro, "bailando" */
-    46%   { transform:rotate(13deg)   scale(1.04); }
-    56%   { transform:rotate(-12deg)  scale(1.07); }
-    68%   { transform:rotate(8deg)    scale(1.01); }
-    78%   { transform:rotate(-5deg)   scale(1.03); }
-    88%   { transform:rotate(2deg)    scale(1); }
-    100%  { transform:rotate(0deg)    scale(1); }
-  }
-
-  @keyframes shadowCelebrate{
-    0%    { transform:translateX(-50%) scaleX(1);   opacity:.75; }
-    8%    { transform:translateX(-50%) scaleX(1.1);  opacity:.8; }
-    22%   { transform:translateX(-50%) scaleX(.4);   opacity:.15; }  /* sombra muy chica = está bien arriba */
-    34%   { transform:translateX(-50%) scaleX(.48);  opacity:.18; }
-    46%   { transform:translateX(-50%) scaleX(1.15); opacity:.7; }   /* aterriza, sombra ancha */
-    56%   { transform:translateX(-50%) scaleX(.7);   opacity:.35; }
-    68%   { transform:translateX(-50%) scaleX(1.05); opacity:.7; }
-    78%   { transform:translateX(-50%) scaleX(.88);  opacity:.5; }
-    88%   { transform:translateX(-50%) scaleX(1);    opacity:.75; }
-    100%  { transform:translateX(-50%) scaleX(1);    opacity:.75; }
-  }
-
-  @keyframes squashCelebrate{
-    0%    { transform:scaleY(1)    scaleX(1); }
-    8%    { transform:scaleY(.88)  scaleX(1.12); }     /* se aplasta antes de saltar */
-    22%   { transform:scaleY(1.18) scaleX(.88); }       /* estirado en el aire */
-    34%   { transform:scaleY(1.15) scaleX(.9); }
-    46%   { transform:scaleY(.85)  scaleX(1.15); }      /* aplastado al aterrizar */
-    56%   { transform:scaleY(1.08) scaleX(.95); }
-    68%   { transform:scaleY(.95)  scaleX(1.05); }
-    78%   { transform:scaleY(1.04) scaleX(.98); }
-    88%   { transform:scaleY(.99)  scaleX(1.01); }
-    100%  { transform:scaleY(1)    scaleX(1); }
-  }
-
-  /* estrellitas/destellos de celebración alrededor del alien.
-     El contenedor NO anima opacidad propia (eso causaba doble-atenuación
-     junto con la animación de cada .spark y las dejaba casi invisibles);
-     solo posiciona el área donde se generan las chispas. Cada .spark
-     controla su propia aparición/desaparición de forma independiente. */
-  .alien-sparkles{
-    position:absolute;
-    inset:-55% -70%;
-    pointer-events:none;
-  }
-  .spark{
-    position:absolute;
-    width:14px;height:14px;
-    margin:-7px 0 0 -7px; /* centra el marcador en su punto left/top */
-    background:radial-gradient(circle, #fffdf0 0%, var(--gold-light) 35%, var(--gold) 70%, transparent 100%);
-    clip-path:polygon(50% 0%, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0% 50%, 37% 37%);
-    filter:drop-shadow(0 0 6px rgba(255,244,190,.95)) drop-shadow(0 0 12px rgba(75,216,255,.6));
-    animation:sparkPop 1.3s ease-out 1 both;
-    opacity:0;
-  }
-  @keyframes sparkPop{
-    0%     { transform:scale(0)    rotate(0deg);   opacity:0; }
-    12%    { transform:scale(1.4)  rotate(40deg);  opacity:1; }
-    30%    { transform:scale(1)    rotate(90deg);  opacity:1; }
-    70%    { transform:scale(.85)  rotate(170deg); opacity:.9; }
-    100%   { transform:scale(0)    rotate(230deg); opacity:0; }
-  }
-
-  @media (max-width:380px){
-    .alien-mascot{ width:clamp(64px, 20vw, 100px); }
-  }
 </style>
 </head>
 <body>
 
 <div class="stars" id="starsField"></div>
-
-<!-- ===================== ALIEN MASCOTA — esquina inferior izquierda =====================
-     Estados controlados por JS añadiendo/quitando clases sobre #alienMascot:
-       (sin clase)      -> idle, respiración suave en bucle
-       is-waiting       -> intriga/emoción mientras la ruleta está girando
-       is-celebrating   -> festejo al anunciar el premio (una sola pasada)
-     ============================================================================ -->
-<div class="alien-mascot" id="alienMascot">
-  <div class="alien-shadow"></div>
-  <div class="alien-bob">
-    <div class="alien-tilt">
-      <img class="alien-sprite" src="alien.png" alt="Alien mascota" draggable="false">
-    </div>
-  </div>
-  <div class="alien-sparkles" id="alienSparkles"></div>
-</div>
 
 <div class="stage">
 
@@ -857,26 +608,6 @@
     p.endAngle    = (i + 1) * arc;
   });
 
-  // ---- Validación de integridad al cargar ----
-  // Impide que la rueda arranque en un estado ambiguo: dos premios con la
-  // misma etiqueta harían imposible saber cuál de los dos "ganó" realmente,
-  // y un peso en "weights" que no corresponde a ningún premio dibujado sería
-  // ruido sin efecto. Si algo de esto ocurre, se avisa fuerte en consola.
-  (function validatePrizeIntegrity(){
-    const seen = new Set();
-    prizes.forEach(p => {
-      if (seen.has(p.label)){
-        console.error('[ruleta] ERROR DE CONFIGURACIÓN: la etiqueta "' + p.label + '" está repetida en "prizes". Cada premio debe tener una etiqueta única, o la rueda podría anunciar el premio equivocado entre los dos.');
-      }
-      seen.add(p.label);
-    });
-    Object.keys(weights).forEach(key => {
-      if (!seen.has(key)){
-        console.warn('[ruleta] Aviso: "weights" tiene una entrada ("' + key + '") que no corresponde a ningún premio dibujado en "prizes". Esa entrada se ignora y no tiene ningún efecto.');
-      }
-    });
-  })();
-
   const sectorsGroup  = document.getElementById('sectorsGroup');
   const dividersGroup = document.getElementById('dividersGroup');
   const labelsGroup   = document.getElementById('labelsGroup');
@@ -960,58 +691,6 @@
   const resultBox    = document.getElementById('resultBox');
   const resultPill   = document.getElementById('resultPill');
 
-  // ---- referencias del alien mascota animado ----
-  const alienMascot   = document.getElementById('alienMascot');
-  const alienSparkles = document.getElementById('alienSparkles');
-
-  // Genera las chispas doradas de celebración alrededor del alien.
-  // Se regeneran en cada victoria para que el DOM no acumule nodos viejos
-  // y para poder reiniciar limpiamente la animación CSS de cada spark.
-  // Se lanzan en dos "oleadas" (delay 0 y delay ~0.55s) para que las chispas
-  // acompañen tanto el salto inicial como los rebotes posteriores, en vez
-  // de aparecer todas de golpe y apagarse mucho antes de que termine el gesto.
-  function spawnAlienSparkles(){
-    alienSparkles.innerHTML = '';
-    const count = 12;
-    for (let i = 0; i < count; i++){
-      const s = document.createElement('div');
-      s.className = 'spark';
-      const angle = (i / count) * 360 + (Math.random() * 18 - 9);
-      const dist  = 30 + Math.random() * 20; // % relativo al contenedor .alien-sparkles
-      const rad = angle * Math.PI / 180;
-      const x = 50 + Math.cos(rad) * dist;
-      const y = 50 + Math.sin(rad) * dist * 0.8; // achatado verticalmente, más "aro" que círculo
-      s.style.left = x + '%';
-      s.style.top  = y + '%';
-      const wave = i % 2 === 0 ? 0 : 0.55; // dos oleadas intercaladas
-      s.style.animationDelay = (wave + Math.random() * 0.12) + 's';
-      alienSparkles.appendChild(s);
-    }
-  }
-
-  // Pone al alien en modo "intriga": se llama justo al iniciar cada giro.
-  function alienStartWaiting(){
-    alienMascot.classList.remove('is-celebrating');
-    // forzar reflow para poder re-lanzar 'is-waiting' aunque ya estuviera puesta
-    // (por si el usuario encadena giros muy rápido en el futuro)
-    void alienMascot.offsetWidth;
-    alienMascot.classList.add('is-waiting');
-  }
-
-  // Cambia al alien a modo "celebración": se llama al anunciar el premio.
-  function alienStartCelebrating(){
-    alienMascot.classList.remove('is-waiting');
-    void alienMascot.offsetWidth;
-    spawnAlienSparkles();
-    alienMascot.classList.add('is-celebrating');
-    // Al terminar la animación de festejo, vuelve a idle (sin clase) y limpia
-    // las chispas para dejar el DOM ligero hasta la próxima victoria.
-    setTimeout(() => {
-      alienMascot.classList.remove('is-celebrating');
-      alienSparkles.innerHTML = '';
-    }, 1950);
-  }
-
   let currentRotation = 0;
   let spinning = false;
 
@@ -1024,31 +703,6 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
-  // ============================================================================
-  // BLINDAJE ANTI-DESAJUSTE: dado el ángulo final REAL que quedó aplicado al
-  // rotor (currentRotation), calcula matemáticamente cuál de los "prizes"
-  // definidos arriba es el que físicamente está bajo el puntero (0°, arriba)
-  // en ESTE momento. No confía en "qué premio se pretendía" — vuelve a leer
-  // la geometría desde cero. Se usa como verificación obligatoria antes de
-  // anunciar cualquier resultado: solo puede mostrarse un premio que de
-  // verdad exista en "prizes" y que de verdad esté bajo el puntero.
-  // ============================================================================
-  function getPrizeUnderPointer(finalRotationDeg){
-    // Normaliza la rotación aplicada al rango [0, 360)
-    const rot = ((finalRotationDeg % 360) + 360) % 360;
-    // Si el disco rotó "rot" grados en sentido horario, el punto del disco
-    // que ahora coincide con el puntero (posición fija 0°) es el que
-    // ORIGINALMENTE estaba en el ángulo (360 - rot) mod 360.
-    const originalAngleAtPointer = ((360 - rot) % 360 + 360) % 360;
-    // Busca en qué sector [startAngle, endAngle) cae ese ángulo original.
-    // Los sectores son exactamente los mismos "prizes" ya definidos arriba:
-    // solo puede devolver uno de los premios que realmente existen en la rueda.
-    let found = prizes.find(p => originalAngleAtPointer >= p.startAngle && originalAngleAtPointer < p.endAngle);
-    // Salvaguarda de precisión de punto flotante para el borde exacto 360°/0°
-    if (!found) found = prizes[0];
-    return found;
-  }
-
   function spin(){
     if (spinning) return;
     spinning = true;
@@ -1056,36 +710,20 @@
     spinHubBtn.disabled = true;
     resultBox.classList.remove('show');
 
-    // el alien empieza a mirar la ruleta con intriga/emoción justo cuando arranca el giro
-    alienStartWaiting();
-
     const prize = pickWeightedPrize();
 
     // El puntero está fijo arriba (0°). Para que el sector del premio quede
-    // exactamente bajo el puntero, la rueda debe terminar este giro en el
-    // ángulo (mod 360) donde ese sector coincide con el puntero.
-    //
-    // IMPORTANTE: "currentRotation" es la rotación TOTAL acumulada desde el
-    // primer giro (crece sin límite, giro tras giro). El disco YA puede estar
-    // desfasado de 0° por los giros anteriores, así que el ángulo a girar
-    // AHORA debe calcularse relativo a esa posición actual — no en aislamiento
-    // como si el disco siempre arrancara en 0°. Por eso se resta el desfase
-    // actual (currentRotation mod 360) antes de sumar las vueltas completas.
+    // exactamente bajo el puntero, la rueda debe rotar de forma que
+    // (anguloCentroSector + rotacionFinal) % 360 === 0.
     // Se usa el mismo "centerAngle" que se usó para dibujar el sector y su
     // texto, así el resultado mostrado SIEMPRE es el sector que queda bajo
-    // el puntero — no puede haber premio "de mentira", en ningún giro,
-    // incluyendo el segundo, el décimo o el número mil de la sesión.
+    // el puntero — no puede haber premio "de mentira".
     const extraSpins = 6 + Math.floor(Math.random() * 3); // 6-8 vueltas completas
     // offset aleatorio dentro del sector, dejando un margen de seguridad para
     // que nunca caiga demasiado cerca de una línea divisoria
     const margin = arc * 0.28;
     const randomOffset = (Math.random() * (arc - margin * 2)) - (arc / 2 - margin);
-
-    const normDeg = (x) => ((x % 360) + 360) % 360;
-    const desiredFinalMod = normDeg(-prize.centerAngle + randomOffset);
-    const currentMod = normDeg(currentRotation);
-    const deltaToTarget = normDeg(desiredFinalMod - currentMod);
-    const targetAngle = deltaToTarget + 360 * extraSpins;
+    const targetAngle = 360 * extraSpins - prize.centerAngle + randomOffset;
 
     currentRotation += targetAngle;
 
@@ -1096,34 +734,12 @@
       spinning = false;
       spinCtaBtn.disabled = false;
       spinHubBtn.disabled = false;
-
-      // VERIFICACIÓN OBLIGATORIA: antes de anunciar nada, se recalcula desde
-      // cero, a partir del ángulo final REAL aplicado al rotor, qué sector
-      // está físicamente bajo el puntero. Este es el premio que se anuncia
-      // SIEMPRE — nunca el premio "elegido" al azar al inicio del giro. En
-      // condiciones normales ambos son el mismo objeto (por eso no se nota
-      // ninguna diferencia visual), pero esta doble comprobación asegura
-      // matemáticamente que jamás se puede anunciar un premio que no sea
-      // exactamente el que quedó bajo el puntero.
-      const verifiedPrize = getPrizeUnderPointer(currentRotation);
-      if (verifiedPrize.label !== prize.label){
-        // Esto no debería ocurrir nunca; se deja registrado por si en el
-        // futuro alguien modifica el código y rompe la sincronía, para que
-        // el fallo sea visible en desarrollo en vez de pasar desapercibido.
-        console.warn('[ruleta] Discrepancia detectada y corregida: se iba a anunciar "' + prize.label + '" pero el sector real bajo el puntero es "' + verifiedPrize.label + '". Se usa el resultado verificado.');
-      }
-
-      resultPill.textContent = `¡Ganaste ${verifiedPrize.label}!`;
+      resultPill.textContent = `¡Ganaste ${prize.label}!`;
       resultBox.classList.add('show');
 
-      // el alien deja de "esperar" y celebra el premio que se acaba de anunciar
-      alienStartCelebrating();
-
-      // Evento personalizado para que la web anfitriona pueda escuchar el
-      // resultado. Usa siempre el premio verificado (el que realmente está
-      // bajo el puntero), nunca el "elegido" antes de girar.
+      // Evento personalizado para que la web anfitriona pueda escuchar el resultado
       window.dispatchEvent(new CustomEvent('ruletaResultado', {
-        detail: { label: verifiedPrize.label, value: verifiedPrize.value }
+        detail: { label: prize.label, value: prize.value }
       }));
     }, 5300);
   }
