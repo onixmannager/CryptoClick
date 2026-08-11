@@ -303,6 +303,88 @@
     height:auto;
     filter:drop-shadow(0 10px 26px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(75,216,255,.35));
   }
+
+  /* ---------- topbar: volver al juego + saldo $CLK ---------- */
+  /* Mismo lenguaje visual "glass panel" que index.html/invasion.html, para que
+     el saldo se sienta parte de la misma app y no un añadido suelto. */
+  #ruletaTopbar{
+    position:relative;
+    z-index:3;
+    width:100%;
+    max-width:min(92vw, 440px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  #ruletaBackLink{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--cyan-glow);
+    text-decoration:none;
+    font-weight:800;
+    font-size:.8rem;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    opacity:.85;
+  }
+  #ruletaBalPill{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    background:rgba(10,12,22,.5);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:12px;
+    padding:6px 12px;
+  }
+  #ruletaBalIcon{font-size:16px;}
+  #ruletaBalNum{
+    font-family:'Arial Black','Segoe UI',sans-serif;
+    font-weight:900;
+    font-size:15px;
+    color:var(--gold-light);
+    line-height:1;
+    transition:transform .15s;
+  }
+  #ruletaBalNum.bump{transform:scale(1.12);}
+  #ruletaBalLabel{
+    font-size:9px;
+    color:var(--cyan-glow);
+    font-weight:800;
+    letter-spacing:1.2px;
+    opacity:.7;
+  }
+
+  /* ---------- overlay de login (si se abre ruleta.html sin sesión) ---------- */
+  #ruletaLoginOv{
+    position:fixed;inset:0;z-index:200;
+    background:rgba(3,4,12,.92);
+    display:none;
+    align-items:center;justify-content:center;
+    padding:24px;
+    text-align:center;
+  }
+  #ruletaLoginOv.show{display:flex;}
+  #ruletaLoginBox{
+    max-width:340px;
+    display:flex;flex-direction:column;align-items:center;gap:14px;
+  }
+  #ruletaLoginBox p{color:#cfd8ff;font-size:.9rem;line-height:1.4;}
+  #ruletaLoginGo{
+    padding:12px 26px;
+    border-radius:999px;
+    border:2px solid var(--gold);
+    background:linear-gradient(180deg,#3a1266,#1a0838);
+    color:var(--gold-light);
+    font-weight:800;
+    text-decoration:none;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
 </style>
 </head>
 <body>
@@ -310,7 +392,28 @@
 <div class="stars" id="starsField"></div>
 <canvas id="fireworksCanvas"></canvas>
 
+<!-- Overlay de login: la ruleta necesita sesión iniciada porque el premio se
+     suma al mismo saldo $CLK de saves/{uid} que usa index.html. Si alguien
+     abre ruleta.html directo sin haber iniciado sesión en el juego principal,
+     no hay a qué cuenta sumarle el premio. -->
+<div id="ruletaLoginOv"><div id="ruletaLoginBox">
+  <div style="font-size:40px">🔒</div>
+  <p>Inicia sesión en CRYPTO ALIEN para que tus premios de la ruleta se sumen a tu saldo $CLK.</p>
+  <a id="ruletaLoginGo" href="index.html">Ir a iniciar sesión</a>
+</div></div>
+
 <div class="stage">
+
+  <div id="ruletaTopbar">
+    <a id="ruletaBackLink" href="index.html">← Volver</a>
+    <div id="ruletaBalPill">
+      <span id="ruletaBalIcon">🪙</span>
+      <div>
+        <div id="ruletaBalNum">–</div>
+        <div id="ruletaBalLabel">$CLK</div>
+      </div>
+    </div>
+  </div>
 
   <div class="wheel-wrap" id="wheelWrap">
 
@@ -1067,6 +1170,12 @@ window.ALIEN_FRAMES = [
 
   function spin(){
     if (spinning) return;
+    // La ruleta suma el premio al saldo $CLK del juego principal, así que
+    // necesita sesión iniciada. Sin usuario no hay a qué cuenta sumarle nada.
+    if (!window.__fbUser){
+      document.getElementById('ruletaLoginOv').classList.add('show');
+      return;
+    }
     spinning = true;
     spinCtaBtn.disabled = true;
     spinHubBtn.disabled = true;
@@ -1125,6 +1234,11 @@ window.ALIEN_FRAMES = [
       window.dispatchEvent(new CustomEvent('ruletaResultado', {
         detail: { label: prize.label, value: prize.value }
       }));
+
+      // Suma el premio al saldo $CLK real (Firestore + localStorage), el
+      // mismo que usa index.html. Sin esto la rueda giraba "bonito" pero el
+      // premio se perdía: solo vivía un instante en el texto de resultPill.
+      if (window.awardRuletaPrize) window.awardRuletaPrize(prize.value);
     }, 5300);
   }
 
@@ -1312,6 +1426,182 @@ window.ALIEN_FRAMES = [
     bulbsOuter.appendChild(circle);
   }
 })();
+</script>
+
+<!-- ============ FIREBASE (mismo proyecto que index.html) ============
+     La ruleta lee y escribe el mismo documento saves/{uid} que usa
+     index.html para todo el progreso del juego. El campo "clk" es el saldo
+     GASTABLE actual y "totalClk" un contador acumulado que solo sube; el
+     premio de la ruleta suma a ambos, exactamente como hace addClk() en
+     index.html, para que un giro se refleje igual que cualquier otra forma
+     de ganar $CLK dentro del juego. -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAEVcDHhKSyPd4n_U-DXzJI7lskY7BTiyI",
+  authDomain: "crypto-alien.firebaseapp.com",
+  projectId: "crypto-alien",
+  storageBucket: "crypto-alien.firebasestorage.app",
+  messagingSenderId: "61542154571",
+  appId: "1:61542154571:web:bddd5100632abc9f09a8ce"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+window.__fb = { auth, db, doc, getDoc, setDoc, serverTimestamp };
+
+// Mismas claves/formato que index.html (ver SAVE_KEY_PREFIX y sanitize() ahí),
+// para que el save de un lado sea 100% compatible con el otro.
+const SAVE_KEY = 'cck4';
+const SAVE_KEY_PREFIX = 'cck4_user_';
+function saveKeyForUid(uid){ return uid ? SAVE_KEY_PREFIX + uid : SAVE_KEY; }
+
+// Mismos campos numéricos que sanitize() en index.html: solo se tocan clk y
+// totalClk aquí, pero se preserva (o rellena con 0) el resto de campos para
+// que un documento nuevo/corrupto no rompa index.html al leerlo después.
+const NUMERIC_FIELDS = ['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin','wkAnchor','wkBase','moAnchor','moBase'];
+function sanitizeForSave(d){
+  d = d && typeof d === 'object' ? d : {};
+  for (const k of NUMERIC_FIELDS){
+    if (typeof d[k] !== 'number' || !isFinite(d[k])) d[k] = 0;
+    if (d[k] < 0) d[k] = 0;
+  }
+  if (d.lvl < 1) d.lvl = 1;
+  if (d.xpNeed < 500) d.xpNeed = 500;
+  if (d.eMax < 120) d.eMax = 120;
+  if (d.eRegen < 0.04) d.eRegen = 0.04;
+  if (d.tapPow < 1) d.tapPow = 1;
+  if (!d.ups || typeof d.ups !== 'object') d.ups = {};
+  if (!d.missions || typeof d.missions !== 'object') d.missions = {};
+  if (typeof d.alias !== 'string') d.alias = '';
+  if (typeof d.uid !== 'string') d.uid = '';
+  return d;
+}
+
+function fmtClk(n){
+  n = Math.floor(n);
+  if (n >= 1e12) return (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n + '';
+}
+
+function bumpBalUI(clk){
+  const numEl = document.getElementById('ruletaBalNum');
+  if (!numEl) return;
+  numEl.textContent = fmtClk(clk);
+  numEl.classList.remove('bump'); void numEl.offsetWidth; numEl.classList.add('bump');
+}
+
+// ---- carga inicial del saldo (localStorage primero, Firestore si hace falta) ----
+async function loadInitialBalance(user){
+  const numEl = document.getElementById('ruletaBalNum');
+  if (!user){
+    if (numEl) numEl.textContent = '–';
+    return;
+  }
+  try{
+    const localRaw = localStorage.getItem(saveKeyForUid(user.uid));
+    const localData = localRaw ? JSON.parse(localRaw) : null;
+    if (localData && typeof localData.clk === 'number'){
+      bumpBalUI(localData.clk);
+    }
+    const snap = await getDoc(doc(db, 'saves', user.uid));
+    if (snap.exists()){
+      const cloudData = JSON.parse(snap.data().data);
+      if (typeof cloudData.clk === 'number') bumpBalUI(cloudData.clk);
+    } else if (!localData){
+      bumpBalUI(0);
+    }
+  }catch(err){
+    console.warn('No se pudo cargar el saldo $CLK en la ruleta:', err);
+    if (numEl && numEl.textContent === '–') numEl.textContent = '0';
+  }
+}
+
+// ---- suma el premio: localStorage al instante + Firestore con merge ----
+// Se lee el documento más reciente justo antes de escribir (en vez de fiarse
+// de un valor cacheado) para no pisar progreso que el jugador haya hecho en
+// index.html en otra pestaña/dispositivo momentos antes de girar la ruleta.
+let _ruletaAwarding = false;
+window.awardRuletaPrize = async function(amount){
+  const user = window.__fbUser;
+  if (!user || !isFinite(amount) || amount <= 0) return;
+  if (_ruletaAwarding) return; // evita solapar dos premios si se dispara dos veces seguidas
+  _ruletaAwarding = true;
+  const won = Math.floor(amount * 100) / 100;
+
+  try{
+    // 1) Local: lee el save local más reciente de este usuario (o uno vacío si no existe)
+    //    y le suma el premio ya mismo, para que el saldo no se pierda si falla la red.
+    const key = saveKeyForUid(user.uid);
+    let localData;
+    try{
+      const raw = localStorage.getItem(key);
+      localData = raw ? JSON.parse(raw) : {};
+    }catch(e){ localData = {}; }
+    localData = sanitizeForSave(localData);
+    localData.uid = user.uid;
+    localData.clk += won;
+    localData.totalClk += won;
+    localData.lastSave = Date.now();
+    try{ localStorage.setItem(key, JSON.stringify(localData)); }catch(e){
+      console.warn('No se pudo guardar el premio de la ruleta en localStorage:', e);
+    }
+    bumpBalUI(localData.clk);
+
+    // 2) Nube: relee saves/{uid} justo antes de escribir y suma sobre ese valor,
+    //    no sobre el que se tenía cacheado al abrir la ruleta.
+    const ref = doc(db, 'saves', user.uid);
+    const snap = await getDoc(ref);
+    let cloudData = snap.exists() ? JSON.parse(snap.data().data) : { ...localData };
+    cloudData = sanitizeForSave(cloudData);
+    cloudData.uid = user.uid;
+    cloudData.clk += won;
+    cloudData.totalClk += won;
+    cloudData.lastSave = Date.now();
+    await setDoc(ref, {
+      data: JSON.stringify(cloudData),
+      updatedAt: serverTimestamp()
+    });
+    bumpBalUI(cloudData.clk);
+  }catch(err){
+    // El premio ya quedó a salvo en localStorage (paso 1) aunque esto falle;
+    // solo la copia en la nube no se actualizó todavía.
+    console.error('No se pudo sincronizar el premio de la ruleta con Firestore:', err);
+  }finally{
+    _ruletaAwarding = false;
+  }
+};
+
+onAuthStateChanged(auth, (user) => {
+  window.__fbUser = user || null;
+  const loginOv = document.getElementById('ruletaLoginOv');
+  if (user){
+    if (loginOv) loginOv.classList.remove('show');
+  }
+  loadInitialBalance(user || null);
+});
+</script>
+
+<!-- PWA: registro del service worker (mismo que index.html) -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch((err) => console.warn('SW registration failed:', err));
+  });
+}
 </script>
 
 </body>
