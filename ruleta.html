@@ -317,6 +317,7 @@
     justify-content:space-between;
     gap:10px;
     margin-bottom:14px;
+    transform:translateY(-10px);
   }
   #ruletaBackLink{
     display:flex;
@@ -1051,9 +1052,13 @@ window.ALIEN_FRAMES = [
       alienAnimWrap.style.left = (btnRect.right + ALIEN_GAP) + 'px';
       alienAnimWrap.style.right = 'auto';
       alienAnimWrap.style.bottom = 'auto';
-      // centrado verticalmente respecto al botón
+      // centrado verticalmente respecto al botón, acotado para que no se
+      // salga del viewport (ej. escritorio, donde el botón GIRAR puede
+      // quedar bajo en la página y el personaje asomaba cortado por abajo)
       const wrapHeight = alienAnimWrap.offsetHeight;
-      alienAnimWrap.style.top = (btnRect.top + btnRect.height / 2 - wrapHeight / 2) + 'px';
+      let targetTop = btnRect.top + btnRect.height / 2 - wrapHeight / 2;
+      targetTop = Math.max(8, Math.min(targetTop, window.innerHeight - wrapHeight - 8));
+      alienAnimWrap.style.top = targetTop + 'px';
     } else {
       // no hay espacio horizontal ni encogido al mínimo: se coloca debajo del
       // botón, centrado con él, para seguir estando "junto a GIRAR" en vez de
