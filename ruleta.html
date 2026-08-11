@@ -1223,9 +1223,6 @@ window.ALIEN_FRAMES = [
     playAlienAnimation();
 
     setTimeout(() => {
-      spinning = false;
-      spinCtaBtn.disabled = false;
-      spinHubBtn.disabled = false;
       resultPill.textContent = `¡Ganaste ${prize.label}!`;
       resultBox.classList.add('show');
 
@@ -1243,7 +1240,23 @@ window.ALIEN_FRAMES = [
       // Suma el premio al saldo $CLK real (Firestore + localStorage), el
       // mismo que usa index.html. Sin esto la rueda giraba "bonito" pero el
       // premio se perdía: solo vivía un instante en el texto de resultPill.
-      if (window.awardRuletaPrize) window.awardRuletaPrize(prize.value);
+      //
+      // El botón GIRAR se mantiene bloqueado (spinning=true) hasta que este
+      // premio termine de guardarse: si se reactivara ya mismo, el jugador
+      // podía lanzar otra tirada mientras el paso "nube" de esta seguía en
+      // curso, y esa respuesta tardía podía llegar y pisar en pantalla el
+      // total ya actualizado de la tirada siguiente — el marcador se veía
+      // mal un instante y "se corregía" recién en el giro de después.
+      const finishSpin = () => {
+        spinning = false;
+        spinCtaBtn.disabled = false;
+        spinHubBtn.disabled = false;
+      };
+      if (window.awardRuletaPrize){
+        Promise.resolve(window.awardRuletaPrize(prize.value)).then(finishSpin, finishSpin);
+      } else {
+        finishSpin();
+      }
     }, 5300);
   }
 
@@ -1537,12 +1550,19 @@ async function loadInitialBalance(user){
 // Se lee el documento más reciente justo antes de escribir (en vez de fiarse
 // de un valor cacheado) para no pisar progreso que el jugador haya hecho en
 // index.html en otra pestaña/dispositivo momentos antes de girar la ruleta.
-let _ruletaAwarding = false;
-window.awardRuletaPrize = async function(amount){
+//
+// Los premios se ENCOLAN (_ruletaAwardQueue) en vez de descartarse si se
+// solapan: antes, si una tirada llamaba a esta función mientras la anterior
+// todavía estaba leyendo/escribiendo en Firestore, la guarda "_ruletaAwarding"
+// abortaba la segunda llamada entera y ese premio no llegaba a sumarse nunca
+// a Firestore. Encadenar las llamadas asegura que cada premio se procesa
+// exactamente una vez, en el orden en que se ganó, y que bumpBalUI() siempre
+// pinta el total acumulado hasta ese momento y no el de una tirada aislada
+// que responde tarde y pisa un valor más nuevo.
+let _ruletaAwardQueue = Promise.resolve();
+async function _awardRuletaPrizeNow(amount){
   const user = window.__fbUser;
   if (!user || !isFinite(amount) || amount <= 0) return;
-  if (_ruletaAwarding) return; // evita solapar dos premios si se dispara dos veces seguidas
-  _ruletaAwarding = true;
   const won = Math.floor(amount * 100) / 100;
 
   try{
@@ -1583,10 +1603,16 @@ window.awardRuletaPrize = async function(amount){
     // El premio ya quedó a salvo en localStorage (paso 1) aunque esto falle;
     // solo la copia en la nube no se actualizó todavía.
     console.error('No se pudo sincronizar el premio de la ruleta con Firestore:', err);
-  }finally{
-    _ruletaAwarding = false;
   }
+}
+window.awardRuletaPrize = function(amount){
+  // Encadena sobre la promesa anterior en vez de lanzar en paralelo: así el
+  // paso 2 (nube) de un premio nunca puede resolver DESPUÉS del paso 2 de un
+  // premio ganado más tarde y pisar el marcador con un total desactualizado.
+  _ruletaAwardQueue = _ruletaAwardQueue.then(() => _awardRuletaPrizeNow(amount));
+  return _ruletaAwardQueue;
 };
+
 
 onAuthStateChanged(auth, (user) => {
   window.__fbUser = user || null;
