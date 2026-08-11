@@ -804,7 +804,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="screen-mine" class="screen active">
     <div id="bal-area">
       <a href="arcade.html" id="arcadeLink" class="minigameLink" aria-label="Arcade"><img src="images/arcade.png" alt="Arcade"></a>
-      <a href="ruleta.html" id="ruletaLink" class="minigameLink" aria-label="Ruleta"><img src="images/ruleta.png" alt="Ruleta"></a>
+      <a href="ruleta.html" id="ruletaLink" class="minigameLink" aria-label="Ruleta" onclick="forceSave()"><img src="images/ruleta.png" alt="Ruleta"></a>
       <div id="balnum">0</div>
       <div id="ballabel">$CLK TOKENS</div>
       <div id="rankpill">🐣 Crypto Noob</div>
@@ -1007,7 +1007,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span>MEJORAS</button>
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
   <a class="nbtn" id="nav-invasion" href="invasion.html" style="text-decoration:none"><span class="nicon">👾</span>INVASION</a>
-  <a class="nbtn" id="nav-ruleta" href="ruleta.html" style="text-decoration:none"><span class="nicon">🎡</span>RULETA</a>
+  <a class="nbtn" id="nav-ruleta" href="ruleta.html" style="text-decoration:none" onclick="forceSave()"><span class="nicon">🎡</span>RULETA</a>
   <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span>RANKING</button>
   <button class="nbtn" id="nav-redeem" onclick="goTo('redeem')"><span class="nicon">🔁</span>CANJEAR</button>
   <button class="nbtn" id="nav-community" onclick="goTo('community')"><span class="nicon">📡</span>COMUNIDAD</button>
