@@ -1584,16 +1584,32 @@ async function _awardRuletaPrizeNow(amount){
     }
     bumpBalUI(localData.clk);
 
-    // 2) Nube: relee saves/{uid} justo antes de escribir y suma sobre ese valor,
-    //    no sobre el que se tenía cacheado al abrir la ruleta.
+    // 2) Nube: relee saves/{uid} justo antes de escribir. Normalmente se suma
+    //    el premio sobre ese valor de la nube (por si el jugador avanzó en
+    //    otra pestaña/dispositivo momentos antes de girar). PERO si lo que
+    //    hay en la nube está más ATRASADO que "localData" de arriba (mismo
+    //    dispositivo, ya con el premio sumado) — típicamente porque el
+    //    guardado en la nube que dispara el link de la ruleta (forceSave())
+    //    es "fire and forget" y no le da tiempo a terminar antes de navegar
+    //    a esta página — entonces sumar el premio OTRA VEZ sobre ese
+    //    snapshot viejo producía un total menor al que ya se había mostrado
+    //    en el paso 1, y el marcador se veía "bajar" en vez de sumar. En ese
+    //    caso se usa localData tal cual como base (el premio ya está sumado
+    //    ahí, no hay que volver a sumarlo) y solo se sincroniza hacia la nube.
     const ref = doc(db, 'saves', user.uid);
     const snap = await getDoc(ref);
-    let cloudData = snap.exists() ? JSON.parse(snap.data().data) : { ...localData };
-    cloudData = sanitizeForSave(cloudData);
-    cloudData.uid = user.uid;
-    cloudData.clk += won;
-    cloudData.totalClk += won;
-    cloudData.lastSave = Date.now();
+    const rawCloudData = snap.exists() ? sanitizeForSave(JSON.parse(snap.data().data)) : null;
+    const cloudIsNewer = rawCloudData && (typeof rawCloudData.lastSave === 'number' ? rawCloudData.lastSave : 0) > localData.lastSave;
+    let cloudData;
+    if (cloudIsNewer){
+      cloudData = rawCloudData;
+      cloudData.uid = user.uid;
+      cloudData.clk += won;
+      cloudData.totalClk += won;
+      cloudData.lastSave = Date.now();
+    } else {
+      cloudData = { ...localData };
+    }
     await setDoc(ref, {
       data: JSON.stringify(cloudData),
       updatedAt: serverTimestamp()
