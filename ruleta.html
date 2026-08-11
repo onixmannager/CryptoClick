@@ -1268,6 +1268,15 @@ window.ALIEN_FRAMES = [
       document.getElementById('ruletaLoginOv').classList.add('show');
       return;
     }
+    // Límite de 1 tirada cada 24h (ver window.ruletaCooldown, definido en el
+    // <script type="module"> de Firebase más abajo — otro ámbito JS, por eso
+    // se consulta vía window en vez de una variable compartida). El botón ya
+    // debería estar disabled en este caso, así que esto es solo una segunda
+    // línea de defensa; se refresca la UI por si había quedado desincronizada.
+    if (window.ruletaCooldown && window.ruletaCooldown.msRemaining() > 0){
+      window.ruletaCooldown.refreshUI();
+      return;
+    }
     spinning = true;
     spinCtaBtn.disabled = true;
     spinHubBtn.disabled = true;
@@ -1572,7 +1581,7 @@ function saveKeyForUid(uid){ return uid ? SAVE_KEY_PREFIX + uid : SAVE_KEY; }
 // Mismos campos numéricos que sanitize() en index.html: solo se tocan clk y
 // totalClk aquí, pero se preserva (o rellena con 0) el resto de campos para
 // que un documento nuevo/corrupto no rompa index.html al leerlo después.
-const NUMERIC_FIELDS = ['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin','wkAnchor','wkBase','moAnchor','moBase'];
+const NUMERIC_FIELDS = ['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin','wkAnchor','wkBase','moAnchor','moBase','lastRuletaSpin'];
 function sanitizeForSave(d){
   d = d && typeof d === 'object' ? d : {};
   for (const k of NUMERIC_FIELDS){
@@ -1607,6 +1616,58 @@ function bumpBalUI(clk){
   numEl.classList.remove('bump'); void numEl.offsetWidth; numEl.classList.add('bump');
 }
 
+// ---- límite de 1 tirada cada 24h, sin acumular tiradas pendientes ----
+// "Sin acumular" significa literal: si el jugador deja pasar 2, 3 o más días
+// sin entrar, al volver solo tiene la 1 tirada normal disponible (no se le
+// "deben" las tiradas de los días que faltó). Por eso el cooldown se calcula
+// siempre como lastRuletaSpin + 24h, nunca como un contador de fichas que
+// vaya sumando una por día.
+const RULETA_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+let _lastKnownRuletaSpin = 0; // último lastRuletaSpin visto (local o nube), en memoria para que spin() lo consulte sin tener que esperar a Firestore
+function msUntilNextSpin(lastSpinTs){
+  if (!isFinite(lastSpinTs) || lastSpinTs <= 0) return 0;
+  return Math.max(0, (lastSpinTs + RULETA_COOLDOWN_MS) - Date.now());
+}
+function fmtCooldown(ms){
+  const totalMin = Math.ceil(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h > 0) return `Vuelve en ${h}h ${m}m`;
+  return `Vuelve en ${m}m`;
+}
+// Aplica el estado de cooldown al botón GIRAR (y al botón redondo del hub,
+// si existe). No toca "spinning": ese flag sigue siendo exclusivamente para
+// la animación en curso, este es un bloqueo aparte y de más larga duración.
+// Nota: spinCtaBtn/spinHubBtn/spin() viven en OTRO <script> (el de la lógica
+// de la rueda), que es un ámbito JS separado de este módulo — por eso aquí
+// se llega a los botones por document.getElementById() en vez de reusar sus
+// referencias internas, y por eso lo que spin() necesita consultar se
+// expone en window (ver window.ruletaCooldown más abajo).
+function applySpinCooldownUI(lastSpinTs){
+  // lastSpinTs === undefined -> "solo repinta", no toques el valor en memoria
+  // (lo usa spin() vía refreshUI() cuando quiere reafirmar la UI sin aportar
+  // un dato nuevo). Cualquier otro valor no numérico sí se normaliza a 0,
+  // igual que antes, porque ahí sí es un dato explícito (aunque inválido).
+  if (lastSpinTs !== undefined){
+    _lastKnownRuletaSpin = isFinite(lastSpinTs) ? lastSpinTs : 0;
+  }
+  const remaining = msUntilNextSpin(_lastKnownRuletaSpin);
+  const onCooldown = remaining > 0;
+  const ctaBtn = document.getElementById('spinCtaBtn');
+  const hubBtn = document.getElementById('spinHubBtn');
+  if (ctaBtn){ ctaBtn.disabled = onCooldown; ctaBtn.textContent = onCooldown ? fmtCooldown(remaining) : 'GIRAR'; }
+  if (hubBtn) hubBtn.disabled = onCooldown;
+  return onCooldown;
+}
+// Expuesto para que spin() (definida en el <script> de la lógica de la
+// rueda, más arriba en el documento, ámbito distinto a este módulo) pueda
+// comprobar el cooldown como defensa adicional justo antes de girar, sin
+// depender solo de que el botón ya esté deshabilitado en el DOM.
+window.ruletaCooldown = {
+  msRemaining: () => msUntilNextSpin(_lastKnownRuletaSpin),
+  refreshUI: applySpinCooldownUI
+};
+
 // ---- carga inicial del saldo (localStorage primero, Firestore si hace falta) ----
 async function loadInitialBalance(user){
   const numEl = document.getElementById('ruletaBalNum');
@@ -1620,10 +1681,16 @@ async function loadInitialBalance(user){
     if (localData && typeof localData.clk === 'number'){
       bumpBalUI(localData.clk);
     }
+    if (localData) applySpinCooldownUI(localData.lastRuletaSpin || 0);
     const snap = await getDoc(doc(db, 'saves', user.uid));
     if (snap.exists()){
       const cloudData = JSON.parse(snap.data().data);
       if (typeof cloudData.clk === 'number') bumpBalUI(cloudData.clk);
+      // El mayor de los dos lados manda (mismo criterio "solo sube" que
+      // mergeStates() usa en index.html): si el jugador giró en otro
+      // dispositivo/pestaña y ese dato aún no llegó a este localStorage,
+      // no queremos mostrar el botón habilitado por error.
+      applySpinCooldownUI(Math.max(_lastKnownRuletaSpin, cloudData.lastRuletaSpin || 0));
     } else if (!localData){
       bumpBalUI(0);
     }
@@ -1666,10 +1733,12 @@ async function _awardRuletaPrizeNow(amount){
     localData.clk += won;
     localData.totalClk += won;
     localData.lastSave = Date.now();
+    localData.lastRuletaSpin = localData.lastSave; // arranca el cooldown de 24h desde este mismo instante
     try{ localStorage.setItem(key, JSON.stringify(localData)); }catch(e){
       console.warn('No se pudo guardar el premio de la ruleta en localStorage:', e);
     }
     bumpBalUI(localData.clk);
+    applySpinCooldownUI(localData.lastRuletaSpin);
 
     // 2) Nube: relee saves/{uid} justo antes de escribir. Normalmente se suma
     //    el premio sobre ese valor de la nube (por si el jugador avanzó en
@@ -1694,14 +1763,16 @@ async function _awardRuletaPrizeNow(amount){
       cloudData.clk += won;
       cloudData.totalClk += won;
       cloudData.lastSave = Date.now();
+      cloudData.lastRuletaSpin = cloudData.lastSave; // mismo criterio que en el paso local
     } else {
-      cloudData = { ...localData };
+      cloudData = { ...localData }; // ya trae lastRuletaSpin puesto por el paso 1
     }
     await setDoc(ref, {
       data: JSON.stringify(cloudData),
       updatedAt: serverTimestamp()
     });
     bumpBalUI(cloudData.clk);
+    applySpinCooldownUI(cloudData.lastRuletaSpin);
   }catch(err){
     // El premio ya quedó a salvo en localStorage (paso 1) aunque esto falle;
     // solo la copia en la nube no se actualizó todavía.
