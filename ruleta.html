@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ruleta Galáctica</title>
 <style>
   :root{
@@ -32,6 +32,7 @@
     font-family:'Segoe UI', system-ui, sans-serif;
     overflow:hidden;
     padding:20px;
+    touch-action:manipulation;
   }
 
   .stage{
@@ -1016,6 +1017,7 @@ window.ALIEN_FRAMES = [
   const GANADOR_SOUND_SRC = 'sounds/ganador.mp3';
   const FUEGOS_SOUND_SRC  = 'sounds/explosion-fuegos-artificiales.mp3';
   const YUPI_SOUND_SRC    = 'sounds/yupi.mp3';
+  const MUSICA_FONDO_SOUND_SRC = 'sounds/casino.mp3'; // música de fondo en loop, mismo volumen que index.html
 
   // El elemento <audio> se crea YA, al cargar el script (no en el primer
   // click), precisamente para que la descarga del archivo empiece en cuanto
@@ -1092,6 +1094,23 @@ window.ALIEN_FRAMES = [
     }
     return _yupiAudioEl;
   }
+  // Música de fondo: mismo volumen que index.html (0.4, igual que el resto
+  // de sonidos de esta página), en loop continuo desde que carga la página.
+  let _musicaFondoAudioEl = null;
+  function getMusicaFondoAudioEl(){
+    if (!MUSICA_FONDO_SOUND_SRC) return null;
+    if (!_musicaFondoAudioEl){
+      _musicaFondoAudioEl = new Audio(MUSICA_FONDO_SOUND_SRC);
+      _musicaFondoAudioEl.preload = 'auto';
+      _musicaFondoAudioEl.loop = true;
+      _musicaFondoAudioEl.volume = 0.4;
+      _musicaFondoAudioEl.addEventListener('error', () => {
+        const err = _musicaFondoAudioEl.error;
+        console.error('[música de fondo] No se pudo cargar "' + MUSICA_FONDO_SOUND_SRC + '". Código de error:', err ? err.code : '(desconocido)');
+      });
+    }
+    return _musicaFondoAudioEl;
+  }
   // Dispara la creación (y por tanto la descarga) de los elementos de audio
   // ya mismo, en vez de esperar al primer spin(). getRuletaAudioEl()/
   // getAlienAudioEl() siguen siendo la única fuente de verdad -aquí solo se
@@ -1101,6 +1120,7 @@ window.ALIEN_FRAMES = [
   getGanadorAudioEl();
   getFuegosAudioEl();
   getYupiAudioEl();
+  getMusicaFondoAudioEl();
 
   // Se llama al arrancar el giro (junto a rotor.style.transform más abajo).
   // Si .play() falla (autoplay bloqueado, archivo aún no listo, etc.) se
@@ -1148,6 +1168,23 @@ window.ALIEN_FRAMES = [
     el.currentTime = 0;
     el.play().catch(err => console.error('[sonido yupi] play() rechazado:', err.name, '-', err.message));
   }
+  // Arranca la música de fondo en loop, mismo volumen (0.4) que en index.html.
+  // Igual que en index.html, se intenta reproducir apenas carga la página; si
+  // el navegador bloquea el autoplay con sonido (política común en móvil
+  // hasta que hay una interacción del usuario), se reintenta una sola vez en
+  // el primer click/touch/tecla, sin volver a intentarlo después.
+  function playMusicaFondo(){
+    const el = getMusicaFondoAudioEl();
+    if (!el) return;
+    el.play().catch(() => {
+      const reintentar = () => {
+        el.play().catch(err => console.error('[música de fondo] play() rechazado:', err.name, '-', err.message));
+        ['click','touchstart','keydown'].forEach(ev => document.removeEventListener(ev, reintentar));
+      };
+      ['click','touchstart','keydown'].forEach(ev => document.addEventListener(ev, reintentar, { once:true }));
+    });
+  }
+  playMusicaFondo();
 
 
   // Convierte un ángulo "horario desde arriba" a coordenadas cartesianas del SVG.
@@ -1322,6 +1359,16 @@ window.ALIEN_FRAMES = [
   function spinCtaBtnRef(){ return document.getElementById('spinCtaBtn'); }
 
   window.addEventListener('resize', alignAlienToSpinButton);
+  window.addEventListener('orientationchange', alignAlienToSpinButton);
+  // En móvil, mostrar/ocultar la barra de direcciones o la barra de
+  // herramientas del navegador cambia el viewport real sin que 'resize' de
+  // window se dispare siempre de forma fiable -eso dejaba al alien calculado
+  // con coordenadas viejas y "perdido" fuera de la pantalla visible. La API
+  // visualViewport sí refleja ese cambio, así que se usa como respaldo.
+  if (window.visualViewport){
+    window.visualViewport.addEventListener('resize', alignAlienToSpinButton);
+    window.visualViewport.addEventListener('scroll', alignAlienToSpinButton);
+  }
   alignAlienToSpinButton();
 
   (function preloadAlienFrames(){
@@ -1978,6 +2025,19 @@ if ('serviceWorker' in navigator) {
 <!-- Comportamiento tipo app nativa: sin menú contextual / long-press -->
 <script>
 document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+</script>
+<!-- Evitar zoom en móvil: bloquea pinch-zoom (2 dedos) y doble-tap zoom -->
+<script>
+document.addEventListener('touchmove', function(e){
+  if (e.touches && e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+
+var __ultimoTouchEnd = 0;
+document.addEventListener('touchend', function(e){
+  var ahora = Date.now();
+  if (ahora - __ultimoTouchEnd <= 300) e.preventDefault();
+  __ultimoTouchEnd = ahora;
+}, { passive: false });
 </script>
 
 </body>
