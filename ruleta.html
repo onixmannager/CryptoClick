@@ -1009,6 +1009,8 @@ window.ALIEN_FRAMES = [
   // ============================================================================
   const RULETA_SOUND_SRC = 'sounds/girando.mp3';
   const ALIEN_SOUND_SRC  = ''; // ej: 'sounds/alien-grito.mp3'
+  const GANADOR_SOUND_SRC = 'sounds/ganador.mp3';
+  const FUEGOS_SOUND_SRC  = 'sounds/explosion-fuegos-artificiales.mp3';
 
   // El elemento <audio> se crea YA, al cargar el script (no en el primer
   // click), precisamente para que la descarga del archivo empiece en cuanto
@@ -1046,12 +1048,40 @@ window.ALIEN_FRAMES = [
     }
     return _alienAudioEl;
   }
+  let _ganadorAudioEl = null;
+  function getGanadorAudioEl(){
+    if (!GANADOR_SOUND_SRC) return null;
+    if (!_ganadorAudioEl){
+      _ganadorAudioEl = new Audio(GANADOR_SOUND_SRC);
+      _ganadorAudioEl.preload = 'auto';
+      _ganadorAudioEl.addEventListener('error', () => {
+        const err = _ganadorAudioEl.error;
+        console.error('[sonido ganador] No se pudo cargar "' + GANADOR_SOUND_SRC + '". Código de error:', err ? err.code : '(desconocido)');
+      });
+    }
+    return _ganadorAudioEl;
+  }
+  let _fuegosAudioEl = null;
+  function getFuegosAudioEl(){
+    if (!FUEGOS_SOUND_SRC) return null;
+    if (!_fuegosAudioEl){
+      _fuegosAudioEl = new Audio(FUEGOS_SOUND_SRC);
+      _fuegosAudioEl.preload = 'auto';
+      _fuegosAudioEl.addEventListener('error', () => {
+        const err = _fuegosAudioEl.error;
+        console.error('[sonido fuegos artificiales] No se pudo cargar "' + FUEGOS_SOUND_SRC + '". Código de error:', err ? err.code : '(desconocido)');
+      });
+    }
+    return _fuegosAudioEl;
+  }
   // Dispara la creación (y por tanto la descarga) de los elementos de audio
   // ya mismo, en vez de esperar al primer spin(). getRuletaAudioEl()/
   // getAlienAudioEl() siguen siendo la única fuente de verdad -aquí solo se
   // fuerza que corra pronto, no se duplica su lógica.
   getRuletaAudioEl();
   getAlienAudioEl();
+  getGanadorAudioEl();
+  getFuegosAudioEl();
 
   // Se llama al arrancar el giro (junto a rotor.style.transform más abajo).
   // Si .play() falla (autoplay bloqueado, archivo aún no listo, etc.) se
@@ -1075,6 +1105,20 @@ window.ALIEN_FRAMES = [
     if (!el) return;
     el.currentTime = 0;
     el.play().catch(err => console.error('[sonido alien] play() rechazado:', err.name, '-', err.message));
+  }
+  // Se llama cuando termina el giro, junto a stopSpinSound().
+  function playGanadorSound(){
+    const el = getGanadorAudioEl();
+    if (!el) return;
+    el.currentTime = 0;
+    el.play().catch(err => console.error('[sonido ganador] play() rechazado:', err.name, '-', err.message));
+  }
+  // Se llama junto al estallido principal de runFireworksShow().
+  function playFuegosSound(){
+    const el = getFuegosAudioEl();
+    if (!el) return;
+    el.currentTime = 0;
+    el.play().catch(err => console.error('[sonido fuegos artificiales] play() rechazado:', err.name, '-', err.message));
   }
 
 
@@ -1418,6 +1462,7 @@ window.ALIEN_FRAMES = [
       // volver a girar.
       stopShootingStars();
       stopSpinSound();
+      playGanadorSound();
       runFireworksShow();
 
       // Evento personalizado para que la web anfitriona pueda escuchar el resultado
@@ -1546,6 +1591,7 @@ window.ALIEN_FRAMES = [
     // instante en que se revela el premio: es el "boom" de impacto que marca
     // el momento exacto de la recompensa.
     spawnFireworkBurst(window.innerWidth * 0.5, window.innerHeight * 0.34, 1.9);
+    playFuegosSound();
 
     // Después, una tanda larga y escalonada de estallidos secundarios
     // repartidos por la pantalla a lo largo de ~3.6s, como un castillo de
