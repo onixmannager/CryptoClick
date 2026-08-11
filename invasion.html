@@ -93,6 +93,11 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #balMiniNum.bump{transform:scale(1.08)}
 #balMiniLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:1px;white-space:nowrap}
 
+/* ── Comportamiento tipo app nativa: sin selección de texto ni menú contextual ── */
+*{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
+img,a{-webkit-touch-callout:none}
+
 </style>
 </head>
 <body>
@@ -267,6 +272,10 @@ if ('serviceWorker' in navigator) {
       .catch((err) => console.warn('SW registration failed:', err));
   });
 }
+</script>
+<!-- Comportamiento tipo app nativa: sin menú contextual / long-press -->
+<script>
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 </script>
 
 </body>

@@ -70,6 +70,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100
   }
   #rubox.has-video #rutitle{margin-top:18px}
 }
+
+/* ── Comportamiento tipo app nativa: sin selección de texto ni menú contextual ── */
+*{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
+img,a{-webkit-touch-callout:none}
 </style>
 </head>
 <body>
@@ -105,6 +110,10 @@ function testRankup(){
     alert('⚠️ El video no cargó. Revisa que la URL sea correcta y el repo público:\n' + VIDEO_URL);
   };
 }
+</script>
+<!-- Comportamiento tipo app nativa: sin menú contextual / long-press -->
+<script>
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 </script>
 </body>
 </html>

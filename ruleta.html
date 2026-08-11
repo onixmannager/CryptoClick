@@ -405,6 +405,10 @@
   .rl-barwrap{width:200px;height:6px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden;}
   .rl-bar{height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#FF3CAC);border-radius:6px;transition:width .1s linear;}
   .rl-tip{font-size:11px;color:#6B68A0;font-weight:800;letter-spacing:1px;}
+/* ── Comportamiento tipo app nativa: sin selección de texto ni menú contextual ── */
+*{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
+img,a{-webkit-touch-callout:none}
 </style>
 </head>
 <body>
@@ -1970,6 +1974,10 @@ if ('serviceWorker' in navigator) {
       .catch((err) => console.warn('SW registration failed:', err));
   });
 }
+</script>
+<!-- Comportamiento tipo app nativa: sin menú contextual / long-press -->
+<script>
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 </script>
 
 </body>

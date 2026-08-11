@@ -107,6 +107,11 @@ footer{
 }
 footer a{color:var(--muted);text-decoration:none;margin:0 10px}
 footer a:hover{color:var(--gold)}
+
+/* ── Comportamiento tipo app nativa: sin selección de texto ni menú contextual ── */
+*{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
+img,a{-webkit-touch-callout:none}
 </style>
 </head>
 <body>
@@ -193,6 +198,11 @@ footer a:hover{color:var(--gold)}
   <a href="mailto:info@tecnologiasonix.com">Contacto</a>
   <div style="margin-top:14px">© 2026 Tecnologías Onix · Crypto Alien Click</div>
 </footer>
+
+<!-- Comportamiento tipo app nativa: sin menú contextual / long-press -->
+<script>
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+</script>
 
 </body>
 </html>
