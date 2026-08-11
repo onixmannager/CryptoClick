@@ -303,7 +303,11 @@
     align-items:center;
     justify-content:center;
     opacity:0;
-    transition:opacity .35s ease, width .2s ease;
+    /* top/left también animados: antes cambiaban en seco (sin transición) al
+       recalcularse en alignAlienToSpinButton(), así que cuando el navegador
+       mostraba/ocultaba su barra inferior el alien "saltaba" de golpe a la
+       nueva posición en vez de acomodarse suavemente. */
+    transition:opacity .35s ease, width .2s ease, top .2s ease, left .2s ease;
   }
   .alien-anim-wrap.show{
     opacity:1;
@@ -1443,14 +1447,30 @@ window.ALIEN_FRAMES = [
     } else {
       // no hay espacio horizontal ni encogido al mínimo: se coloca debajo del
       // botón, centrado con él, para seguir estando "junto a GIRAR" en vez de
-      // saltar a una esquina lejana de la pantalla
-      const targetWidth = Math.min(ALIEN_MAX_WIDTH, vvWidth * 0.5);
+      // saltar a una esquina lejana de la pantalla.
+      // targetWidth se acota también por la altura visible disponible debajo
+      // del botón (vvHeight - espacio ya ocupado): antes, cuando el navegador
+      // mostraba su barra inferior (vvHeight se reduce), el alien se seguía
+      // calculando con el ancho/alto "de siempre" y el clamp de targetTop lo
+      // empujaba hacia ARRIBA hasta quedar tapado por el propio botón GIRAR
+      // -de ahí que pareciera "escondido/recortado". Ahora, si no entra
+      // completo por abajo, se encoge (nunca se empuja por encima del botón).
+      const availableBelow = (vvOffsetTop + vvHeight) - btnRect.bottom - ALIEN_GAP - 8;
+      const maxWidthByHeight = availableBelow > 0 ? availableBelow * 1.6 : ALIEN_MIN_WIDTH; // el wrap es más alto que ancho (canvas 340x604), 1.6 ~= alto/ancho
+      const targetWidth = Math.max(ALIEN_MIN_WIDTH, Math.min(ALIEN_MAX_WIDTH, vvWidth * 0.5, maxWidthByHeight));
       alienAnimWrap.style.width = targetWidth + 'px';
       alienAnimWrap.style.left = (btnRect.left + btnRect.width / 2 - targetWidth / 2) + 'px';
       alienAnimWrap.style.right = 'auto';
-      let targetTop = btnRect.bottom + ALIEN_GAP;
       const wrapHeight = alienAnimWrap.offsetHeight;
-      targetTop = Math.min(targetTop, vvOffsetTop + vvHeight - wrapHeight - 8);
+      // el tope SIEMPRE es debajo del botón (nunca se clampea por encima de
+      // btnRect.bottom): si no cabe entero en el alto visible, ya se encogió
+      // arriba vía maxWidthByHeight, así que aquí solo se recorta el margen
+      // inferior sobrante, sin tapar el botón.
+      let targetTop = btnRect.bottom + ALIEN_GAP;
+      const maxTop = (vvOffsetTop + vvHeight) - wrapHeight - 8;
+      if (maxTop >= targetTop){
+        targetTop = Math.min(targetTop, maxTop);
+      }
       alienAnimWrap.style.top = targetTop + 'px';
       alienAnimWrap.style.bottom = 'auto';
     }
