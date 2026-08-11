@@ -1010,19 +1010,22 @@ window.ALIEN_FRAMES = [
   const RULETA_SOUND_SRC = 'sounds/girando.mp3';
   const ALIEN_SOUND_SRC  = ''; // ej: 'sounds/alien-grito.mp3'
 
-  // Precarga perezosa: el elemento <audio> no se crea hasta que hace falta
-  // (evita una petición de red a una ruta vacía si el usuario aún no ha
-  // subido el archivo). El listener 'error' es la única forma fiable de
-  // saber si el archivo en sí falló al CARGAR (404, ruta rota, códec no
-  // soportado por el navegador) -eso puede pasar antes incluso de llamar a
-  // play(), así que un try/catch alrededor de play() no lo detectaría.
+  // El elemento <audio> se crea YA, al cargar el script (no en el primer
+  // click), precisamente para que la descarga del archivo empiece en cuanto
+  // se abre la página. Así, cuando el usuario pulsa GIRAR, el archivo ya
+  // está total o parcialmente descargado y play() no tiene que esperar a la
+  // red -si se creara de forma perezosa dentro del primer click, ese primer
+  // giro (y solo ese) notaría el retraso de la primera descarga.
+  // El listener 'error' es la única forma fiable de saber si el archivo en
+  // sí falló al CARGAR (404, ruta rota, códec no soportado por el
+  // navegador) -eso puede pasar antes incluso de llamar a play(), así que
+  // un try/catch alrededor de play() no lo detectaría.
   let _ruletaAudioEl = null;
   function getRuletaAudioEl(){
     if (!RULETA_SOUND_SRC) return null;
     if (!_ruletaAudioEl){
       _ruletaAudioEl = new Audio(RULETA_SOUND_SRC);
-      _ruletaAudioEl.loop = true;
-      _ruletaAudioEl.preload = 'auto';
+      _ruletaAudioEl.preload = 'auto'; // suena UNA vez por tirada, sin loop
       _ruletaAudioEl.addEventListener('error', () => {
         const err = _ruletaAudioEl.error;
         console.error('[sonido ruleta] No se pudo cargar "' + RULETA_SOUND_SRC + '". Código de error:', err ? err.code : '(desconocido)', '-> revisa que la ruta sea correcta relativa a este HTML y que el navegador soporte el formato del archivo.');
@@ -1043,6 +1046,12 @@ window.ALIEN_FRAMES = [
     }
     return _alienAudioEl;
   }
+  // Dispara la creación (y por tanto la descarga) de los elementos de audio
+  // ya mismo, en vez de esperar al primer spin(). getRuletaAudioEl()/
+  // getAlienAudioEl() siguen siendo la única fuente de verdad -aquí solo se
+  // fuerza que corra pronto, no se duplica su lógica.
+  getRuletaAudioEl();
+  getAlienAudioEl();
 
   // Se llama al arrancar el giro (junto a rotor.style.transform más abajo).
   // Si .play() falla (autoplay bloqueado, archivo aún no listo, etc.) se
