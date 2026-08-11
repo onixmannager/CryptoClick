@@ -1049,13 +1049,6 @@ window.ALIEN_FRAMES = [
   function playTick(strength){
     const ctx = getAudioCtx();
     if (!ctx) return;
-    // new AudioContext() puede quedar 'suspended' incluso creado dentro de
-    // un click (Chrome/Safari lo hacen por defecto, y también puede volver
-    // a suspenderse si la pestaña pierde foco entre tiradas). En ese estado
-    // el grafo de audio se arma sin ningún error y sin sonar nada, así que
-    // hay que reanudarlo explícitamente antes de cada tic -resume() no
-    // rompe nada si ya estaba 'running', simplemente no hace nada en ese caso.
-    if (ctx.state === 'suspended') ctx.resume();
     const dur = 0.018;
     const bufferSize = Math.ceil(ctx.sampleRate * dur);
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -1072,16 +1065,33 @@ window.ALIEN_FRAMES = [
 
     const gainNode = ctx.createGain();
     const peak = 0.22 + strength * 0.28;
-    const now = ctx.currentTime;
-    gainNode.gain.setValueAtTime(peak, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + dur);
 
     noise.connect(filter);
     filter.connect(gainNode);
     gainNode.connect(ctx.destination);
 
-    noise.start(now);
-    noise.stop(now + dur);
+    // El nodo se arma siempre (arriba), pero solo se ARRANCA cuando el
+    // contexto está realmente 'running'. Antes, noise.start(now) se llamaba
+    // en la misma línea síncrona que ctx.resume() -que es asíncrono y no se
+    // esperaba-, así que si el contexto seguía 'suspended' en ese instante
+    // exacto el nodo se arrancaba igual y el navegador podía descartarlo sin
+    // sonar, sin lanzar ningún error. Con la tanda rápida de 30+ tics/seg de
+    // una tirada real, eso podía perder varios tics justo al arranque
+    // -mientras resume() todavía no resolvía- dando sensación de silencio
+    // total, aunque una prueba aislada de un solo tic (con tiempo de sobra)
+    // sonara bien.
+    const start = () => {
+      const now = ctx.currentTime;
+      gainNode.gain.setValueAtTime(peak, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + dur);
+      noise.start(now);
+      noise.stop(now + dur);
+    };
+    if (ctx.state === 'running'){
+      start();
+    } else {
+      ctx.resume().then(start).catch(() => {});
+    }
   }
 
   // Reproduce la secuencia completa de tics para una tirada, calculada a
