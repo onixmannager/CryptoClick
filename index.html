@@ -130,6 +130,11 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   /* This is what triggers the scale on tap */
   user-select: none;
   -webkit-user-select: none;
+  /* Evita que un arrastre del dedo sobre la moneda sea interpretado como
+     gesto de scroll de la pantalla (bug: la sección MINAR se desplazaba
+     al mantener presionado y mover el dedo). El resto de la app conserva
+     su scroll normal porque esto solo aplica al área de la moneda. */
+  touch-action: none;
 }
 #coinwrap.pressed {
   transform: scale(1.2);
@@ -145,6 +150,9 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   cursor: pointer;
   z-index: 10;
   /* No overflow hidden here so ripple can show */
+  /* Ver nota de touch-action en #coinwrap: mismo fix, aplicado también al
+     botón real para cubrir el elemento que recibe el touchstart. */
+  touch-action: none;
 }
 
 /* Coin image sits inside wrap, behind the button */
@@ -767,11 +775,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #redeembox .rdwarn{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);border-radius:12px;padding:10px 12px;font-size:11.5px;color:#ffd8bd;margin-bottom:14px;line-height:1.5}
 #redeemgo{width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;color:white;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px}
 #redeemcancel{width:100%;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
-
-/* ── Comportamiento tipo app nativa: sin selección de texto ni menú contextual ── */
-*{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
-input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
-img,a{-webkit-touch-callout:none}
 </style>
 </head>
 <body>
@@ -2072,6 +2075,10 @@ function setupCoinPress(){
     wrap.classList.remove('pressed');
   }
   wrap.addEventListener('touchstart', e=>{pressOn(e); htap(e);}, {passive:false});
+  /* Bloquea el gesto de arrastre sobre la moneda para que no se traduzca en
+     scroll de toda la pantalla (mismo bug que el fix de touch-action arriba,
+     reforzado aquí por si algún navegador móvil no respeta touch-action). */
+  wrap.addEventListener('touchmove', e=>{e.preventDefault();}, {passive:false});
   wrap.addEventListener('touchend', pressOff, {passive:true});
   wrap.addEventListener('touchcancel', pressOff, {passive:true});
   wrap.addEventListener('mousedown', pressOn);
@@ -2690,10 +2697,6 @@ if ('serviceWorker' in navigator) {
       .catch((err) => console.warn('SW registration failed:', err));
   });
 }
-</script>
-<!-- Comportamiento tipo app nativa: sin menú contextual / long-press -->
-<script>
-document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 </script>
 
 </body>
