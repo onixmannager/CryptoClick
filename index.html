@@ -1007,6 +1007,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span>MEJORAS</button>
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
   <a class="nbtn" id="nav-invasion" href="invasion.html" style="text-decoration:none"><span class="nicon">👾</span>INVASION</a>
+  <a class="nbtn" id="nav-ruleta" href="ruleta.html" style="text-decoration:none"><span class="nicon">🎡</span>RULETA</a>
   <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span>RANKING</button>
   <button class="nbtn" id="nav-redeem" onclick="goTo('redeem')"><span class="nicon">🔁</span>CANJEAR</button>
   <button class="nbtn" id="nav-community" onclick="goTo('community')"><span class="nicon">📡</span>COMUNIDAD</button>
@@ -1268,7 +1269,7 @@ const SFX=(()=>{
    controle sonido y música a la vez, como espera el jugador.
    ════════════════════════════════════════════════════════════════ */
 const BGM=(()=>{
-  const VOL=0.10; // más bajo que los efectos para no tapar el feedback de taps/compras
+  const VOL=0.15; // más bajo que los efectos para no tapar el feedback de taps/compras
   let el=null,started=false;
   // La música NO puede sonar hasta que _canStart sea true. Se pone en true
   // recién cuando ya no hay nada que deba tener el audio para sí sola: ni
