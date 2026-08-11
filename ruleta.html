@@ -1011,6 +1011,7 @@ window.ALIEN_FRAMES = [
   const ALIEN_SOUND_SRC  = ''; // ej: 'sounds/alien-grito.mp3'
   const GANADOR_SOUND_SRC = 'sounds/ganador.mp3';
   const FUEGOS_SOUND_SRC  = 'sounds/explosion-fuegos-artificiales.mp3';
+  const YUPI_SOUND_SRC    = 'sounds/yupi.mp3';
 
   // El elemento <audio> se crea YA, al cargar el script (no en el primer
   // click), precisamente para que la descarga del archivo empiece en cuanto
@@ -1074,6 +1075,19 @@ window.ALIEN_FRAMES = [
     }
     return _fuegosAudioEl;
   }
+  let _yupiAudioEl = null;
+  function getYupiAudioEl(){
+    if (!YUPI_SOUND_SRC) return null;
+    if (!_yupiAudioEl){
+      _yupiAudioEl = new Audio(YUPI_SOUND_SRC);
+      _yupiAudioEl.preload = 'auto';
+      _yupiAudioEl.addEventListener('error', () => {
+        const err = _yupiAudioEl.error;
+        console.error('[sonido yupi] No se pudo cargar "' + YUPI_SOUND_SRC + '". Código de error:', err ? err.code : '(desconocido)');
+      });
+    }
+    return _yupiAudioEl;
+  }
   // Dispara la creación (y por tanto la descarga) de los elementos de audio
   // ya mismo, en vez de esperar al primer spin(). getRuletaAudioEl()/
   // getAlienAudioEl() siguen siendo la única fuente de verdad -aquí solo se
@@ -1082,6 +1096,7 @@ window.ALIEN_FRAMES = [
   getAlienAudioEl();
   getGanadorAudioEl();
   getFuegosAudioEl();
+  getYupiAudioEl();
 
   // Se llama al arrancar el giro (junto a rotor.style.transform más abajo).
   // Si .play() falla (autoplay bloqueado, archivo aún no listo, etc.) se
@@ -1119,6 +1134,13 @@ window.ALIEN_FRAMES = [
     if (!el) return;
     el.currentTime = 0;
     el.play().catch(err => console.error('[sonido fuegos artificiales] play() rechazado:', err.name, '-', err.message));
+  }
+  // Se llama 3.5s después del click en GIRAR (ver setTimeout en spin()).
+  function playYupiSound(){
+    const el = getYupiAudioEl();
+    if (!el) return;
+    el.currentTime = 0;
+    el.play().catch(err => console.error('[sonido yupi] play() rechazado:', err.name, '-', err.message));
   }
 
 
@@ -1441,6 +1463,7 @@ window.ALIEN_FRAMES = [
     rotor.style.transition = 'transform 5.2s cubic-bezier(.11,.82,.1,1)';
     rotor.style.transform = `rotate(${currentRotation}deg)`;
     playSpinSound();
+    setTimeout(playYupiSound, 3500);
 
     // Mientras la rueda gira (los 5.2s de suspense), el fondo cobra vida con
     // estrellas fugaces cruzando la pantalla — refuerza la sensación de estar
