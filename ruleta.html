@@ -1403,10 +1403,12 @@ window.ALIEN_FRAMES = [
       resultPill.textContent = `¡Ganaste ${prize.label}!`;
       resultBox.classList.add('show');
 
-      // El suspense termina: apagamos las estrellas fugaces y celebramos el
-      // premio con una tanda de fuegos artificiales, el "momento de recompensa"
-      // que hace que apetezca volver a girar.
+      // El suspense termina: apagamos las estrellas fugaces y el sonido de
+      // la ruleta girando, y celebramos el premio con una tanda de fuegos
+      // artificiales, el "momento de recompensa" que hace que apetezca
+      // volver a girar.
       stopShootingStars();
+      stopSpinSound();
       runFireworksShow();
 
       // Evento personalizado para que la web anfitriona pueda escuchar el resultado
@@ -1481,7 +1483,6 @@ window.ALIEN_FRAMES = [
       clearInterval(shootingStarInterval);
       shootingStarInterval = null;
     }
-    stopSpinSound();
   }
 
   // ============================================================================
