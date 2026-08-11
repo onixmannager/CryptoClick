@@ -520,13 +520,23 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
      still lets it scroll naturally from the top. */
   body{
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     justify-content:center;
     gap:28px;
     padding:40px;
     min-height:100vh;
     box-sizing:border-box;
   }
+
+  /* Centrado vertical "seguro": margin:auto en vez de align-items:center
+     en el padre. Mientras el contenido cabe en la ventana, el margen
+     empuja el panel al centro igual que antes. En cuanto el contenido
+     es más alto que el viewport, el margen superior se colapsa a 0 y
+     el panel arranca pegado arriba del todo — así el scroll del body
+     recorre el contenido real desde su principio en vez de arrancar
+     a mitad de camino (que es lo que hacía align-items:center, al
+     repartir el desbordamiento por igual arriba y abajo). */
+  #app{margin-top:auto;margin-bottom:auto}
 
   #login-screen{position:fixed}
 
@@ -539,7 +549,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     height:auto;
     min-height:0;
     max-height:none;
-    margin:0;
     padding-bottom:26px;
     background:linear-gradient(180deg,rgba(255,255,255,.025),transparent 220px),var(--card);
     border:1px solid var(--border);
