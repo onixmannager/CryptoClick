@@ -1012,7 +1012,10 @@ window.ALIEN_FRAMES = [
 
   // Precarga perezosa: el elemento <audio> no se crea hasta que hace falta
   // (evita una petición de red a una ruta vacía si el usuario aún no ha
-  // subido el archivo).
+  // subido el archivo). El listener 'error' es la única forma fiable de
+  // saber si el archivo en sí falló al CARGAR (404, ruta rota, códec no
+  // soportado por el navegador) -eso puede pasar antes incluso de llamar a
+  // play(), así que un try/catch alrededor de play() no lo detectaría.
   let _ruletaAudioEl = null;
   function getRuletaAudioEl(){
     if (!RULETA_SOUND_SRC) return null;
@@ -1020,6 +1023,10 @@ window.ALIEN_FRAMES = [
       _ruletaAudioEl = new Audio(RULETA_SOUND_SRC);
       _ruletaAudioEl.loop = true;
       _ruletaAudioEl.preload = 'auto';
+      _ruletaAudioEl.addEventListener('error', () => {
+        const err = _ruletaAudioEl.error;
+        console.error('[sonido ruleta] No se pudo cargar "' + RULETA_SOUND_SRC + '". Código de error:', err ? err.code : '(desconocido)', '-> revisa que la ruta sea correcta relativa a este HTML y que el navegador soporte el formato del archivo.');
+      });
     }
     return _ruletaAudioEl;
   }
@@ -1029,19 +1036,23 @@ window.ALIEN_FRAMES = [
     if (!_alienAudioEl){
       _alienAudioEl = new Audio(ALIEN_SOUND_SRC);
       _alienAudioEl.preload = 'auto';
+      _alienAudioEl.addEventListener('error', () => {
+        const err = _alienAudioEl.error;
+        console.error('[sonido alien] No se pudo cargar "' + ALIEN_SOUND_SRC + '". Código de error:', err ? err.code : '(desconocido)');
+      });
     }
     return _alienAudioEl;
   }
 
   // Se llama al arrancar el giro (junto a rotor.style.transform más abajo).
-  // .catch() silencioso: si el navegador bloquea el autoplay por algún
-  // motivo puntual, el juego sigue funcionando igual, solo sin ese sonido
-  // en esa tirada -no debe romper nada visualmente.
+  // Si .play() falla (autoplay bloqueado, archivo aún no listo, etc.) se
+  // registra el motivo exacto en consola en vez de callarse -antes un
+  // .catch(()=>{}) silencioso tragaba el error sin dejar ninguna pista.
   function playSpinSound(){
     const el = getRuletaAudioEl();
     if (!el) return;
     el.currentTime = 0;
-    el.play().catch(() => {});
+    el.play().catch(err => console.error('[sonido ruleta] play() rechazado:', err.name, '-', err.message));
   }
   function stopSpinSound(){
     if (_ruletaAudioEl){
@@ -1054,7 +1065,7 @@ window.ALIEN_FRAMES = [
     const el = getAlienAudioEl();
     if (!el) return;
     el.currentTime = 0;
-    el.play().catch(() => {});
+    el.play().catch(err => console.error('[sonido alien] play() rechazado:', err.name, '-', err.message));
   }
 
 
