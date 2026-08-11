@@ -1327,7 +1327,21 @@ window.ALIEN_FRAMES = [
 
   function alignAlienToSpinButton(){
     const btnRect = spinCtaBtnRef().getBoundingClientRect();
-    const spaceRight = window.innerWidth - btnRect.right - ALIEN_GAP - 8; // 8px margen de seguridad
+    // Usar el visualViewport (tamaño real visible + su offset) en vez de
+    // window.innerWidth/innerHeight: en móvil, al aparecer/ocultarse la barra
+    // de direcciones o la barra de navegación del sistema, el layout viewport
+    // (de donde salen innerWidth/innerHeight y getBoundingClientRect) puede
+    // desalinearse del área visual realmente visible, que es contra la que
+    // se posiciona un elemento position:fixed. Sin este ajuste, el alien
+    // quedaba calculado con coordenadas viejas y se salía de la pantalla o
+    // no volvía a su sitio al sacar esos botones.
+    const vv = window.visualViewport;
+    const vvWidth  = vv ? vv.width  : window.innerWidth;
+    const vvHeight = vv ? vv.height : window.innerHeight;
+    const vvOffsetLeft = vv ? vv.offsetLeft : 0;
+    const vvOffsetTop  = vv ? vv.offsetTop  : 0;
+
+    const spaceRight = (vvOffsetLeft + vvWidth) - btnRect.right - ALIEN_GAP - 8; // 8px margen de seguridad
 
     if (spaceRight >= ALIEN_MIN_WIDTH){
       // cabe al lado (a tamaño normal o encogido para que quepa)
@@ -1341,17 +1355,20 @@ window.ALIEN_FRAMES = [
       // quedar bajo en la página y el personaje asomaba cortado por abajo)
       const wrapHeight = alienAnimWrap.offsetHeight;
       let targetTop = btnRect.top + btnRect.height / 2 - wrapHeight / 2;
-      targetTop = Math.max(8, Math.min(targetTop, window.innerHeight - wrapHeight - 8));
+      targetTop = Math.max(vvOffsetTop + 8, Math.min(targetTop, vvOffsetTop + vvHeight - wrapHeight - 8));
       alienAnimWrap.style.top = targetTop + 'px';
     } else {
       // no hay espacio horizontal ni encogido al mínimo: se coloca debajo del
       // botón, centrado con él, para seguir estando "junto a GIRAR" en vez de
       // saltar a una esquina lejana de la pantalla
-      const targetWidth = Math.min(ALIEN_MAX_WIDTH, window.innerWidth * 0.5);
+      const targetWidth = Math.min(ALIEN_MAX_WIDTH, vvWidth * 0.5);
       alienAnimWrap.style.width = targetWidth + 'px';
       alienAnimWrap.style.left = (btnRect.left + btnRect.width / 2 - targetWidth / 2) + 'px';
       alienAnimWrap.style.right = 'auto';
-      alienAnimWrap.style.top = (btnRect.bottom + ALIEN_GAP) + 'px';
+      let targetTop = btnRect.bottom + ALIEN_GAP;
+      const wrapHeight = alienAnimWrap.offsetHeight;
+      targetTop = Math.min(targetTop, vvOffsetTop + vvHeight - wrapHeight - 8);
+      alienAnimWrap.style.top = targetTop + 'px';
       alienAnimWrap.style.bottom = 'auto';
     }
   }
