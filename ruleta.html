@@ -386,9 +386,96 @@
     text-transform:uppercase;
     letter-spacing:.5px;
   }
+
+  /* ---------- pantalla de carga (mismo diseño que #loading en index.html) ---------- */
+  #ruletaLoading{
+    position:fixed;inset:0;background:#0b0a14;z-index:99999;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+    transition:opacity .6s;
+  }
+  #ruletaLoading.hide{opacity:0;pointer-events:none;}
+  .rl-title{
+    font-family:'Fredoka One',cursive,'Segoe UI',sans-serif;
+    font-size:28px;
+    background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3CAC);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    animation:rlPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes rlPulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  .rl-barwrap{width:200px;height:6px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden;}
+  .rl-bar{height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#FF3CAC);border-radius:6px;transition:width .1s linear;}
+  .rl-tip{font-size:11px;color:#6B68A0;font-weight:800;letter-spacing:1px;}
 </style>
 </head>
 <body>
+
+<!-- Pantalla de carga: mismo diseño que index.html (título con gradiente,
+     alien animado, barra de progreso simulada y texto rotativo), pero se
+     oculta cuando ESTA página termina de cargar del todo (evento 'load' del
+     navegador: HTML parseado + todas las imágenes declaradas en el DOM,
+     incluida la de este mismo preloader), en vez de seguir el flujo de
+     login/alias de index.html, que aquí no aplica. Los 120 frames del alien
+     de la rueda (window.ALIEN_FRAMES) se cargan aparte, de forma dinámica y
+     progresiva vía JS más abajo, y no forman parte de este 'load': el juego
+     ya deja jugar mientras siguen llegando en segundo plano. -->
+<div id="ruletaLoading">
+  <div class="rl-title">CRYPTO ALIEN</div>
+  <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png"
+       alt="alien"
+       style="width:170px; height:170px; animation:rlPulse 1s infinite; object-fit:contain;">
+  <div class="rl-barwrap"><div class="rl-bar" id="ruletaLoadBar"></div></div>
+  <div class="rl-tip" id="ruletaLoadTip">INICIANDO BLOCKCHAIN...</div>
+</div>
+<script>
+(function(){
+  // Misma estética que runLoader() en index.html: barra que avanza a saltos
+  // aleatorios y un texto que va rotando entre "tips". La diferencia es la
+  // condición para OCULTARSE: aquí no hay login/alias que esperar, así que
+  // se tapa la página hasta que termine de cargar del todo (window 'load':
+  // todas las imágenes/recursos declarados en el HTML, incluida la del
+  // propio preloader), y como mínimo hasta que la barra llegue al 100% —
+  // lo que tarde más de las dos — para que no se vea un salto brusco si la
+  // carga real termina antes que la animación.
+  var RL_TIPS = ['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO BLOQUES...','INICIANDO MINADO...','CONECTANDO A RED CLK...'];
+  var bar = document.getElementById('ruletaLoadBar');
+  var tip = document.getElementById('ruletaLoadTip');
+  var p = 0, ti = 0, barDone = false, pageLoaded = false;
+
+  function maybeHide(){
+    if (!barDone || !pageLoaded) return;
+    var el = document.getElementById('ruletaLoading');
+    if (!el) return;
+    el.classList.add('hide');
+    setTimeout(function(){ if (el) el.remove(); }, 700);
+  }
+
+  var iv = setInterval(function(){
+    p += Math.random() * 18 + 4;
+    if (p > 100) p = 100;
+    if (bar) bar.style.width = p + '%';
+    if (tip) tip.textContent = RL_TIPS[ti % RL_TIPS.length];
+    ti++;
+    if (p >= 100){
+      clearInterval(iv);
+      barDone = true;
+      maybeHide();
+    }
+  }, 180);
+
+  window.addEventListener('load', function(){
+    pageLoaded = true;
+    maybeHide();
+  });
+  // Salvaguarda: si 'load' ya se disparó antes de llegar a esta línea (caso
+  // extremo, ej. recursos servidos 100% desde caché), addEventListener no lo
+  // dispararía en retrospectiva y el loader se quedaría tapando la pantalla
+  // para siempre.
+  if (document.readyState === 'complete'){
+    pageLoaded = true;
+    maybeHide();
+  }
+})();
+</script>
 
 <div class="stars" id="starsField"></div>
 <canvas id="fireworksCanvas"></canvas>
