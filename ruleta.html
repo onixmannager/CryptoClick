@@ -990,6 +990,138 @@ window.ALIEN_FRAMES = [
   const R_MARK_OUT = 202;   // radio exterior del marcador triangular
   const arc = 360 / prizes.length; // ancho angular de cada sector (60° con 6 premios)
 
+  // ============================================================================
+  // SONIDO DE LA RULETA: un "tic" percusivo (ruido filtrado, no un tono
+  // melódico) cada vez que la rueda cruza una línea divisoria entre sectores,
+  // como si una lengüeta física rozara cada separador al pasar. Se sintetiza
+  // en el momento con Web Audio API — no depende de ningún archivo .mp3/.wav.
+  //
+  // "A su compás": el ritmo de los tics sigue la MISMA curva de easing
+  // (cubic-bezier(.11,.82,.1,1)) que usa rotor.style.transition para girar
+  // la rueda visualmente, aplicada sobre la MISMA duración (5.2s). Así la
+  // velocidad angular que "siente" el sonido en cada instante es la real de
+  // la rueda -tics muy juntos al arrancar, espaciándose según frena- y no un
+  // intervalo aparte que se desincronizaría del frenado visual.
+  // ============================================================================
+  const SPIN_DURATION_MS = 5200; // debe coincidir con la transición CSS de rotor (5.2s)
+
+  // Aproximación numérica de cubic-bezier(.11,.82,.1,1): dado un progreso
+  // temporal lineal t (0-1), devuelve el progreso de ANIMACIÓN real y (0-1)
+  // en ese instante -la misma curva que el navegador aplica internamente a
+  // rotor.style.transform. Se resuelve x(u)=t por bisección (10 pasos de
+  // precisión de sobra para audio) y se evalúa y(u) con esa u.
+  function cubicBezierEase(t, p1x, p1y, p2x, p2y){
+    if (t <= 0) return 0;
+    if (t >= 1) return 1;
+    const cx = 3 * p1x, bx = 3 * (p2x - p1x) - cx, ax = 1 - cx - bx;
+    const cy = 3 * p1y, by = 3 * (p2y - p1y) - cy, ay = 1 - cy - by;
+    const sampleX = u => ((ax * u + bx) * u + cx) * u;
+    const sampleY = u => ((ay * u + by) * u + cy) * u;
+    let lo = 0, hi = 1, u = t;
+    for (let i = 0; i < 10; i++){
+      u = (lo + hi) / 2;
+      if (sampleX(u) < t) lo = u; else hi = u;
+    }
+    return sampleY(u);
+  }
+  const spinEase = t => cubicBezierEase(t, .11, .82, .1, 1);
+
+  // Contexto de audio con arranque perezoso: los navegadores bloquean
+  // AudioContext hasta que haya un gesto del usuario (click), así que no se
+  // crea hasta el primer spin() -que sí es un click- y no antes.
+  let _audioCtx = null;
+  function getAudioCtx(){
+    if (_audioCtx) return _audioCtx;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null; // navegador sin Web Audio: la ruleta sigue funcionando, solo sin sonido
+    _audioCtx = new Ctx();
+    return _audioCtx;
+  }
+
+  // Reproduce un único "tic": ráfaga de ruido blanco de ~18ms pasada por un
+  // filtro pasa-banda (deja pasar solo el rango medio-agudo, el "clac" seco
+  // de una lengüeta de plástico/madera) con una envolvente de volumen que
+  // decae casi instantáneamente -eso es lo que lo hace sonar percusivo y no
+  // a "zumbido". strength (0-1) sube el volumen y el brillo del filtro en
+  // los tics finales, más lentos y espaciados, para que se sientan con más
+  // "peso" que el traqueteo rápido del arranque -igual que en una ruleta
+  // física, donde los últimos golpes suenan más marcados que el rugido inicial.
+  function playTick(strength){
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    const dur = 0.018;
+    const bufferSize = Math.ceil(ctx.sampleRate * dur);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1800 + strength * 900; // tics finales, algo más agudos/"secos"
+    filter.Q.value = 1.1;
+
+    const gainNode = ctx.createGain();
+    const peak = 0.16 + strength * 0.22;
+    const now = ctx.currentTime;
+    gainNode.gain.setValueAtTime(peak, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+    noise.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    noise.start(now);
+    noise.stop(now + dur);
+  }
+
+  // Reproduce la secuencia completa de tics para una tirada, calculada a
+  // partir del ángulo REAL que va a girar la rueda (totalAngleDeg, el mismo
+  // targetAngle ya calculado en spin() para rotor.style.transform) -no un
+  // número de tics fijo aparte, que se desincronizaría en tiradas donde
+  // extraSpins salga distinto. Un tic por cada línea divisoria de sector
+  // (cada arc° de giro) que la rueda cruza en total.
+  let _tickAnimId = null;
+  function stopSpinSound(){
+    if (_tickAnimId !== null){
+      cancelAnimationFrame(_tickAnimId);
+      _tickAnimId = null;
+    }
+  }
+  function playSpinSound(totalAngleDeg){
+    stopSpinSound();
+    const totalTicks = Math.max(1, Math.round(Math.abs(totalAngleDeg) / arc));
+    const startTime = performance.now();
+    let nextTickIndex = 0;
+
+    function step(now){
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / SPIN_DURATION_MS, 1);
+      const eased = spinEase(t); // 0-1, misma curva que el giro visual real
+
+      // Dispara todos los tics cuyo "instante ideal" (según su posición
+      // proporcional dentro del progreso ya-easeado) ya quedó atrás. Puede
+      // disparar más de uno por frame si el giro va muy rápido al principio
+      // (varios sectores por frame), que es justo el traqueteo denso que
+      // debe sonar al arrancar.
+      while (nextTickIndex < totalTicks && (nextTickIndex / totalTicks) <= eased){
+        const strength = nextTickIndex / totalTicks; // 0 al empezar, ~1 al final -> tics finales más marcados
+        playTick(strength);
+        nextTickIndex++;
+      }
+
+      if (t < 1 && nextTickIndex < totalTicks){
+        _tickAnimId = requestAnimationFrame(step);
+      } else {
+        _tickAnimId = null;
+      }
+    }
+    _tickAnimId = requestAnimationFrame(step);
+  }
+
+
   // Convierte un ángulo "horario desde arriba" a coordenadas cartesianas del SVG.
   // ángulo 0° = arriba (12 en punto), 90° = derecha, 180° = abajo, 270° = izquierda.
   function polarToXY(angleDeg, radius){
@@ -1308,6 +1440,7 @@ window.ALIEN_FRAMES = [
 
     rotor.style.transition = 'transform 5.2s cubic-bezier(.11,.82,.1,1)';
     rotor.style.transform = `rotate(${currentRotation}deg)`;
+    playSpinSound(targetAngle);
 
     // Mientras la rueda gira (los 5.2s de suspense), el fondo cobra vida con
     // estrellas fugaces cruzando la pantalla — refuerza la sensación de estar
@@ -1400,6 +1533,7 @@ window.ALIEN_FRAMES = [
       clearInterval(shootingStarInterval);
       shootingStarInterval = null;
     }
+    stopSpinSound();
   }
 
   // ============================================================================
