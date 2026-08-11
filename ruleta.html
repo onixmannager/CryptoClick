@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ruleta Galáctica</title>
+
+<!-- Mismo favicon que index.html -->
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<!-- Misma tipografía "Fredoka One" que index.html: sin esto, .rl-title
+     (pantalla de carga) caía al fallback 'Segoe UI' del sistema en vez de
+     usar la fuente redondeada real, por eso se veía distinta a index.html. -->
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --gold-light:#f5d68a;
@@ -332,6 +342,28 @@
     text-transform:uppercase;
     opacity:.85;
   }
+  /* Botón de silenciar: mismo estilo que #muteBtn en index.html. */
+  #ruletaTopbarLeft{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  #muteBtn{
+    background:rgba(10,12,22,.5);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:50%;
+    width:28px;
+    height:28px;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:transform .12s,border-color .2s;
+    flex-shrink:0;
+  }
+  #muteBtn:active{transform:scale(.88);}
+  #muteBtn.off{opacity:.5;}
   #ruletaBalPill{
     display:flex;
     align-items:center;
@@ -498,7 +530,10 @@ img,a{-webkit-touch-callout:none}
 <div class="stage">
 
   <div id="ruletaTopbar">
-    <a id="ruletaBackLink" href="index.html">← Volver</a>
+    <div id="ruletaTopbarLeft">
+      <a id="ruletaBackLink" href="index.html">← Volver</a>
+      <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
+    </div>
     <div id="ruletaBalPill">
       <span id="ruletaBalIcon">🪙</span>
       <div>
@@ -1012,6 +1047,13 @@ window.ALIEN_FRAMES = [
   // - ALIEN_SOUND_SRC: efecto del alien. Se reproduce una vez, en el mismo
   //   instante en que arranca su animación (misma duración ~5.2s que el giro).
   // ============================================================================
+  // Estado de silencio: comparte la misma clave de localStorage que
+  // index.html ('cck4_muted') para que el mute sea consistente entre
+  // páginas -si el jugador silencia en index.html, la ruleta abre ya
+  // silenciada, y viceversa.
+  let _ruletaMuted = false;
+  try{ _ruletaMuted = localStorage.getItem('cck4_muted') === '1'; }catch(e){}
+
   const RULETA_SOUND_SRC = 'sounds/girando.mp3';
   const ALIEN_SOUND_SRC  = ''; // ej: 'sounds/alien-grito.mp3'
   const GANADOR_SOUND_SRC = 'sounds/ganador.mp3';
@@ -1094,8 +1136,10 @@ window.ALIEN_FRAMES = [
     }
     return _yupiAudioEl;
   }
-  // Música de fondo: mismo volumen que index.html (0.4, igual que el resto
-  // de sonidos de esta página), en loop continuo desde que carga la página.
+  // Música de fondo: volumen bajado a 0.15 (antes 0.4, sonaba demasiado
+  // alta), mismo nivel que la música de fondo de index.html (BGM.VOL),
+  // en loop continuo desde que carga la página.
+  const MUSICA_FONDO_VOL = 0.15;
   let _musicaFondoAudioEl = null;
   function getMusicaFondoAudioEl(){
     if (!MUSICA_FONDO_SOUND_SRC) return null;
@@ -1103,7 +1147,7 @@ window.ALIEN_FRAMES = [
       _musicaFondoAudioEl = new Audio(MUSICA_FONDO_SOUND_SRC);
       _musicaFondoAudioEl.preload = 'auto';
       _musicaFondoAudioEl.loop = true;
-      _musicaFondoAudioEl.volume = 0.4;
+      _musicaFondoAudioEl.volume = _ruletaMuted ? 0 : MUSICA_FONDO_VOL;
       _musicaFondoAudioEl.addEventListener('error', () => {
         const err = _musicaFondoAudioEl.error;
         console.error('[música de fondo] No se pudo cargar "' + MUSICA_FONDO_SOUND_SRC + '". Código de error:', err ? err.code : '(desconocido)');
@@ -1127,6 +1171,7 @@ window.ALIEN_FRAMES = [
   // registra el motivo exacto en consola en vez de callarse -antes un
   // .catch(()=>{}) silencioso tragaba el error sin dejar ninguna pista.
   function playSpinSound(){
+    if (_ruletaMuted) return;
     const el = getRuletaAudioEl();
     if (!el) return;
     el.currentTime = 0;
@@ -1141,6 +1186,7 @@ window.ALIEN_FRAMES = [
   }
   // Se llama junto a playAlienAnimation(), más abajo.
   function playAlienSound(){
+    if (_ruletaMuted) return;
     const el = getAlienAudioEl();
     if (!el) return;
     el.currentTime = 0;
@@ -1148,6 +1194,7 @@ window.ALIEN_FRAMES = [
   }
   // Se llama cuando termina el giro, junto a stopSpinSound().
   function playGanadorSound(){
+    if (_ruletaMuted) return;
     const el = getGanadorAudioEl();
     if (!el) return;
     el.currentTime = 0;
@@ -1156,6 +1203,7 @@ window.ALIEN_FRAMES = [
   }
   // Se llama junto al estallido principal de runFireworksShow().
   function playFuegosSound(){
+    if (_ruletaMuted) return;
     const el = getFuegosAudioEl();
     if (!el) return;
     el.currentTime = 0;
@@ -1163,21 +1211,24 @@ window.ALIEN_FRAMES = [
   }
   // Se llama 3.5s después del click en GIRAR (ver setTimeout en spin()).
   function playYupiSound(){
+    if (_ruletaMuted) return;
     const el = getYupiAudioEl();
     if (!el) return;
     el.currentTime = 0;
     el.play().catch(err => console.error('[sonido yupi] play() rechazado:', err.name, '-', err.message));
   }
-  // Arranca la música de fondo en loop, mismo volumen (0.4) que en index.html.
+  // Arranca la música de fondo en loop, volumen bajado (ver MUSICA_FONDO_VOL).
   // Igual que en index.html, se intenta reproducir apenas carga la página; si
   // el navegador bloquea el autoplay con sonido (política común en móvil
   // hasta que hay una interacción del usuario), se reintenta una sola vez en
   // el primer click/touch/tecla, sin volver a intentarlo después.
   function playMusicaFondo(){
+    if (_ruletaMuted) return;
     const el = getMusicaFondoAudioEl();
     if (!el) return;
     el.play().catch(() => {
       const reintentar = () => {
+        if (_ruletaMuted) return;
         el.play().catch(err => console.error('[música de fondo] play() rechazado:', err.name, '-', err.message));
         ['click','touchstart','keydown'].forEach(ev => document.removeEventListener(ev, reintentar));
       };
@@ -1185,6 +1236,38 @@ window.ALIEN_FRAMES = [
     });
   }
   playMusicaFondo();
+
+  // Botón de silenciar (mismo altavoz 🔊/🔇 que index.html): silencia/reanuda
+  // la música de fondo en curso y evita que los efectos (giro, alien, ganador,
+  // fuegos, yupi) suenen mientras esté activado. Comparte la clave
+  // 'cck4_muted' de localStorage con index.html para que el estado de mute
+  // sea el mismo en toda la app.
+  window.toggleMute = function(){
+    _ruletaMuted = !_ruletaMuted;
+    try{ localStorage.setItem('cck4_muted', _ruletaMuted ? '1' : '0'); }catch(e){}
+    const musica = getMusicaFondoAudioEl();
+    if (musica){
+      if (_ruletaMuted){
+        musica.pause();
+      } else {
+        musica.volume = MUSICA_FONDO_VOL;
+        musica.play().catch(()=>{});
+      }
+    }
+    const btn = document.getElementById('muteBtn');
+    if (btn){
+      btn.textContent = _ruletaMuted ? '🔇' : '🔊';
+      btn.classList.toggle('off', _ruletaMuted);
+    }
+  };
+  // Sincroniza el ícono del botón con el estado inicial leído de localStorage.
+  (function syncMuteBtn(){
+    const btn = document.getElementById('muteBtn');
+    if (btn){
+      btn.textContent = _ruletaMuted ? '🔇' : '🔊';
+      btn.classList.toggle('off', _ruletaMuted);
+    }
+  })();
 
 
   // Convierte un ángulo "horario desde arriba" a coordenadas cartesianas del SVG.
