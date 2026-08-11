@@ -1140,6 +1140,7 @@ window.ALIEN_FRAMES = [
     const el = getYupiAudioEl();
     if (!el) return;
     el.currentTime = 0;
+    el.volume = 0.4;
     el.play().catch(err => console.error('[sonido yupi] play() rechazado:', err.name, '-', err.message));
   }
 
