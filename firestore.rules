@@ -183,17 +183,20 @@ service cloud.firestore {
           && d.updatedAt == request.time;
       }
 
-      // El cooldown de 1s de más abajo (request.time > before.updatedAt +
-      // 1s) depende implícitamente de que el flujo de la app SIEMPRE deje
-      // pasar más de 1s entre sincronizar el perfil (syncProfileFromMainSave,
-      // llamado en boot() de minigame.html) y resolver la invasión
-      // (resolveInvasion, llamado al terminar el minijuego). Eso se cumple
-      // hoy con margen de sobra: el countdown de 3-2-1 antes de empezar ya
-      // son ~2.1s, y el minijuego dura 10-20s más. Si en el futuro se
-      // acorta el countdown o se permite saltarlo, revisar que este
-      // margen siga cumpliéndose — si no, un jugador legítimo que gane
-      // instantáneamente podría ver su propio resolveInvasion rechazado
-      // por Rules sin haber hecho nada indebido.
+      // El cooldown de más abajo (request.time > before.updatedAt + 300ms)
+      // solo se exige CUANDO clk sube — es decir, cuando este update
+      // podría ser el "auto-robo fabricado a mano" que describe el
+      // comentario de más abajo. Antes se exigía SIEMPRE, para cualquier
+      // update del propio dueño, pero syncProfileFromMainSave() se llama
+      // en el boot() de las TRES pantallas (index.html, search.html,
+      // minigame.html) — un jugador navegando con normalidad de una a
+      // otra (pulsar "BUSCAR RIVAL" o "ATACAR" apenas cargó la pantalla
+      // anterior) encadena dos de esas sincronizaciones en un margen de
+      // tiempo que puede ser menor a cualquier cooldown fijo razonable,
+      // y esas sincronizaciones NO suben clk casi nunca (solo cooldowns,
+      // alias, nivel) — no hay razón para limitarlas por tiempo. El
+      // cooldown solo tiene sentido cuando SÍ sube clk, que es el único
+      // caso con superficie de abuso real.
       //
       // El alza de clk (cuando el jugador GANA un robo) no se puede
       // verificar aquí contra el attack doc exacto: Firestore Rules no
@@ -203,11 +206,13 @@ service cloud.firestore {
       // requeriría Cloud Functions.
       //
       // Lo que SÍ se hace aquí, con honestidad sobre lo que cubre y lo
-      // que no: un techo absoluto duro por escritura. No confirma que el
-      // alza corresponda a un robo real, pero limita el daño máximo de
-      // un intento de auto-robo fabricado a mano a una cifra pequeña
-      // frente a los saldos típicos del juego, y el cooldown de 1s de
-      // más abajo impide repetir el truco en ráfaga.
+      // que no: un techo absoluto duro por escritura, más un cooldown de
+      // 300ms que solo aplica cuando clk sube. No confirma que el alza
+      // corresponda a un robo real, pero limita el daño máximo de un
+      // intento de auto-robo fabricado a mano a una cifra pequeña frente
+      // a los saldos típicos del juego, y el cooldown impide repetir el
+      // truco en ráfaga sin penalizar la navegación normal entre
+      // pantallas (que nunca sube clk en el mismo golpe).
       function isSelfProfileUpdate() {
         let d = request.resource.data;
         let before = resource.data;
@@ -215,16 +220,19 @@ service cloud.firestore {
         return request.auth.uid == uid
           && isValidPlayerDoc()
           && d.accountCreatedAt == before.accountCreatedAt // inmutable una vez fijado
-          && request.time > before.updatedAt + duration.value(1, 's') // evita ráfaga
-          && clkIncrease <= 9000; // techo dado, no verificación exacta — ver comentario arriba
+          && clkIncrease <= 200000000 // techo dado, no verificación exacta — ver comentario arriba
+          && (clkIncrease <= 0 || request.time > before.updatedAt + duration.value(300, 'ms'));
       }
 
       // Caso (b): otro jugador (el atacante) escribe el resultado de un
       // robo SOBRE TU documento. Solo puede tocar clk/lastAttackedAt/
       // updatedAt, `clk` solo puede BAJAR (nunca a negativo, nunca a 0
       // en seco: el mínimo lo aplica invasion-core.js con
-      // MIN_CLK_LEFT_AFTER_ROB, aquí se exige como cota dura clk >= 0),
-      // y con el mismo techo de cooldown de 1s para evitar ráfaga.
+      // MIN_CLK_LEFT_AFTER_ROB, aquí se exige como cota dura clk >= 0).
+      // No necesita cooldown propio: bajar clk no es una superficie de
+      // auto-abuso (nadie se beneficia de robarse saldo a sí mismo), y
+      // el atacante ya tiene su propio cooldown de 60s entre invasiones
+      // (CFG.INVASION_COOLDOWN_MS, aplicado en checkCanInvade()).
       function isIncomingRobberyUpdate() {
         let d = request.resource.data;
         let before = resource.data;
@@ -274,14 +282,16 @@ service cloud.firestore {
       // distinga aquí "este doc es del defensor" de "este doc es del
       // atacante" sin otro get(), así que se acepta que clk cambie en
       // cualquier dirección, acotado por un techo absoluto (mismo
-      // razonamiento y mismo número que el techo de auto-robo en
-      // invasion_players/isSelfProfileUpdate).
+      // razonamiento y MISMO número que el techo de auto-robo en
+      // invasion_players/isSelfProfileUpdate — debe coincidir siempre,
+      // porque un solo robo escribe en ambos documentos, dentro del mismo
+      // batch, con idéntico stolenAmount).
       function isTargetClkOnlyUpdate() {
         let d = request.resource.data;
         let before = resource.data;
         return d.diff(before).affectedKeys().hasOnly(['clk'])
           && d.clk is int && d.clk >= 0
-          && (d.clk <= before.clk || d.clk - before.clk <= 9000);
+          && (d.clk <= before.clk || d.clk - before.clk <= 200000000);
       }
     }
 
