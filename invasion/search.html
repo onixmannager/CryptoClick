@@ -58,7 +58,7 @@ h1{font-family:var(--fh);font-size:20px;margin-bottom:8px}
 </head>
 <body>
 <div id="app">
-  <a href="index.html" id="backLink">←</a>
+  <a href="./" id="backLink">←</a>
 
   <div id="scanning">
     <div class="radar"><div class="sweep"></div><div class="radarIcon">📡</div></div>
@@ -214,7 +214,7 @@ document.getElementById('retryBtn2').onclick=()=>{
   if(directTargetFailed){
     // Venganza fallida: no tiene sentido "reintentar al azar" contra
     // otro jugador, el usuario pulsó Vengarse de alguien específico.
-    window.location.href='index.html';
+    window.location.href='./';
   }else{
     searchRandom();
   }
