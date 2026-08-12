@@ -1,0 +1,34 @@
+{
+  "_comentario": "Índices compuestos que las queries de invasion-core.js necesitan. Firestore los pide automáticamente la primera vez que la query falla en producción (el error trae un enlace que los crea con un clic) — este archivo es solo para tenerlos documentados y poder desplegarlos con `firebase deploy --only firestore:indexes` si se prefiere hacerlo de antemano en vez de esperar al primer error.",
+
+  "indexes": [
+    {
+      "_comentario": "getActiveRevengeTarget(): últimos robos GANADOS contra mí, ordenados por fecha.",
+      "collectionGroup": "invasion_attacks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "defenderUid", "order": "ASCENDING" },
+        { "fieldPath": "won", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_comentario": "getAttackHistory(): mis ataques como atacante, ordenados por fecha.",
+      "collectionGroup": "invasion_attacks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "attackerUid", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_comentario": "getAttackHistory(): mis ataques como defensor, ordenados por fecha.",
+      "collectionGroup": "invasion_attacks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "defenderUid", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ]
+}

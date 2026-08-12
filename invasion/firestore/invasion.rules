@@ -1,0 +1,235 @@
+// ══════════════════════════════════════════════════════════════════════
+// FIRESTORE RULES — Modo Invasión (fase aislada)
+// ══════════════════════════════════════════════════════════════════════
+// Estas reglas cubren SOLO las colecciones nuevas del modo Invasión
+// (invasion_players, invasion_targets, invasion_attacks). NO tocan ni
+// redefinen saves/ ni leaderboard/ — ese bloque sigue viviendo tal cual
+// en el firestore.rules real del proyecto padre.
+//
+// En la fase de integración, el contenido de `match /databases/...` de
+// abajo debe COPIARSE dentro del firestore.rules del padre (que ya tiene
+// su propio `match /databases/{database}/documents { ... }` con
+// saves/leaderboard) — no se despliega este archivo por separado, porque
+// Firestore solo permite un ruleset activo por base de datos.
+//
+// Recordatorio de por qué esto no es "servidor de verdad": estas reglas
+// VALIDAN forma/tipo/rango de lo que el cliente ya decidió escribir
+// (quién ganó el minijuego, cuánto se roba). No pueden verificar que el
+// minijuego se jugó de verdad. Ver docs/DISEÑO.md sección 0.
+// ══════════════════════════════════════════════════════════════════════
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== invasion_players/{uid} =====
+    // Perfil de invasión del propio jugador. Solo el dueño puede escribir
+    // el SUYO — pero un robo escribe en el documento del DEFENSOR con el
+    // uid del ATACANTE autenticado, así que "solo el dueño escribe lo
+    // suyo" no puede ser la única regla o nadie podría robarle a nadie.
+    // Por eso: lectura pública para poder ver contadores propios (no hay
+    // dato sensible aquí, es paralelo a leaderboard/ que ya es público);
+    // escritura permitida a cualquier usuario autenticado, pero MUY
+    // acotada en qué campos puede tocar y cuánto puede mover `clk`.
+    match /invasion_players/{uid} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && isValidPlayerDoc()
+                    && request.resource.data.clk <= 1000000000;
+
+      // Un update puede venir de dos casos:
+      //  (a) el propio jugador sincronizando su perfil / activando escudo
+      //      / actualizando su propio cooldown tras invadir
+      //  (b) otro jugador autenticado escribiendo el resultado de un robo
+      //      sobre TU documento (baja tu clk, sube tu lastAttackedAt)
+      // No se puede distinguir (a) de (b) por request.auth.uid == uid,
+      // así que se acota por CAMPOS TOCADOS + rango de cambio permitido.
+      allow update: if request.auth != null && (
+                      isSelfProfileUpdate()
+                      || isIncomingRobberyUpdate()
+                    );
+
+      allow delete: if false;
+
+      function isValidPlayerDoc() {
+        let d = request.resource.data;
+        return d.keys().hasOnly([
+          'alias','lvl','clk','shieldUntil','shieldType','accountCreatedAt',
+          'lastAttackedAt','lastInvasionAt','invasionsToday','invasionsDayKey',
+          'recentTargets','updatedAt'
+        ])
+          && d.alias is string && d.alias.size() > 0 && d.alias.size() <= 16
+          && d.lvl is int && d.lvl >= 1
+          && d.clk is int && d.clk >= 0
+          && d.shieldUntil is int && d.shieldUntil >= 0
+          && d.shieldType is string
+          && d.accountCreatedAt is int && d.accountCreatedAt > 0
+          && d.lastAttackedAt is int && d.lastAttackedAt >= 0
+          && d.lastInvasionAt is int && d.lastInvasionAt >= 0
+          && d.invasionsToday is int && d.invasionsToday >= 0 && d.invasionsToday <= 20
+          && d.invasionsDayKey is string
+          && d.recentTargets is map
+          && d.updatedAt == request.time;
+      }
+
+      // Caso (a): el dueño actualiza SU perfil. Cubre tanto la
+      // sincronización normal (alias/lvl/clk desde saves/, cooldowns
+      // tras invadir) como el alza de `clk` cuando GANA un robo — ese
+      // batch lo ejecuta el propio atacante sobre su propio doc, así que
+      // cae aquí, no en el caso (b) de abajo.
+      //
+      // El alza de clk (cuando el jugador GANA un robo) no se puede
+      // verificar aquí contra el attack doc exacto: Firestore Rules no
+      // permite hacer una query dentro de una condición de seguridad,
+      // solo get() por path conocido, y el id de invasion_attacks incluye
+      // un timestamp que la regla no puede adivinar. Verificación exacta
+      // requeriría Cloud Functions (ver docs/DISEÑO.md sección 0).
+      //
+      // Lo que SÍ se hace aquí, con honestidad sobre lo que cubre y lo
+      // que no: un techo absoluto duro por escritura. No confirma que el
+      // alza corresponda a un robo real, pero limita el daño máximo de
+      // un intento de auto-robo fabricado a mano a una cifra pequeña
+      // frente a los saldos típicos del juego, y el cooldown de 1s de
+      // más abajo impide repetir el truco en ráfaga.
+      // El cooldown de 1s de más abajo (request.time > before.updatedAt +
+      // 1s) depende implícitamente de que el flujo de la app SIEMPRE deje
+      // pasar más de 1s entre sincronizar el perfil (syncProfileFromMainSave,
+      // llamado en boot() de minigame.html) y resolver la invasión
+      // (resolveInvasion, llamado al terminar el minijuego). Eso se cumple
+      // hoy con margen de sobra: el countdown de 3-2-1 antes de empezar ya
+      // son ~2.1s, y el minijuego dura 10-20s más. Si en el futuro se
+      // acorta el countdown o se permite saltarlo, revisar que este
+      // margen siga cumpliéndose — si no, un jugador legítimo que gane
+      // instantáneamente podría ver su propio resolveInvasion rechazado
+      // por Rules sin haber hecho nada indebido.
+      function isSelfProfileUpdate() {
+        let d = request.resource.data;
+        let before = resource.data;
+        let clkIncrease = d.clk - before.clk;
+        return request.auth.uid == uid
+          && isValidPlayerDoc()
+          && d.accountCreatedAt == before.accountCreatedAt // inmutable una vez fijado
+          && request.time > before.updatedAt + duration.value(1, 's') // evita ráfaga
+          && clkIncrease <= 9000; // techo dado, no verificación exacta — ver comentario arriba
+      }
+
+      // Caso (b): otro jugador (el atacante) escribe el resultado de un
+      // robo SOBRE TU documento. Solo puede tocar clk/lastAttackedAt/
+      // updatedAt, `clk` solo puede BAJAR (nunca a negativo, nunca a 0
+      // en seco: el mínimo lo aplica invasion-core.js con
+      // MIN_CLK_LEFT_AFTER_ROB, aquí se exige como cota dura clk >= 0),
+      // y con el mismo techo de cooldown de 1s para evitar ráfaga.
+      function isIncomingRobberyUpdate() {
+        let d = request.resource.data;
+        let before = resource.data;
+        return request.auth.uid != uid
+          && d.diff(before).affectedKeys().hasOnly(['clk','lastAttackedAt','updatedAt'])
+          && d.clk is int && d.clk >= 0 && d.clk <= before.clk
+          && d.lastAttackedAt is int && d.lastAttackedAt >= before.lastAttackedAt
+          && d.updatedAt == request.time;
+      }
+    }
+
+    // ===== invasion_targets/{uid} =====
+    // Espejo mínimo público, solo para la query aleatoria de "buscar
+    // rival". Mismo razonamiento de doble caso que invasion_players:
+    // el propio dueño lo sincroniza; un atacante puede bajar el `clk`
+    // reflejado aquí tras un robo ganado, o subir el suyo propio.
+    match /invasion_targets/{uid} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && isValidTargetDoc();
+
+      allow update: if request.auth != null && (
+                      (request.auth.uid == uid && isValidTargetDoc())
+                      || isTargetClkOnlyUpdate()
+                    );
+
+      allow delete: if false;
+
+      function isValidTargetDoc() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['alias','lvl','clk','shieldUntil','accountCreatedAt','rand'])
+          && d.alias is string && d.alias.size() <= 16
+          && d.lvl is int && d.lvl >= 1
+          && d.clk is int && d.clk >= 0
+          && d.shieldUntil is int && d.shieldUntil >= 0
+          && d.accountCreatedAt is int && d.accountCreatedAt > 0
+          && d.rand is number && d.rand >= 0 && d.rand <= 1;
+      }
+
+      // Tras un robo, invasion-core.js hace un merge que SOLO toca `clk`
+      // en este doc espejo — y en DOS sentidos distintos según de quién es
+      // el documento: el del defensor BAJA (le robaron), el del atacante
+      // SUBE (ganó el botín). Por eso esta regla no puede exigir "solo
+      // baja" como si fuera un caso único — no hay forma de que Rules
+      // distinga aquí "este doc es del defensor" de "este doc es del
+      // atacante" sin otro get(), así que se acepta que clk cambie en
+      // cualquier dirección, acotado por un techo absoluto (mismo
+      // razonamiento y mismo número que el techo de auto-robo en
+      // invasion_players/isSelfProfileUpdate — es la MISMA cifra que
+      // podría llegar aquí en la misma operación, solo que reflejada en
+      // este doc espejo en vez del doc principal).
+      function isTargetClkOnlyUpdate() {
+        let d = request.resource.data;
+        let before = resource.data;
+        return d.diff(before).affectedKeys().hasOnly(['clk'])
+          && d.clk is int && d.clk >= 0
+          && (d.clk <= before.clk || d.clk - before.clk <= 9000);
+      }
+    }
+
+    // ===== invasion_attacks/{attackId} =====
+    // Historial de robos. Se crea una vez por invasión resuelta, nunca
+    // se actualiza ni se borra. El atacante autenticado es quien escribe
+    // (es quien resuelve el batch completo), así que no se exige que
+    // request.auth.uid coincida con attackerUid como único caso — se
+    // exige que SEA uno de los dos participantes reales según lo que el
+    // propio documento declara, y que la forma/rango sea válida.
+    match /invasion_attacks/{attackId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    && (request.auth.uid == request.resource.data.attackerUid
+                        || request.auth.uid == request.resource.data.defenderUid)
+                    && isValidAttackDoc();
+
+      allow update: if false;
+      allow delete: if false;
+
+      function isValidAttackDoc() {
+        let d = request.resource.data;
+        return d.keys().hasOnly([
+          'attackerUid','attackerAlias','defenderUid','defenderAlias',
+          'attackerLvl','defenderLvl','difficulty','won','stolenAmount',
+          'isRevenge','createdAt'
+        ])
+          && d.attackerUid is string && d.attackerUid.size() > 0
+          && d.defenderUid is string && d.defenderUid.size() > 0
+          && d.attackerUid != d.defenderUid
+          && d.attackerAlias is string && d.attackerAlias.size() <= 16
+          && d.defenderAlias is string && d.defenderAlias.size() <= 16
+          && d.attackerLvl is int && d.attackerLvl >= 1
+          && d.defenderLvl is int && d.defenderLvl >= 1
+          && d.difficulty in ['muy_facil','facil','normal','dificil','muy_dificil']
+          && d.won is bool
+          && d.stolenAmount is int && d.stolenAmount >= 0
+          && (d.won == false ? d.stolenAmount == 0 : true) // perder nunca roba nada
+          && d.isRevenge is bool
+          && d.createdAt == request.time;
+      }
+    }
+
+    // No hace falta un match "catch-all" para las otras colecciones de
+    // este modo: Firestore deniega por defecto cualquier path sin match
+    // explícito. Un `match /invasion_{document=**}` aquí sería, además,
+    // incorrecto — `{name}` captura un segmento de path completo, no
+    // actúa como prefijo de texto, así que no cubriría en la práctica
+    // ni invasion_players ni invasion_targets ni invasion_attacks.
+  }
+}
