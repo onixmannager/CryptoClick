@@ -58,11 +58,22 @@ const CFG = {
   SHIELD_HOURS: { '6h': 6, '24h': 24, '3d': 72, '7d': 168 },
   SHIELDS_ENABLED: ['3d', '7d'],
 
+  // Coste en $CLK de cada escudo, escalado por nivel del jugador con el
+  // MISMO patrón de progresión que usa el resto del juego padre (ver
+  // index.html: xpNeed = 500*1.18^(lvl-1), upCost = base*1.5^ups,
+  // misGoal = g*1.6^(lvl-1)) — aquí: costeBase * exponente^(lvl-1).
+  // '7d' usa una base y exponente mayores que '3d' para que salga siempre
+  // más caro que '3d' en cualquier nivel, no solo en el nivel 1.
+  SHIELD_COST: {
+    '3d': { base: 200,  exp: 1.12 },
+    '7d': { base: 450,  exp: 1.14 },
+  },
+
   // Anti-abuso
   INVASION_COOLDOWN_MS: 60 * 1000,           // 60s entre invasiones lanzadas
   MAX_INVASIONS_PER_DAY: 20,
   SAME_TARGET_COOLDOWN_MS: 4 * 60 * 60 * 1000, // 4h sin repetir objetivo
-  NEW_ACCOUNT_PROTECTION_MS: 24 * 60 * 60 * 1000, // 24h de protección a cuentas nuevas
+  NEW_ACCOUNT_PROTECTION_MS: 0, // protección a cuentas nuevas desactivada a petición: cualquier cuenta puede invadir desde el minuto 1
   REVENGE_WINDOW_MS: 24 * 60 * 60 * 1000,    // 24h para vengarse
 
   // Objetivo debe tener al menos esto para poder ser robado (evita que
@@ -84,6 +95,15 @@ const CFG = {
     { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 10000, intentos: 2, robMax: 0.05 },
   ],
 };
+
+// Coste en $CLK de un escudo para un jugador de nivel `lvl`, redondeado
+// hacia arriba (como misGoal/misReward del padre) para que nunca cueste
+// menos de lo calculado.
+function shieldCost(shieldType, lvl) {
+  const c = CFG.SHIELD_COST[shieldType];
+  if (!c) return 0;
+  return Math.ceil(c.base * Math.pow(c.exp, Math.max(1, lvl) - 1));
+}
 
 function difficultyFor(attackerLvl, defenderLvl) {
   const diff = attackerLvl - defenderLvl;
@@ -395,23 +415,37 @@ async function resolveInvasion({ attackerUid, defenderUid, won, isRevenge }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// ACTIVAR ESCUDO — de momento solo tipos en CFG.SHIELDS_ENABLED. El
-// coste en CLK de cada escudo NO se define aquí todavía: la spec dice
-// explícitamente "el porcentaje... y las recompensas se configuran
-// posteriormente", así que se deja como parámetro que la pantalla de
-// tienda deberá pasar cuando exista.
+// ACTIVAR ESCUDO — de momento solo tipos en CFG.SHIELDS_ENABLED. Cuesta
+// $CLK según shieldCost(shieldType, nivel) (ver CFG.SHIELD_COST). Se
+// relee invasion_players/{uid} justo antes de cobrar (no se confía en el
+// clk que trae myProfile en el cliente, que puede llevar unos segundos
+// desfasado) para no dejar cobrar un escudo que el jugador ya no puede
+// pagar.
 // ─────────────────────────────────────────────────────────────────────
 async function activateShield(uid, shieldType) {
   if (!CFG.SHIELDS_ENABLED.includes(shieldType)) {
     throw new Error('Tipo de escudo no habilitado: ' + shieldType);
   }
+  const playerRef = doc(db, 'invasion_players', uid);
+  const snap = await getDoc(playerRef);
+  if (!snap.exists()) throw new Error('Perfil de invasión no encontrado');
+  const player = snap.data();
+
+  const cost = shieldCost(shieldType, player.lvl || 1);
+  const currentClk = player.clk || 0;
+  if (currentClk < cost) {
+    throw new Error('CLK insuficiente para este escudo');
+  }
+
   const hours = CFG.SHIELD_HOURS[shieldType];
   const shieldUntil = Date.now() + hours * 60 * 60 * 1000;
+  const newClk = currentClk - cost;
+
   const batch = writeBatch(db);
-  batch.update(doc(db, 'invasion_players', uid), { shieldUntil, shieldType, updatedAt: serverTimestamp() });
-  batch.set(doc(db, 'invasion_targets', uid), { shieldUntil }, { merge: true });
+  batch.update(playerRef, { shieldUntil, shieldType, clk: newClk, updatedAt: serverTimestamp() });
+  batch.set(doc(db, 'invasion_targets', uid), { shieldUntil, clk: newClk }, { merge: true });
   await batch.commit();
-  return shieldUntil;
+  return { shieldUntil, cost, newClk };
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -464,7 +498,7 @@ async function getAttackHistory(uid, max = 20) {
 // ─────────────────────────────────────────────────────────────────────
 window.InvasionCore = {
   CFG, db, auth, authReady,
-  difficultyFor, todayKeyUTC,
+  difficultyFor, todayKeyUTC, shieldCost,
   syncProfileFromMainSave, findRandomTarget, checkCanInvade,
   resolveInvasion, activateShield, getActiveRevengeTarget, getAttackHistory,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
