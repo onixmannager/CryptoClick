@@ -113,24 +113,33 @@ async function boot(){
     document.getElementById('statusText').textContent='Inicia sesión en el juego principal primero.';
     return;
   }
-  myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
 
-  const check = core.checkCanInvade(myProfile);
-  if(!check.ok){
-    markDirectTargetFailed('No puedes invadir ahora mismo — vuelve al menú para ver cuánto falta.');
-    return;
-  }
+  try{
+    myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
 
-  // Flujo de venganza: llega con un objetivo directo fijado desde index.html,
-  // salta la búsqueda aleatoria pero pasa por las mismas validaciones.
-  const directTarget = sessionStorage.getItem('invasion_direct_target');
-  if(directTarget){
-    isRevengeFlow = sessionStorage.getItem('invasion_is_revenge')==='1';
-    sessionStorage.removeItem('invasion_direct_target');
-    sessionStorage.removeItem('invasion_is_revenge');
-    await searchDirectTarget(directTarget);
-  }else{
-    await searchRandom();
+    const check = core.checkCanInvade(myProfile);
+    if(!check.ok){
+      markDirectTargetFailed('No puedes invadir ahora mismo — vuelve al menú para ver cuánto falta.');
+      return;
+    }
+
+    // Flujo de venganza: llega con un objetivo directo fijado desde index.html,
+    // salta la búsqueda aleatoria pero pasa por las mismas validaciones.
+    const directTarget = sessionStorage.getItem('invasion_direct_target');
+    if(directTarget){
+      isRevengeFlow = sessionStorage.getItem('invasion_is_revenge')==='1';
+      sessionStorage.removeItem('invasion_direct_target');
+      sessionStorage.removeItem('invasion_is_revenge');
+      await searchDirectTarget(directTarget);
+    }else{
+      await searchRandom();
+    }
+  }catch(e){
+    // Sin este catch, un fallo aquí (permisos, red) dejaba la pantalla
+    // de escaneo girando para siempre sin explicación — ver el mismo
+    // problema y su arreglo en index.html/boot().
+    console.error('boot() falló:', e);
+    markDirectTargetFailed('No se pudo cargar. Reintenta o avisa si persiste.');
   }
 }
 

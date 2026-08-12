@@ -113,17 +113,26 @@ async function boot(){
     return;
   }
 
-  myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
-  const defenderSnap = await core.getDoc(core.doc(core.db,'invasion_players',defenderUid));
-  if(!defenderSnap.exists()){ window.location.href='index.html'; return; }
-  const defenderLvl = defenderSnap.data().lvl || 1;
+  try{
+    myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+    const defenderSnap = await core.getDoc(core.doc(core.db,'invasion_players',defenderUid));
+    if(!defenderSnap.exists()){ window.location.href='index.html'; return; }
+    const defenderLvl = defenderSnap.data().lvl || 1;
 
-  tier = core.difficultyFor(myProfile.lvl, defenderLvl);
-  attemptsLeft = tier.intentos;
-  timeLeftMs = tier.tiempoMs;
+    tier = core.difficultyFor(myProfile.lvl, defenderLvl);
+    attemptsLeft = tier.intentos;
+    timeLeftMs = tier.tiempoMs;
 
-  buildGrid();
-  runCountdown();
+    buildGrid();
+    runCountdown();
+  }catch(e){
+    // Sin este catch, un fallo aquí (permisos, red) dejaba esta pantalla
+    // colgada a mitad de preparar la partida — ver el mismo problema y
+    // su arreglo en index.html/boot(). Aquí no hay UI de error propia
+    // para el minijuego en sí, así que se vuelve al hub directamente.
+    console.error('boot() falló:', e);
+    window.location.href='index.html';
+  }
 }
 
 function runCountdown(){

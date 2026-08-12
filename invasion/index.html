@@ -190,13 +190,24 @@ async function boot(){
     return;
   }
 
-  myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
-  renderAll();
-  document.getElementById('loading').classList.add('hide');
+  try{
+    myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+    renderAll();
+    document.getElementById('loading').classList.add('hide');
 
-  countdownInterval = setInterval(updateShieldUI, 1000);
-  loadHistory();
-  checkRevenge();
+    countdownInterval = setInterval(updateShieldUI, 1000);
+    loadHistory();
+    checkRevenge();
+  }catch(e){
+    // Sin este catch, cualquier fallo aquí (permisos, red, lo que sea)
+    // dejaba el loader colgado para siempre en silencio, sin mostrar
+    // nada al jugador ni una pista de qué pasó. Con el catch, al menos
+    // se ve el error real en consola y el jugador sabe que algo falló
+    // en vez de quedarse mirando el logo parpadeando sin explicación.
+    console.error('boot() falló:', e);
+    toast('❌ No se pudo cargar el modo Invasión. Reintenta o avisa si persiste.');
+    document.getElementById('loading').classList.add('hide');
+  }
 }
 
 function renderAll(){
