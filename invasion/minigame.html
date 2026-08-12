@@ -99,7 +99,7 @@ function fmtClk(n){
 async function boot(){
   core = window.InvasionCore;
   const user = await core.authReady;
-  if(!user){ window.location.href='index.html'; return; }
+  if(!user){ window.location.href='./'; return; }
 
   defenderUid = sessionStorage.getItem('invasion_battle_defender');
   isRevenge = sessionStorage.getItem('invasion_battle_is_revenge')==='1';
@@ -109,14 +109,14 @@ async function boot(){
   if(!defenderUid){
     // Se llegó a esta pantalla sin pasar por search.html (URL directa,
     // recarga tras jugar, etc.) — no hay rival elegido, no hay partida.
-    window.location.href='index.html';
+    window.location.href='./';
     return;
   }
 
   try{
     myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
     const defenderSnap = await core.getDoc(core.doc(core.db,'invasion_players',defenderUid));
-    if(!defenderSnap.exists()){ window.location.href='index.html'; return; }
+    if(!defenderSnap.exists()){ window.location.href='./'; return; }
     const defenderLvl = defenderSnap.data().lvl || 1;
 
     tier = core.difficultyFor(myProfile.lvl, defenderLvl);
@@ -131,7 +131,7 @@ async function boot(){
     // su arreglo en index.html/boot(). Aquí no hay UI de error propia
     // para el minijuego en sí, así que se vuelve al hub directamente.
     console.error('boot() falló:', e);
-    window.location.href='index.html';
+    window.location.href='./';
   }
 }
 
@@ -276,7 +276,7 @@ async function endGame(won){
 }
 
 document.getElementById('continueBtn').onclick=()=>{
-  window.location.href='index.html';
+  window.location.href='./';
 };
 
 boot();
