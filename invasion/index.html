@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Invasión — Crypto Alien Click</title>
+
+<meta name="theme-color" content="#0b0a14">
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;--card3:#252342;
+  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
+  --blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--red:#EF4444;
+  --text:#fff;--muted:#6B68A0;--border:rgba(255,255,255,0.07);
+  --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
+  --glass:rgba(10,12,22,.42);--glass2:rgba(12,14,26,.5);
+  --glass-border:rgba(255,255,255,.14);--glass-blur:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{width:100%;min-height:100vh;background-color:#0b0a14}
+body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;scrollbar-width:none;display:flex;justify-content:center}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
+
+#blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.1;animation:blobF 10s ease-in-out infinite alternate}
+.b1{width:500px;height:500px;background:#8B5CF6;top:-150px;left:-150px}
+.b2{width:400px;height:400px;background:#FF3CAC;bottom:-100px;right:-100px;animation-delay:-4s}
+.b3{width:300px;height:300px;background:#06B6D4;top:40%;left:60%;animation-delay:-7s}
+@keyframes blobF{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,30px) scale(1.1)}}
+
+#app{position:relative;z-index:1;width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;padding-bottom:32px}
+
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;gap:10px}
+#logo{font-family:var(--fh);font-size:15px;color:var(--yellow);text-decoration:none}
+#balMini{display:flex;align-items:center;gap:7px;background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:12px;padding:6px 12px}
+#balMiniIcon{font-size:17px}
+#balMiniNum{font-family:var(--fh);font-size:18px;color:var(--yellow);line-height:1}
+#balMiniLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:1px}
+
+main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
+
+.panel{background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:18px;padding:18px}
+
+/* ESCUDO */
+#shieldPanel.active{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.08)}
+#shieldPanel.inactive{border-color:rgba(239,68,68,.35)}
+.shieldRow{display:flex;align-items:center;gap:12px}
+.shieldIcon{font-size:32px}
+.shieldTitle{font-family:var(--fh);font-size:16px;color:var(--text)}
+.shieldSub{font-size:12px;color:var(--muted);font-weight:700;margin-top:2px}
+.shieldCountdown{font-family:var(--fh);font-size:20px;color:var(--green);margin-left:auto}
+.shieldBuyBtns{display:flex;gap:8px;margin-top:12px}
+.shieldBuyBtn{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 6px;font-weight:800;font-size:12px;color:var(--text);cursor:pointer;text-align:center}
+.shieldBuyBtn:active{transform:scale(.96)}
+
+/* BOTÓN INVASIÓN */
+#invadeBtn{width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:18px;cursor:pointer;box-shadow:0 8px 24px rgba(255,60,172,.35)}
+#invadeBtn:active{transform:scale(.97)}
+#invadeBtn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+#invadeHint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;font-weight:700}
+
+/* VENGANZA */
+#revengePanel{display:none;border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.08)}
+#revengePanel.show{display:block}
+.revengeRow{display:flex;align-items:center;gap:12px}
+.revengeIcon{font-size:28px}
+#revengeBtn{margin-top:10px;width:100%;padding:12px;border:none;border-radius:12px;background:var(--orange);color:#fff;font-family:var(--fh);font-size:14px;cursor:pointer}
+#revengeBtn:active{transform:scale(.97)}
+
+/* HISTORIAL */
+.sectionTitle{font-family:var(--fh);font-size:14px;color:var(--muted);letter-spacing:.5px;margin-bottom:8px;padding-left:4px}
+.histRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.histRow:last-child{border-bottom:none}
+.histIcon{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.histText{flex:1;font-size:13px;font-weight:700;min-width:0}
+.histText b{color:var(--text)}
+.histAmount{font-family:var(--fh);font-size:14px;flex-shrink:0}
+.histAmount.win{color:var(--green)}
+.histAmount.lose{color:var(--red)}
+.histTime{font-size:10px;color:var(--muted);margin-top:2px}
+.emptyHist{text-align:center;color:var(--muted);font-size:12px;font-weight:700;padding:20px 0}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+
+#loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s}
+#loading.hide{opacity:0;pointer-events:none}
+.ll{font-family:var(--fh);font-size:24px;color:var(--yellow)}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="ll">👾 INVASIÓN</div></div>
+<div id="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<div id="app">
+  <div id="topbar">
+    <a href="#" id="logo">👾 INVASIÓN</a>
+    <div id="balMini">
+      <span id="balMiniIcon">🪙</span>
+      <div><div id="balMiniNum">–</div><div id="balMiniLabel">$CLK</div></div>
+    </div>
+  </div>
+
+  <main>
+    <!-- ESCUDO -->
+    <div class="panel" id="shieldPanel">
+      <div class="shieldRow">
+        <div class="shieldIcon" id="shieldIcon">🛡️</div>
+        <div>
+          <div class="shieldTitle" id="shieldTitle">Sin escudo</div>
+          <div class="shieldSub" id="shieldSub">Eres un objetivo válido</div>
+        </div>
+        <div class="shieldCountdown" id="shieldCountdown" style="display:none"></div>
+      </div>
+      <div class="shieldBuyBtns" id="shieldBuyBtns"></div>
+    </div>
+
+    <!-- VENGANZA -->
+    <div class="panel" id="revengePanel">
+      <div class="revengeRow">
+        <div class="revengeIcon">⚔️</div>
+        <div>
+          <div class="shieldTitle" id="revengeTitle">¡Te han robado!</div>
+          <div class="shieldSub" id="revengeSub"></div>
+        </div>
+      </div>
+      <button id="revengeBtn">VENGARSE AHORA</button>
+    </div>
+
+    <!-- BUSCAR RIVAL -->
+    <div class="panel">
+      <button id="invadeBtn">🚀 BUSCAR RIVAL</button>
+      <div id="invadeHint"></div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div>
+      <div class="sectionTitle">HISTORIAL DE ROBOS</div>
+      <div class="panel" id="histPanel">
+        <div class="emptyHist">Cargando historial…</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import './js/invasion-core.js'; // define window.InvasionCore antes de seguir
+
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function fmtClk(n){
+  n=Math.floor(n);
+  if(n>=1e12)return(n/1e12).toFixed(2)+'T';
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return n+'';
+}
+
+function fmtCountdown(ms){
+  if(ms<=0)return '';
+  const s=Math.floor(ms/1000);
+  const d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  if(d>0)return `${d}d ${h}h`;
+  if(h>0)return `${h}h ${m}m`;
+  if(m>0)return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+let core, myProfile, countdownInterval, invadeHintInterval;
+
+async function boot(){
+  // El import de invasion-core.js al principio de este mismo módulo ya
+  // garantiza que window.InvasionCore existe antes de que llegue este punto.
+  core = window.InvasionCore;
+  const user = await core.authReady;
+  if(!user){
+    toast('⚠️ Debes iniciar sesión en el juego principal primero');
+    document.getElementById('loading').classList.add('hide');
+    return;
+  }
+
+  myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+  renderAll();
+  document.getElementById('loading').classList.add('hide');
+
+  countdownInterval = setInterval(updateShieldUI, 1000);
+  loadHistory();
+  checkRevenge();
+}
+
+function renderAll(){
+  document.getElementById('balMiniNum').textContent = fmtClk(myProfile.clk);
+  renderShieldButtons();
+  updateShieldUI();
+  updateInvadeButton();
+}
+
+function updateShieldUI(){
+  const panel=document.getElementById('shieldPanel');
+  const now=Date.now();
+  const active = myProfile.shieldUntil > now;
+  panel.classList.toggle('active', active);
+  panel.classList.toggle('inactive', !active);
+  document.getElementById('shieldIcon').textContent = active ? '🛡️' : '⚠️';
+  document.getElementById('shieldTitle').textContent = active
+    ? `Escudo activo (${myProfile.shieldType})`
+    : 'Sin escudo';
+  document.getElementById('shieldSub').textContent = active
+    ? 'No puedes ser invadido'
+    : 'Eres un objetivo válido';
+  const cd=document.getElementById('shieldCountdown');
+  if(active){
+    cd.style.display='block';
+    cd.textContent = fmtCountdown(myProfile.shieldUntil - now);
+  } else {
+    cd.style.display='none';
+  }
+}
+
+function renderShieldButtons(){
+  const wrap=document.getElementById('shieldBuyBtns');
+  wrap.innerHTML='';
+  core.CFG.SHIELDS_ENABLED.forEach(type=>{
+    const hours=core.CFG.SHIELD_HOURS[type];
+    const label = hours>=24 ? `${hours/24}d` : `${hours}h`;
+    const btn=document.createElement('button');
+    btn.className='shieldBuyBtn';
+    btn.textContent=`Escudo ${label}`;
+    btn.onclick=()=>buyShield(type);
+    wrap.appendChild(btn);
+  });
+}
+
+async function buyShield(type){
+  // El coste en CLK de cada escudo no está definido todavía (la spec lo
+  // deja pendiente de configurar más adelante) — de momento activar un
+  // escudo no cobra nada, solo aplica la protección. Cuando se defina el
+  // coste, este es el punto donde se restaría del saldo antes de llamar
+  // a core.activateShield().
+  try{
+    const until = await core.activateShield(myProfile.uid, type);
+    myProfile.shieldUntil = until;
+    myProfile.shieldType = type;
+    updateShieldUI();
+    toast(`🛡️ Escudo ${type} activado`);
+  }catch(e){
+    console.error(e);
+    toast('❌ No se pudo activar el escudo');
+  }
+}
+
+function updateInvadeButton(){
+  const btn=document.getElementById('invadeBtn');
+  const hint=document.getElementById('invadeHint');
+  const check = core.checkCanInvade(myProfile);
+  clearInterval(invadeHintInterval);
+  if(check.ok){
+    btn.disabled=false;
+    hint.textContent='';
+    return;
+  }
+  btn.disabled=true;
+  const reasons={
+    cuenta_nueva:'Cuenta nueva: protegida 24h antes de poder invadir',
+    cooldown:'Espera antes de lanzar otra invasión',
+    limite_diario:'Límite diario de invasiones alcanzado',
+  };
+  const update=()=>{
+    const c2 = core.checkCanInvade(myProfile);
+    if(c2.ok){
+      btn.disabled=false;hint.textContent='';clearInterval(invadeHintInterval);return;
+    }
+    hint.textContent = reasons[c2.reason] + (c2.msLeft>0 ? ` (${fmtCountdown(c2.msLeft)})` : '');
+  };
+  update();
+  invadeHintInterval=setInterval(update,1000);
+}
+
+document.getElementById('invadeBtn').onclick=()=>{
+  window.location.href='search.html';
+};
+
+document.getElementById('revengeBtn').onclick=async ()=>{
+  const target = await core.getActiveRevengeTarget(myProfile.uid);
+  if(!target){
+    toast('Ya no puedes vengarte de ese ataque');
+    document.getElementById('revengePanel').classList.remove('show');
+    return;
+  }
+  sessionStorage.setItem('invasion_direct_target', target.attackerUid);
+  sessionStorage.setItem('invasion_is_revenge', '1');
+  window.location.href='search.html'; // search.html detecta invasion_direct_target
+                                        // y salta la búsqueda aleatoria, pero SÍ
+                                        // muestra la pantalla de confirmación de
+                                        // rival (dificultad, saldo) antes del
+                                        // minijuego — "directa" es saltarse el
+                                        // azar, no saltarse la confirmación.
+};
+
+async function checkRevenge(){
+  try{
+    const target = await core.getActiveRevengeTarget(myProfile.uid);
+    const panel=document.getElementById('revengePanel');
+    if(target){
+      document.getElementById('revengeSub').textContent =
+        `${target.attackerAlias} te robó ${fmtClk(target.stolenAmount)} $CLK — ${fmtCountdown(target.msLeft)} para vengarte`;
+      panel.classList.add('show');
+    }else{
+      panel.classList.remove('show');
+    }
+  }catch(e){ console.error('checkRevenge failed:',e); }
+}
+
+async function loadHistory(){
+  const panel=document.getElementById('histPanel');
+  try{
+    const rows = await core.getAttackHistory(myProfile.uid, 15);
+    if(rows.length===0){
+      panel.innerHTML='<div class="emptyHist">Aún no hay robos registrados</div>';
+      return;
+    }
+    panel.innerHTML='';
+    rows.forEach(r=>{
+      const isMeAttacker = r.role==='attacker';
+      const won = r.won;
+      const icon = isMeAttacker ? (won?'💰':'💥') : (won?'😱':'🛡️');
+      const otherAlias = isMeAttacker ? r.defenderAlias : r.attackerAlias;
+      let text;
+      if(isMeAttacker){
+        text = won ? `Robaste a <b>${escapeHtml(otherAlias)}</b>` : `Fallaste contra <b>${escapeHtml(otherAlias)}</b>`;
+      }else{
+        text = won ? `<b>${escapeHtml(otherAlias)}</b> te robó` : `<b>${escapeHtml(otherAlias)}</b> intentó robarte y falló`;
+      }
+      const amountClass = (isMeAttacker && won) ? 'win' : ((!isMeAttacker && won) ? 'lose' : '');
+      const amountText = r.stolenAmount>0 ? `${isMeAttacker?'+':'-'}${fmtClk(r.stolenAmount)}` : '—';
+      const createdMs = r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : Date.now();
+      const row=document.createElement('div');
+      row.className='histRow';
+      row.innerHTML=`
+        <div class="histIcon">${icon}</div>
+        <div class="histText">${text}<div class="histTime">${timeAgo(createdMs)}</div></div>
+        <div class="histAmount ${amountClass}">${amountText}</div>
+      `;
+      panel.appendChild(row);
+    });
+  }catch(e){
+    console.error('loadHistory failed:',e);
+    panel.innerHTML='<div class="emptyHist">No se pudo cargar el historial</div>';
+  }
+}
+
+function escapeHtml(s){
+  const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;
+}
+function timeAgo(ms){
+  const diff=Date.now()-ms;
+  const m=Math.floor(diff/60000);
+  if(m<1)return 'ahora mismo';
+  if(m<60)return `hace ${m}m`;
+  const h=Math.floor(m/60);
+  if(h<24)return `hace ${h}h`;
+  return `hace ${Math.floor(h/24)}d`;
+}
+
+boot();
+</script>
+
+</body>
+</html>

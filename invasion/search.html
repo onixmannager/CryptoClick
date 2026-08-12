@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Buscando rival — Invasión</title>
+<meta name="theme-color" content="#0b0a14">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;
+  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
+  --green:#10B981;--red:#EF4444;--text:#fff;--muted:#6B68A0;--border:rgba(255,255,255,0.07);
+  --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
+  --glass:rgba(10,12,22,.42);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);display:flex;justify-content:center}
+#app{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative}
+
+.radar{width:220px;height:220px;border-radius:50%;border:2px solid rgba(139,92,246,.3);position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:28px}
+.radar::before,.radar::after{content:'';position:absolute;border-radius:50%;border:2px solid rgba(139,92,246,.15)}
+.radar::before{width:160px;height:160px}
+.radar::after{width:100px;height:100px}
+.sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(139,92,246,.5),transparent 60deg);animation:spin 1.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.radarIcon{font-size:44px;z-index:1;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+h1{font-family:var(--fh);font-size:20px;margin-bottom:8px}
+#statusText{color:var(--muted);font-weight:700;font-size:13px;min-height:18px}
+
+#result{display:none;width:100%}
+#result.show{display:block}
+.rivalCard{background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:20px;padding:24px;margin-top:12px}
+.rivalAvatar{font-size:56px;margin-bottom:8px}
+.rivalName{font-family:var(--fh);font-size:20px;color:var(--text)}
+.rivalLvl{font-size:12px;color:var(--muted);font-weight:800;margin-top:2px}
+.diffBadge{display:inline-block;margin-top:12px;padding:6px 16px;border-radius:20px;font-family:var(--fh);font-size:13px}
+.diffBadge.muy_facil{background:rgba(16,185,129,.2);color:var(--green)}
+.diffBadge.facil{background:rgba(16,185,129,.15);color:#6ee7b7}
+.diffBadge.normal{background:rgba(255,215,0,.15);color:var(--yellow)}
+.diffBadge.dificil{background:rgba(255,107,53,.15);color:var(--orange)}
+.diffBadge.muy_dificil{background:rgba(239,68,68,.15);color:var(--red)}
+.rivalClk{font-family:var(--fh);font-size:24px;color:var(--yellow);margin-top:12px}
+.rivalClkLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px}
+
+#attackBtn{width:100%;margin-top:18px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer}
+#attackBtn:active{transform:scale(.97)}
+#retryBtn{width:100%;margin-top:10px;padding:12px;border:none;border-radius:12px;background:var(--card2);color:var(--text);font-weight:800;font-size:13px;cursor:pointer}
+
+#noneFound{display:none;text-align:center}
+#noneFound.show{display:block}
+.noneIcon{font-size:48px;margin-bottom:12px}
+
+#backLink{position:absolute;top:16px;left:16px;color:var(--muted);text-decoration:none;font-weight:800;font-size:20px}
+</style>
+</head>
+<body>
+<div id="app">
+  <a href="index.html" id="backLink">←</a>
+
+  <div id="scanning">
+    <div class="radar"><div class="sweep"></div><div class="radarIcon">📡</div></div>
+    <h1>ESCANEANDO SECTOR</h1>
+    <div id="statusText">Buscando objetivos disponibles…</div>
+  </div>
+
+  <div id="result">
+    <div class="rivalCard">
+      <div class="rivalAvatar">👽</div>
+      <div class="rivalName" id="rivalName">–</div>
+      <div class="rivalLvl" id="rivalLvl">–</div>
+      <div class="diffBadge" id="diffBadge">–</div>
+      <div class="rivalClk" id="rivalClk">–</div>
+      <div class="rivalClkLabel">$CLK EN JUEGO</div>
+    </div>
+    <button id="attackBtn">⚔️ ATACAR</button>
+    <button id="retryBtn">🔄 Buscar otro rival</button>
+  </div>
+
+  <div id="noneFound">
+    <div class="noneIcon">🛸</div>
+    <h1 id="noneTitle">Sin objetivos ahora</h1>
+    <div id="statusText" style="margin:8px 0 20px">No hay rivales disponibles en este momento. Todos protegidos o sin $CLK suficiente.</div>
+    <button id="retryBtn2" class="shieldBuyBtn" style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--card2);color:var(--text);font-weight:800;cursor:pointer">🔄 Reintentar</button>
+  </div>
+</div>
+
+<script type="module">
+import './js/invasion-core.js';
+
+let core, myProfile, foundTarget, isRevengeFlow=false;
+
+function fmtClk(n){
+  n=Math.floor(n);
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return n+'';
+}
+const DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal',dificil:'Difícil',muy_dificil:'Casi imposible'};
+
+function showView(id){
+  ['scanning','result','noneFound'].forEach(v=>{
+    document.getElementById(v).style.display = v===id ? 'block' : 'none';
+  });
+}
+
+async function boot(){
+  core = window.InvasionCore;
+  const user = await core.authReady;
+  if(!user){
+    document.getElementById('statusText').textContent='Inicia sesión en el juego principal primero.';
+    return;
+  }
+  myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+
+  const check = core.checkCanInvade(myProfile);
+  if(!check.ok){
+    markDirectTargetFailed('No puedes invadir ahora mismo — vuelve al menú para ver cuánto falta.');
+    return;
+  }
+
+  // Flujo de venganza: llega con un objetivo directo fijado desde index.html,
+  // salta la búsqueda aleatoria pero pasa por las mismas validaciones.
+  const directTarget = sessionStorage.getItem('invasion_direct_target');
+  if(directTarget){
+    isRevengeFlow = sessionStorage.getItem('invasion_is_revenge')==='1';
+    sessionStorage.removeItem('invasion_direct_target');
+    sessionStorage.removeItem('invasion_is_revenge');
+    await searchDirectTarget(directTarget);
+  }else{
+    await searchRandom();
+  }
+}
+
+let directTargetFailed=false; // true si el fallo viene de un intento de VENGANZA
+                                // (reintentar al azar no tiene sentido en ese caso)
+
+function markDirectTargetFailed(msg){
+  document.getElementById('statusText').textContent = msg;
+  document.getElementById('noneTitle').textContent = 'No se pudo completar la venganza';
+  document.getElementById('retryBtn2').textContent = '← Volver';
+  directTargetFailed = true;
+  showView('noneFound');
+}
+
+async function searchDirectTarget(uid){
+  showView('scanning');
+  try{
+    const snap = await core.getDoc(core.doc(core.db,'invasion_players',uid));
+    if(!snap.exists()) throw new Error('target not found');
+    const d = snap.data();
+    const now = Date.now();
+    if((d.shieldUntil||0) > now){
+      markDirectTargetFailed('Ese jugador activó un escudo — no puedes vengarte ahora.');
+      return;
+    }
+    if((d.clk||0) < core.CFG.MIN_CLK_TO_BE_TARGET){
+      markDirectTargetFailed('Ese jugador ya no tiene $CLK suficiente para robar.');
+      return;
+    }
+    foundTarget = { uid, ...d };
+    showResult();
+  }catch(e){
+    console.error(e);
+    markDirectTargetFailed('No se pudo cargar ese objetivo.');
+  }
+}
+
+async function searchRandom(){
+  showView('scanning');
+  try{
+    foundTarget = await core.findRandomTarget(myProfile.uid, myProfile.recentTargets);
+    if(!foundTarget){
+      showView('noneFound');
+      return;
+    }
+    showResult();
+  }catch(e){
+    console.error('findRandomTarget failed:',e);
+    document.getElementById('statusText').textContent='Error al buscar. Inténtalo de nuevo.';
+    showView('noneFound');
+  }
+}
+
+function showResult(){
+  const tier = core.difficultyFor(myProfile.lvl, foundTarget.lvl);
+  document.getElementById('rivalName').textContent = foundTarget.alias || 'Jugador';
+  document.getElementById('rivalLvl').textContent = `Nivel ${foundTarget.lvl}`;
+  const badge=document.getElementById('diffBadge');
+  badge.textContent = DIFF_LABELS[tier.key];
+  badge.className = 'diffBadge ' + tier.key;
+  document.getElementById('rivalClk').textContent = fmtClk(foundTarget.clk);
+  showView('result');
+}
+
+document.getElementById('attackBtn').onclick=()=>{
+  sessionStorage.setItem('invasion_battle_defender', foundTarget.uid);
+  sessionStorage.setItem('invasion_battle_is_revenge', isRevengeFlow ? '1':'0');
+  window.location.href='minigame.html';
+};
+document.getElementById('retryBtn').onclick=()=>searchRandom();
+document.getElementById('retryBtn2').onclick=()=>{
+  if(directTargetFailed){
+    // Venganza fallida: no tiene sentido "reintentar al azar" contra
+    // otro jugador, el usuario pulsó Vengarse de alguien específico.
+    window.location.href='index.html';
+  }else{
+    searchRandom();
+  }
+};
+
+boot();
+</script>
+</body>
+</html>

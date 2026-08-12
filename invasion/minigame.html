@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Infiltración — Invasión</title>
+<meta name="theme-color" content="#0b0a14">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;
+  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
+  --green:#10B981;--red:#EF4444;--text:#fff;--muted:#6B68A0;--border:rgba(255,255,255,0.07);
+  --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
+  --glass:rgba(10,12,22,.42);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);display:flex;justify-content:center;overflow:hidden}
+#app{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;padding:20px 16px;position:relative}
+
+#hud{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.hudLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px}
+#timerVal{font-family:var(--fh);font-size:22px;color:var(--yellow)}
+#timerVal.low{color:var(--red);animation:pulse .5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#attemptsVal{font-family:var(--fh);font-size:22px;color:var(--purple)}
+
+.timerBarWrap{width:100%;height:6px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden;margin-bottom:20px}
+#timerBar{height:100%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:6px;transition:width .1s linear}
+
+h1{font-family:var(--fh);font-size:17px;text-align:center;margin-bottom:4px}
+#subtitle{text-align:center;color:var(--muted);font-size:12px;font-weight:700;margin-bottom:20px}
+
+#grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:auto}
+.slot{aspect-ratio:1;border-radius:16px;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;transition:transform .15s,background .2s}
+.slot:active{transform:scale(.92)}
+.slot.revealed{cursor:default;pointer-events:none}
+.slot.deposit{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.5)}
+.slot.trap{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.5)}
+.slot.empty{background:rgba(107,104,160,.15);border-color:rgba(107,104,160,.3)}
+
+#endOverlay{position:fixed;inset:0;background:rgba(11,10,20,.92);backdrop-filter:blur(8px);z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
+#endOverlay.show{display:flex}
+.endIcon{font-size:64px;margin-bottom:12px}
+.endTitle{font-family:var(--fh);font-size:24px;margin-bottom:8px}
+.endTitle.win{color:var(--green)}
+.endTitle.lose{color:var(--red)}
+#endDetail{color:var(--muted);font-weight:700;font-size:13px;margin-bottom:24px;max-width:300px}
+.endAmount{font-family:var(--fh);font-size:32px;color:var(--yellow);margin-bottom:24px}
+#continueBtn{width:100%;max-width:280px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer}
+
+#countIn{position:fixed;inset:0;background:var(--bg);z-index:60;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+#countIn.hide{display:none}
+#countNum{font-family:var(--fh);font-size:80px;color:var(--yellow)}
+</style>
+</head>
+<body>
+<div id="countIn">
+  <div style="font-family:var(--fh);font-size:16px;color:var(--muted)">INFILTRACIÓN DE LA BASE</div>
+  <div id="countNum">3</div>
+</div>
+
+<div id="app">
+  <div id="hud">
+    <div><div class="hudLabel">TIEMPO</div><div id="timerVal">–</div></div>
+    <div style="text-align:right"><div class="hudLabel">INTENTOS</div><div id="attemptsVal">–</div></div>
+  </div>
+  <div class="timerBarWrap"><div id="timerBar"></div></div>
+
+  <h1>Encuentra los 3 depósitos CLK</h1>
+  <div id="subtitle">3 depósitos · 3 trampas · 3 vacíos</div>
+
+  <div id="grid"></div>
+</div>
+
+<div id="endOverlay">
+  <div class="endIcon" id="endIcon">💰</div>
+  <div class="endTitle" id="endTitle">–</div>
+  <div id="endDetail"></div>
+  <div class="endAmount" id="endAmount" style="display:none"></div>
+  <button id="continueBtn">CONTINUAR</button>
+</div>
+
+<script type="module">
+import './js/invasion-core.js';
+
+let core, myProfile, defenderUid, isRevenge=false, tier;
+let attemptsLeft, timeLeftMs, depositsFound=0, gameEnded=false, timerRAF;
+let slotTypes=[]; // array de 9: 'deposit'|'trap'|'empty'
+let lastFrameTs=0;
+
+function fmtClk(n){
+  n=Math.floor(n);
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return n+'';
+}
+
+async function boot(){
+  core = window.InvasionCore;
+  const user = await core.authReady;
+  if(!user){ window.location.href='index.html'; return; }
+
+  defenderUid = sessionStorage.getItem('invasion_battle_defender');
+  isRevenge = sessionStorage.getItem('invasion_battle_is_revenge')==='1';
+  sessionStorage.removeItem('invasion_battle_defender');
+  sessionStorage.removeItem('invasion_battle_is_revenge');
+
+  if(!defenderUid){
+    // Se llegó a esta pantalla sin pasar por search.html (URL directa,
+    // recarga tras jugar, etc.) — no hay rival elegido, no hay partida.
+    window.location.href='index.html';
+    return;
+  }
+
+  myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+  const defenderSnap = await core.getDoc(core.doc(core.db,'invasion_players',defenderUid));
+  if(!defenderSnap.exists()){ window.location.href='index.html'; return; }
+  const defenderLvl = defenderSnap.data().lvl || 1;
+
+  tier = core.difficultyFor(myProfile.lvl, defenderLvl);
+  attemptsLeft = tier.intentos;
+  timeLeftMs = tier.tiempoMs;
+
+  buildGrid();
+  runCountdown();
+}
+
+function runCountdown(){
+  const el=document.getElementById('countNum');
+  let n=3;
+  el.textContent=n;
+  const iv=setInterval(()=>{
+    n--;
+    if(n<=0){
+      clearInterval(iv);
+      document.getElementById('countIn').classList.add('hide');
+      startTimer();
+    }else{
+      el.textContent = n;
+    }
+  },700);
+}
+
+function buildGrid(){
+  slotTypes = ['deposit','deposit','deposit','trap','trap','trap','empty','empty','empty'];
+  // Fisher-Yates
+  for(let i=slotTypes.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [slotTypes[i],slotTypes[j]]=[slotTypes[j],slotTypes[i]];
+  }
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  for(let i=0;i<9;i++){
+    const slot=document.createElement('div');
+    slot.className='slot';
+    slot.textContent='❓';
+    slot.dataset.idx=i;
+    slot.onclick=()=>onSlotClick(i,slot);
+    grid.appendChild(slot);
+  }
+  document.getElementById('attemptsVal').textContent = attemptsLeft;
+}
+
+function onSlotClick(idx, el){
+  if(gameEnded || el.classList.contains('revealed')) return;
+  const type = slotTypes[idx];
+  el.classList.add('revealed', type);
+
+  // Coste en intentos por tipo de compartimento — cada tipo se resta UNA
+  // sola vez, aquí mismo, para no arrastrar dos restas del mismo clic:
+  //   depósito → 0 (encontrarlo no gasta intento, solo cuenta para ganar)
+  //   trampa   → 2 (penalización: cuesta el doble que abrir uno vacío)
+  //   vacío    → 1 (coste normal de "gastar" un intento sin acertar)
+  let cost = 0;
+  if(type==='deposit'){
+    el.textContent='💰';
+    depositsFound++;
+    if(depositsFound>=3){ endGame(true); return; }
+  }else if(type==='trap'){
+    el.textContent='💥';
+    cost = 2;
+  }else{
+    el.textContent='·';
+    cost = 1;
+  }
+
+  attemptsLeft -= cost;
+  document.getElementById('attemptsVal').textContent = Math.max(0,attemptsLeft);
+  if(attemptsLeft<=0){ endGame(false); return; }
+}
+
+function startTimer(){
+  lastFrameTs = performance.now();
+  const totalMs = timeLeftMs;
+  function tick(now){
+    if(gameEnded) return;
+    const dt = now - lastFrameTs;
+    lastFrameTs = now;
+    timeLeftMs -= dt;
+    if(timeLeftMs<=0){
+      timeLeftMs=0;
+      updateTimerUI(totalMs);
+      endGame(false);
+      return;
+    }
+    updateTimerUI(totalMs);
+    timerRAF = requestAnimationFrame(tick);
+  }
+  timerRAF = requestAnimationFrame(tick);
+}
+
+function updateTimerUI(totalMs){
+  const secs = (timeLeftMs/1000).toFixed(1);
+  const val=document.getElementById('timerVal');
+  val.textContent = secs+'s';
+  val.classList.toggle('low', timeLeftMs < 3000);
+  document.getElementById('timerBar').style.width = Math.max(0,(timeLeftMs/totalMs*100))+'%';
+}
+
+async function endGame(won){
+  if(gameEnded) return;
+  gameEnded = true;
+  cancelAnimationFrame(timerRAF);
+
+  // Revela el resto de compartimentos sin marcar (feedback visual, no
+  // afecta al resultado — el resultado ya quedó fijado por won/depositsFound).
+  document.querySelectorAll('.slot:not(.revealed)').forEach((el,i)=>{
+    const idx=parseInt(el.dataset.idx);
+    const type=slotTypes[idx];
+    el.classList.add('revealed',type,'dim');
+    el.textContent = type==='deposit'?'💰':type==='trap'?'💥':'·';
+    el.style.opacity='.35';
+  });
+
+  const overlay=document.getElementById('endOverlay');
+  document.getElementById('endIcon').textContent = won?'💰':'💥';
+  const titleEl=document.getElementById('endTitle');
+  titleEl.textContent = won?'¡INFILTRACIÓN EXITOSA!':'INFILTRACIÓN FALLIDA';
+  titleEl.className='endTitle ' + (won?'win':'lose');
+  document.getElementById('endDetail').textContent = won
+    ? 'Encontraste los 3 depósitos a tiempo.'
+    : 'No lograste encontrar los 3 depósitos.';
+  overlay.classList.add('show');
+
+  try{
+    const result = await core.resolveInvasion({
+      attackerUid: myProfile.uid, defenderUid, won, isRevenge
+    });
+    const amountEl=document.getElementById('endAmount');
+    if(result.won && result.stolenAmount>0){
+      amountEl.style.display='block';
+      amountEl.textContent = `+${fmtClk(result.stolenAmount)} $CLK`;
+    }
+  }catch(e){
+    // writeBatch es atómico: si esto falla, NADA se escribió (ni el robo,
+    // ni el cooldown, ni el contador diario) — el jugador no pierde su
+    // cupo de invasión por este fallo, pero tampoco hay forma de
+    // reintentar SOLO el registro sin rejugar el minijuego contra el
+    // mismo rival desde cero. Aceptable para esta fase aislada; si en
+    // integración se ve que falla con frecuencia, aquí es donde añadir
+    // un botón "Reintentar registro" que vuelva a llamar resolveInvasion
+    // con el mismo won/defenderUid sin pasar por el minijuego otra vez.
+    console.error('resolveInvasion failed:',e);
+    document.getElementById('endDetail').textContent += ' (No se pudo registrar el resultado — inténtalo de nuevo más tarde.)';
+  }
+}
+
+document.getElementById('continueBtn').onclick=()=>{
+  window.location.href='index.html';
+};
+
+boot();
+</script>
+</body>
+</html>
