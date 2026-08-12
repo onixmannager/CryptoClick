@@ -100,11 +100,30 @@ function todayKeyUTC() {
 // ─────────────────────────────────────────────────────────────────────
 // ESTADO DE AUTH — expuesto igual que en invasion.html del padre, para
 // que cada pantalla pueda esperar a `window.__fbUser` antes de operar.
+//
+// authReady se resuelve DESPUÉS de auth.authStateReady(), no solo tras
+// el primer onAuthStateChanged. Son cosas distintas: onAuthStateChanged
+// puede disparar con un `user` ya no-nulo (sesión recuperada desde
+// almacenamiento persistente) antes de que el SDK tenga el ID token listo
+// para adjuntarlo a peticiones de Firestore — hay una ventana de carrera
+// real y documentada (ver firebase-js-sdk issue #8302: "Missing
+// Authorization header when requesting firestore inside
+// beforeAuthStateChanged/onAuthStateChanged" sin este await). Sin este
+// await, la primera llamada a Firestore tras entrar con sesión ya
+// iniciada puede llegar SIN el token adjunto y ser rechazada con
+// 'Missing or insufficient permissions' aunque las Rules sean correctas
+// y el usuario sí esté autenticado — exactamente el síntoma que causaba
+// que el modo se quedara colgado en el loader con sesión activa.
 // ─────────────────────────────────────────────────────────────────────
 let _authReadyResolve;
 const authReady = new Promise((res) => { _authReadyResolve = res; });
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   window.__fbUser = user || null;
+  if (user) {
+    // Espera a que el SDK confirme que el estado de auth (incluido el
+    // token) está completamente asentado antes de dar luz verde.
+    await auth.authStateReady();
+  }
   _authReadyResolve(user || null);
 });
 
@@ -127,7 +146,13 @@ onAuthStateChanged(auth, (user) => {
 // como si el robo no hubiera pasado.
 // ─────────────────────────────────────────────────────────────────────
 async function syncProfileFromMainSave(uid) {
-  const mainSnap = await getDoc(doc(db, 'saves', uid));
+  let mainSnap;
+  try {
+    mainSnap = await getDoc(doc(db, 'saves', uid));
+  } catch (e) {
+    console.error('[DIAG] Falló leyendo saves/' + uid + ':', e.code || e.message);
+    throw e;
+  }
   let alias = '', lvl = 1, mainClk = 0, mainUpdatedMs = 0;
   if (mainSnap.exists()) {
     try {
@@ -141,7 +166,13 @@ async function syncProfileFromMainSave(uid) {
   }
 
   const playerRef = doc(db, 'invasion_players', uid);
-  const existing = await getDoc(playerRef);
+  let existing;
+  try {
+    existing = await getDoc(playerRef);
+  } catch (e) {
+    console.error('[DIAG] Falló leyendo invasion_players/' + uid + ':', e.code || e.message);
+    throw e;
+  }
   const now = Date.now();
   const prev = existing.exists() ? existing.data() : null;
   const prevUpdatedMs = prev && prev.updatedAt && prev.updatedAt.toMillis ? prev.updatedAt.toMillis() : 0;
@@ -173,10 +204,20 @@ async function syncProfileFromMainSave(uid) {
     rand: Math.random(),
   };
 
+  console.log('[DIAG] Intentando escribir invasion_players con:', JSON.stringify(playerData));
+  console.log('[DIAG] Intentando escribir invasion_targets con:', JSON.stringify(targetData));
+
   const batch = writeBatch(db);
   batch.set(playerRef, playerData, { merge: true });
   batch.set(doc(db, 'invasion_targets', uid), targetData, { merge: true });
-  await batch.commit();
+  try {
+    await batch.commit();
+  } catch (e) {
+    console.error('[DIAG] Falló el batch.commit() de invasion_players+invasion_targets:', e.code || e.message);
+    console.error('[DIAG] prev (documento previo de invasion_players, null si no existía):', JSON.stringify(prev));
+    console.error('[DIAG] existing.exists():', existing.exists());
+    throw e;
+  }
 
   return { ...playerData, updatedAt: now };
 }
