@@ -263,31 +263,47 @@ async function findRandomTarget(myUid, myRecentTargets) {
   // en cliente. Es más lecturas de las estrictamente necesarias, pero
   // evita depender de un índice compuesto para algo que se puede resolver
   // con un limit más generoso.
-  async function tryDirection(op) {
+  async function tryDirection(op, order) {
     const q = query(
       targetsCol,
       where('rand', op, r),
-      orderBy('rand'),
+      orderBy('rand', order),
       limit(30)
     );
     const snap = await getDocs(q);
     return snap.docs;
   }
 
-  let candidates = await tryDirection('>=');
-  if (candidates.length === 0) candidates = await tryDirection('<=');
+  // '>=' se recorre ascendente (los más cercanos a r por arriba primero);
+  // '<=' se recorre DESCENDENTE (los más cercanos a r por abajo primero)
+  // — antes iba ascendente también en este caso, así que con pocos
+  // jugadores en la colección el candidato más cercano a `r` por abajo
+  // podía quedar fuera del limit(30) si había muchos valores de `rand`
+  // más pequeños todavía por delante suyo en el orden. Con pocos
+  // jugadores el límite no debería recortar nada, pero se corrige igual
+  // porque es la causa correcta de "candidatos que no se encuentran"
+  // según la colección crece.
+  let candidates = await tryDirection('>=', 'asc');
+  if (candidates.length === 0) candidates = await tryDirection('<=', 'desc');
+
+  // Diagnóstico: cuenta cuántos candidatos se leyeron y por qué motivo se
+  // descartó cada uno, para poder ver en consola la causa real cuando
+  // "no hay rivales" en vez de una caja negra. No cambia el resultado,
+  // solo lo hace investigable.
+  const skipped = { self: 0, lowClk: 0, shielded: 0, newAccount: 0, cooldown: 0 };
 
   for (const docSnap of candidates) {
     const uid = docSnap.id;
     const d = docSnap.data();
-    if (uid === myUid) continue;
-    if ((d.clk || 0) < CFG.MIN_CLK_TO_BE_TARGET) continue;
-    if ((d.shieldUntil || 0) > now) continue;
-    if (now - (d.accountCreatedAt || 0) < CFG.NEW_ACCOUNT_PROTECTION_MS) continue;
+    if (uid === myUid) { skipped.self++; continue; }
+    if ((d.clk || 0) < CFG.MIN_CLK_TO_BE_TARGET) { skipped.lowClk++; continue; }
+    if ((d.shieldUntil || 0) > now) { skipped.shielded++; continue; }
+    if (now - (d.accountCreatedAt || 0) < CFG.NEW_ACCOUNT_PROTECTION_MS) { skipped.newAccount++; continue; }
     const lastHit = (myRecentTargets || {})[uid] || 0;
-    if (now - lastHit < CFG.SAME_TARGET_COOLDOWN_MS) continue;
+    if (now - lastHit < CFG.SAME_TARGET_COOLDOWN_MS) { skipped.cooldown++; continue; }
     return { uid, ...d };
   }
+  console.log('[DIAG] findRandomTarget: sin candidato válido. Leídos:', candidates.length, 'Descartados por:', JSON.stringify(skipped));
   return null; // no se encontró rival válido esta vez (lote sin candidatos válidos)
 }
 
