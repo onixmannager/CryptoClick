@@ -515,6 +515,15 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 #toast.show{opacity:1}
 
+/* AVISO DE ACTUALIZACIÓN DISPONIBLE — banner discreto, no tapa nada
+   crítico, se puede ignorar y se vuelve a mostrar en la próxima carga si
+   el usuario no actualiza ahora. */
+#updateBanner{position:fixed;left:50%;bottom:16px;transform:translateX(-50%) translateY(120%);width:calc(100% - 32px);max-width:380px;background:var(--card2);border:1px solid var(--glass-border);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;z-index:10000;box-shadow:0 12px 32px rgba(0,0,0,.5);transition:transform .35s ease}
+#updateBanner.show{transform:translateX(-50%) translateY(0)}
+#updateBanner .ubIcon{font-size:22px;flex-shrink:0}
+#updateBanner .ubText{flex:1;font-size:12.5px;font-weight:700;color:var(--text);line-height:1.3}
+#updateBanner .ubBtn{flex-shrink:0;padding:9px 14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a0a00;font-family:var(--fh);font-size:12px;cursor:pointer}
+
 #logo{text-decoration:none;color:inherit;cursor:pointer}
 
 .cbtn-big.cbtn-juego{display:inline-flex;align-items:center;justify-content:center;padding:18px 32px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#FF6B35);color:#1a0a00;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 8px 40px rgba(255,165,0,.3);transition:all 0.2s ease}
@@ -1131,6 +1140,13 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
 <div id="sfire">🔥</div>
 <div id="toast"></div>
+
+<!-- AVISO DE ACTUALIZACIÓN PWA -->
+<div id="updateBanner">
+  <div class="ubIcon">🚀</div>
+  <div class="ubText">Hay una versión nueva del juego lista</div>
+  <button class="ubBtn" id="updateBannerBtn">Actualizar</button>
+</div>
 
 <!-- ============ FIREBASE ============ -->
 <script type="module">
@@ -2773,13 +2789,78 @@ window.startGameForUser=async function(user){
   });
 };
 </script>
-<!-- PWA: registro del service worker -->
+<!-- PWA: registro del service worker + aviso de actualización disponible -->
 <script>
+// ─────────────────────────────────────────────────────────────────────
+// ACTUALIZACIÓN AUTOMÁTICA DE LA PWA — antes, registration.update() se
+// llamaba pero nadie escuchaba el resultado: si el navegador detectaba
+// un sw.js distinto en el servidor, el nuevo Service Worker se instalaba
+// en segundo plano (gracias a self.skipWaiting() en sw.js) pero la
+// pestaña/app YA ABIERTA seguía usando los recursos antiguos hasta que
+// el usuario la cerraba y volvía a abrir por su cuenta — algo que un
+// usuario normal no sabe que tiene que hacer. Este bloque:
+//   1) Detecta cuándo hay un Service Worker nuevo esperando a activarse.
+//   2) Muestra un banner pidiendo confirmación (no recarga sola de
+//      golpe: eso podría cortar una partida o un guardado a medias).
+//   3) Al pulsar "Actualizar", le dice al SW nuevo que tome el control
+//      YA (SKIP_WAITING) y, en cuanto lo hace, recarga la página — así
+//      la próxima carga ya usa los archivos nuevos sin pasos manuales.
+// ─────────────────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' })
-      .then((registration) => registration.update())
+      .then((registration) => {
+        function promptUpdate(worker) {
+          const banner = document.getElementById('updateBanner');
+          const btn = document.getElementById('updateBannerBtn');
+          banner.classList.add('show');
+          btn.onclick = () => {
+            btn.textContent = '...';
+            btn.disabled = true;
+            worker.postMessage({ type: 'SKIP_WAITING' });
+          };
+        }
+
+        // Caso A: ya había un Service Worker nuevo esperando cuando esta
+        // pestaña se abrió (por ejemplo, se actualizó mientras la app
+        // estaba cerrada y ahora hay un 'waiting' listo desde el arranque).
+        if (registration.waiting) {
+          promptUpdate(registration.waiting);
+        }
+
+        // Caso B: se detecta un Service Worker nuevo mientras la pestaña
+        // sigue abierta (registration.update() de más abajo lo dispara).
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            // 'installed' + ya había un controller activo = hay una
+            // versión nueva lista para reemplazar a la que está en uso
+            // ahora mismo (si no hubiera controller todavía, sería la
+            // primera instalación del SW, no una actualización real).
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              promptUpdate(newWorker);
+            }
+          });
+        });
+
+        // Comprueba si hay una versión nueva en el servidor cada vez que
+        // se carga la página (esto ya se hacía antes, solo que ahora sí
+        // hay algo escuchando el resultado).
+        registration.update().catch(() => {});
+      })
       .catch((err) => console.warn('SW registration failed:', err));
+
+    // Cuando el Service Worker nuevo termina de tomar el control (tras el
+    // SKIP_WAITING que dispara el botón "Actualizar"), recarga la página
+    // UNA vez para servir ya los archivos actualizados. El guard evita un
+    // bucle de recargas si controllerchange se disparase más de una vez.
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return;
+      reloading = true;
+      window.location.reload();
+    });
   });
 }
 </script>
