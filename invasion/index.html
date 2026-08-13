@@ -302,23 +302,31 @@ function playIntroVideo(onDone){
 }
 window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__skipInvasionIntroVideo(); };
 
-// ── Imagen de carga (preloadinvasion.jpeg) — se muestra SIEMPRE que se
-// entra al modo desde el juego padre (index.html raíz), a diferencia
-// del video de intro, que solo la primera vez. Si la imagen carga
-// bien se revela con .show; si falla (red, ruta, etc.) no hay texto
-// de respaldo -eliminado a propósito- y #loading se ve vacío sobre el
+// ── Imagen de carga (preloadinvasion.jpeg) — se muestra siempre que se
+// entra al modo desde el juego padre (index.html raíz), EXCEPTO la
+// primera vez que se entra, ya que ahí lo que debe verse es el video
+// de intro (más abajo) y no esta imagen. Si la imagen carga bien se
+// revela con .show; si falla (red, ruta, etc.) no hay texto de
+// respaldo -eliminado a propósito- y #loading se ve vacío sobre el
 // fondo, sin romper el arranque.
-// EXCEPCIÓN: si se vuelve desde search.html (botón "atrás" dentro del
-// propio modo Invasión), no debe mostrarse esta imagen. Se detecta con
-// un marcador en sessionStorage escrito justo antes de navegar hacia
-// search.html (ver invadeBtn/revengeBtn más abajo) — document.referrer
-// no es fiable aquí (PWA standalone, políticas de referrer, etc.), así
-// que se usa el mismo mecanismo de sessionStorage que ya usa el resto
-// del archivo para pasar datos entre index.html/search.html/minigame.html.
+// EXCEPCIÓN 1: si se vuelve desde search.html (botón "atrás" dentro
+// del propio modo Invasión), no debe mostrarse esta imagen. Se detecta
+// con un marcador en sessionStorage escrito justo antes de navegar
+// hacia search.html (ver invadeBtn/revengeBtn más abajo) —
+// document.referrer no es fiable aquí (PWA standalone, políticas de
+// referrer, etc.), así que se usa el mismo mecanismo de sessionStorage
+// que ya usa el resto del archivo para pasar datos entre
+// index.html/search.html/minigame.html.
+// EXCEPCIÓN 2: primera vez que se entra a Invasión (mismo criterio de
+// localStorage -invasionIntroAlreadyShown()- que ya usa el video de
+// intro más abajo): en ese caso boot() va a reproducir el video justo
+// después de ocultarse #loading, así que la imagen no debe mostrarse
+// para no competir con él ni verse antes que el video.
 const cameFromSearch = sessionStorage.getItem('invasion_came_from_search')==='1';
 sessionStorage.removeItem('invasion_came_from_search');
 (function(){
   if(cameFromSearch)return;
+  if(!invasionIntroAlreadyShown())return;
   const img=document.getElementById('loadingimg');
   if(!img)return;
   if(img.complete && img.naturalWidth>0){ img.classList.add('show'); return; }
