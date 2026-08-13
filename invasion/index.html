@@ -6,9 +6,6 @@
 <title>Invasión — Crypto Alien Click</title>
 
 <meta name="theme-color" content="#0b0a14">
-<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16.png">
-<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -90,9 +87,9 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 #toast.show{opacity:1}
 
-#loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity .5s}
+#loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s}
 #loading.hide{opacity:0;pointer-events:none}
-#loadingImg{width:100%;height:100%;object-fit:contain}
+.ll{font-family:var(--fh);font-size:24px;color:var(--yellow)}
 
 /* ── Video de INTRO de Invasión — se muestra una sola vez, la primera
    vez que se entra a este modo (misma lógica y misma interfaz que el
@@ -122,7 +119,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 </head>
 <body>
 
-<div id="loading"><img id="loadingImg" src="images/preloadinvasion.jpeg" alt="Invasión"></div>
+<div id="loading"><div class="ll">👾 INVASIÓN</div></div>
 <div id="introov">
   <video id="introvideo" src="videos/invasioncortapresentacion.mp4" playsinline></video>
   <div id="introfade"></div>
@@ -131,6 +128,15 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 <div id="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 
 <div id="app">
+  <div id="topbar">
+    <a href="../index.html" id="backHome" aria-label="Volver al juego principal">←</a>
+    <a href="#" id="logo">👾 INVASIÓN</a>
+    <div id="balMini">
+      <span id="balMiniIcon">🪙</span>
+      <div><div id="balMiniNum">–</div><div id="balMiniLabel">$CLK</div></div>
+    </div>
+  </div>
+
   <main>
     <!-- ESCUDO -->
     <div class="panel" id="shieldPanel">
@@ -317,6 +323,7 @@ async function boot(){
 }
 
 function renderAll(){
+  document.getElementById('balMiniNum').textContent = fmtClk(myProfile.clk);
   renderShieldButtons();
   updateShieldUI();
   updateInvadeButton();
@@ -366,6 +373,7 @@ async function buyShield(type, expectedCost){
     myProfile.shieldUntil = shieldUntil;
     myProfile.shieldType = type;
     myProfile.clk = newClk;
+    document.getElementById('balMiniNum').textContent = fmtClk(myProfile.clk);
     renderShieldButtons();
     updateShieldUI();
     toast(`🛡️ Escudo activado por 🪙 ${fmtClk(cost)}`);
