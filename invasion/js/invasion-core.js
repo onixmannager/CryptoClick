@@ -69,6 +69,15 @@ const CFG = {
     '7d': { base: 450,  exp: 1.14 },
   },
 
+  // Probabilidad de victoria fija para CUALQUIER atacante contra
+  // CUALQUIER defensor, decidida a propósito por el usuario del
+  // proyecto: el minijuego se sigue jugando igual (mantiene la tensión y
+  // el enganche), pero el resultado final que cuenta para el robo NO
+  // depende de si el jugador encontró los 3 depósitos a tiempo — se
+  // decide con esta probabilidad, igual para todos, sin favorecer a
+  // ningún jugador concreto. Se aplica en minigame.html/endGame().
+  WIN_PROBABILITY: 0.8,
+
   // Anti-abuso
   INVASION_COOLDOWN_MS: 60 * 1000,           // 60s entre invasiones lanzadas
   MAX_INVASIONS_PER_DAY: 20,
@@ -103,6 +112,12 @@ function shieldCost(shieldType, lvl) {
   const c = CFG.SHIELD_COST[shieldType];
   if (!c) return 0;
   return Math.ceil(c.base * Math.pow(c.exp, Math.max(1, lvl) - 1));
+}
+
+// Decide el resultado final de una invasión según CFG.WIN_PROBABILITY,
+// igual para cualquier jugador — no distingue atacante ni defensor.
+function rollWin() {
+  return Math.random() < CFG.WIN_PROBABILITY;
 }
 
 function difficultyFor(attackerLvl, defenderLvl) {
@@ -514,7 +529,7 @@ async function getAttackHistory(uid, max = 20) {
 // ─────────────────────────────────────────────────────────────────────
 window.InvasionCore = {
   CFG, db, auth, authReady,
-  difficultyFor, todayKeyUTC, shieldCost,
+  difficultyFor, todayKeyUTC, shieldCost, rollWin,
   syncProfileFromMainSave, findRandomTarget, checkCanInvade,
   resolveInvasion, activateShield, getActiveRevengeTarget, getAttackHistory,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
