@@ -2883,6 +2883,17 @@ if ('serviceWorker' in navigator) {
             btn.textContent = '...';
             btn.disabled = true;
             worker.postMessage({ type: 'SKIP_WAITING' });
+            // El overlay se oculta al instante en vez de esperar a que
+            // controllerchange dispare el reload de más abajo: eso podía
+            // tardar unos segundos (más aún en la primera actualización
+            // que instala este propio mecanismo), dejando el botón en
+            // "..." visible todo ese rato y dando la sensación de que se
+            // había quedado colgado. Ocultarlo aquí no afecta a que la
+            // actualización siga su curso -SKIP_WAITING ya se envió en la
+            // línea de arriba- ni a que la recarga automática llegue
+            // igual; solo deja de mostrar un estado intermedio confuso
+            // mientras se completa en segundo plano.
+            overlay.classList.remove('show');
           };
           // "Ahora no": cierra la tarjeta sin actualizar. No queda fija
           // tapando la pantalla; si el usuario no actualiza, se le puede
