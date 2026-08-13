@@ -89,7 +89,17 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 
 #loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s}
 #loading.hide{opacity:0;pointer-events:none}
-.ll{font-family:var(--fh);font-size:24px;color:var(--yellow)}
+/* ── Imagen de carga de Invasión — reemplaza por completo al antiguo
+   texto/icono "👾 INVASIÓN" de #loading (eliminado a propósito, sin
+   dejarlo como respaldo). Se muestra SIEMPRE que se entra al modo (a
+   diferencia del video de intro, que solo se ve la primera vez), a
+   pantalla completa igual que el resto de overlays de este archivo.
+   object-fit:cover porque la imagen es vertical 9:16 (720x1280), mismo
+   criterio que el video de intro en MOVIL. Si la imagen no llega a
+   cargar (ver JS), #loading se ve vacío sobre el fondo #0b0a14 — es el
+   comportamiento pedido explícitamente, sin texto de respaldo. ── */
+#loadingimg{display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:99999}
+#loadingimg.show{display:block}
 
 /* ── Video de INTRO de Invasión — se muestra una sola vez, la primera
    vez que se entra a este modo (misma lógica y misma interfaz que el
@@ -119,7 +129,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 </head>
 <body>
 
-<div id="loading"><div class="ll">👾 INVASIÓN</div></div>
+<div id="loading"><img id="loadingimg" src="images/preloadinvasion.jpeg" alt=""></div>
 <div id="introov">
   <video id="introvideo" src="videos/invasioncortapresentacion.mp4" playsinline></video>
   <div id="introfade"></div>
@@ -278,6 +288,27 @@ function playIntroVideo(onDone){
 }
 window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__skipInvasionIntroVideo(); };
 
+// ── Imagen de carga (preloadinvasion.jpeg) — se muestra SIEMPRE que se
+// entra al modo (a diferencia del video de intro, que solo la primera
+// vez). Si la imagen carga bien se revela con .show; si falla (red,
+// ruta, etc.) no hay texto de respaldo -eliminado a propósito- y
+// #loading se ve vacío sobre el fondo, sin romper el arranque. ──
+(function(){
+  const img=document.getElementById('loadingimg');
+  if(!img)return;
+  if(img.complete && img.naturalWidth>0){ img.classList.add('show'); return; }
+  img.addEventListener('load',()=>img.classList.add('show'));
+  img.addEventListener('error',()=>{});
+})();
+
+// Duración mínima que #loading permanece visible en pantalla (con la
+// imagen de carga) antes de ocultarse, aunque el perfil ya haya
+// terminado de sincronizar antes de ese tiempo — evita un parpadeo si
+// la carga real es muy rápida. No afecta al video de intro (que sigue
+// arrancando justo después de ocultarse #loading, sin cambios).
+const MIN_LOADING_MS=1000;
+const _bootStartMs=Date.now();
+
 async function boot(){
   // El import de invasion-core.js al principio de este mismo módulo ya
   // garantiza que window.InvasionCore existe antes de que llegue este punto.
@@ -285,13 +316,16 @@ async function boot(){
   const user = await core.authReady;
   if(!user){
     toast('⚠️ Debes iniciar sesión en el juego principal primero');
-    document.getElementById('loading').classList.add('hide');
+    const waitAuth=Math.max(0, MIN_LOADING_MS-(Date.now()-_bootStartMs));
+    setTimeout(()=>document.getElementById('loading').classList.add('hide'), waitAuth);
     return;
   }
 
   try{
     myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
     renderAll();
+    const waitLoad=Math.max(0, MIN_LOADING_MS-(Date.now()-_bootStartMs));
+    if(waitLoad>0){ await new Promise(r=>setTimeout(r,waitLoad)); }
     document.getElementById('loading').classList.add('hide');
 
     const startRest=()=>{
