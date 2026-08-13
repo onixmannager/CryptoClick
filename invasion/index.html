@@ -114,8 +114,9 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
    video de presentación del juego padre en index.html: overlay a
    pantalla completa con fundido de entrada/salida y botón "Saltar").
    La música de fondo de Invasión (ver core.initInvasionBgm() en
-   boot()) sigue sonando de fondo durante este video sin pausarse -el
-   video de intro no trae su propio audio de ambiente que se le pise-.
+   boot()) se pausa mientras dura este video y se reanuda al terminar
+   o al saltarlo -mismo criterio que BGM.pause()/BGM.resume() en el
+   índice padre-, porque el video de intro trae su propio audio.
 
    El video está en vertical 9:16. En MOVIL ocupa todo el viewport con
    object-fit:cover. En ESCRITORIO (min-width:901px) se mantiene la
@@ -282,8 +283,10 @@ function playIntroVideo(onDone){
     ov.classList.remove('show');
     fade.classList.remove('in'); // listo en negro por si se necesitara reutilizar el overlay
     markInvasionIntroShown();
+    core.resumeInvasionBgm(); // la música de fondo de Invasión retoma donde estaba
     onDone();
   };
+  core.pauseInvasionBgm(); // el video tiene su propio audio: la música de fondo no debe sonar a la vez
   vid.currentTime=0;
   vid.muted=false;
   fade.style.transitionDuration=INTRO_FADE_MS+'ms';
@@ -302,31 +305,31 @@ function playIntroVideo(onDone){
 }
 window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__skipInvasionIntroVideo(); };
 
-// ── Imagen de carga (preloadinvasion.jpeg) — se muestra siempre que se
-// entra al modo desde el juego padre (index.html raíz), EXCEPTO la
-// primera vez que se entra, ya que ahí lo que debe verse es el video
-// de intro (más abajo) y no esta imagen. Si la imagen carga bien se
-// revela con .show; si falla (red, ruta, etc.) no hay texto de
-// respaldo -eliminado a propósito- y #loading se ve vacío sobre el
+// ── Imagen de carga (preloadinvasion.jpeg) — se muestra SIEMPRE que se
+// entra al modo desde el juego padre (index.html raíz), a diferencia
+// del video de intro, que solo la primera vez. Si la imagen carga
+// bien se revela con .show; si falla (red, ruta, etc.) no hay texto
+// de respaldo -eliminado a propósito- y #loading se ve vacío sobre el
 // fondo, sin romper el arranque.
-// EXCEPCIÓN 1: si se vuelve desde search.html (botón "atrás" dentro
-// del propio modo Invasión), no debe mostrarse esta imagen. Se detecta
-// con un marcador en sessionStorage escrito justo antes de navegar
-// hacia search.html (ver invadeBtn/revengeBtn más abajo) —
-// document.referrer no es fiable aquí (PWA standalone, políticas de
-// referrer, etc.), así que se usa el mismo mecanismo de sessionStorage
-// que ya usa el resto del archivo para pasar datos entre
-// index.html/search.html/minigame.html.
-// EXCEPCIÓN 2: primera vez que se entra a Invasión (mismo criterio de
-// localStorage -invasionIntroAlreadyShown()- que ya usa el video de
-// intro más abajo): en ese caso boot() va a reproducir el video justo
-// después de ocultarse #loading, así que la imagen no debe mostrarse
-// para no competir con él ni verse antes que el video.
+// EXCEPCIÓN 1: si se vuelve desde search.html (botón "atrás" dentro del
+// propio modo Invasión), no debe mostrarse esta imagen. Se detecta con
+// un marcador en sessionStorage escrito justo antes de navegar hacia
+// search.html (ver invadeBtn/revengeBtn más abajo) — document.referrer
+// no es fiable aquí (PWA standalone, políticas de referrer, etc.), así
+// que se usa el mismo mecanismo de sessionStorage que ya usa el resto
+// del archivo para pasar datos entre index.html/search.html/minigame.html.
+// EXCEPCIÓN 2: si esta es la PRIMERA vez que se entra a Invasión, va a
+// reproducirse el video de intro (ver invasionIntroAlreadyShown() más
+// arriba) y esta imagen NO debe mostrarse en ningún momento -ni un frame-
+// antes del video. willShowIntroVideo se calcula aquí, de forma síncrona
+// y ANTES de intentar mostrar la imagen, con la misma función que boot()
+// usa después para decidir si reproduce el video, así que ambas
+// decisiones (mostrar imagen / reproducir video) quedan sincronizadas.
 const cameFromSearch = sessionStorage.getItem('invasion_came_from_search')==='1';
 sessionStorage.removeItem('invasion_came_from_search');
+const willShowIntroVideo = !cameFromSearch && !invasionIntroAlreadyShown();
 (function(){
-  if(cameFromSearch)return;
-  if(!invasionIntroAlreadyShown())return;
+  if(cameFromSearch || willShowIntroVideo)return;
   const img=document.getElementById('loadingimg');
   if(!img)return;
   if(img.complete && img.naturalWidth>0){ img.classList.add('show'); return; }
@@ -339,10 +342,11 @@ sessionStorage.removeItem('invasion_came_from_search');
 // terminado de sincronizar antes de ese tiempo — evita un parpadeo si
 // la carga real es muy rápida. No afecta al video de intro (que sigue
 // arrancando justo después de ocultarse #loading, sin cambios).
-// Si se vuelve desde search.html no hay imagen que mostrar (ver
-// cameFromSearch más arriba), así que tampoco se retiene #loading con
-// esta espera mínima — se oculta en cuanto boot() termine.
-const MIN_LOADING_MS=cameFromSearch?0:1500;
+// Si se vuelve desde search.html, o si va a reproducirse el video de
+// intro (ver willShowIntroVideo arriba), no hay imagen que mostrar, así
+// que tampoco se retiene #loading con esta espera mínima — se oculta en
+// cuanto boot() termine (y justo después arranca el video).
+const MIN_LOADING_MS=(cameFromSearch||willShowIntroVideo)?0:1500;
 const _bootStartMs=Date.now();
 
 async function boot(){
