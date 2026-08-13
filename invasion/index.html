@@ -113,8 +113,9 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
    vez que se entra a este modo (misma lógica y misma interfaz que el
    video de presentación del juego padre en index.html: overlay a
    pantalla completa con fundido de entrada/salida y botón "Saltar").
-   No hay música de fondo propia en Invasión con la que solaparse, así
-   que aquí no hace falta pausar/reanudar ningún BGM.
+   La música de fondo de Invasión (ver core.initInvasionBgm() en
+   boot()) sigue sonando de fondo durante este video sin pausarse -el
+   video de intro no trae su propio audio de ambiente que se le pise-.
 
    El video está en vertical 9:16. En MOVIL ocupa todo el viewport con
    object-fit:cover. En ESCRITORIO (min-width:901px) se mantiene la
@@ -307,17 +308,26 @@ window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__sk
 // bien se revela con .show; si falla (red, ruta, etc.) no hay texto
 // de respaldo -eliminado a propósito- y #loading se ve vacío sobre el
 // fondo, sin romper el arranque.
-// EXCEPCIÓN: si se vuelve desde search.html (botón "atrás" dentro del
+// EXCEPCIÓN 1: si se vuelve desde search.html (botón "atrás" dentro del
 // propio modo Invasión), no debe mostrarse esta imagen. Se detecta con
 // un marcador en sessionStorage escrito justo antes de navegar hacia
 // search.html (ver invadeBtn/revengeBtn más abajo) — document.referrer
 // no es fiable aquí (PWA standalone, políticas de referrer, etc.), así
 // que se usa el mismo mecanismo de sessionStorage que ya usa el resto
 // del archivo para pasar datos entre index.html/search.html/minigame.html.
+// EXCEPCIÓN 2: si es la PRIMERA vez que se entra a Invasión (el video de
+// intro va a reproducirse), tampoco debe mostrarse esta imagen -antes se
+// veía la imagen de carga durante MIN_LOADING_MS y JUSTO DESPUÉS arrancaba
+// el video, es decir, el jugador veía imagen y luego video en vez de ir
+// directo al video-. Se comprueba con invasionIntroAlreadyShown() (la
+// misma función que boot() usa más abajo para decidir si reproduce el
+// video), evaluada aquí arriba para que la imagen ni siquiera llegue a
+// pintarse en ese caso.
 const cameFromSearch = sessionStorage.getItem('invasion_came_from_search')==='1';
 sessionStorage.removeItem('invasion_came_from_search');
+const willShowIntroVideo = !cameFromSearch && !invasionIntroAlreadyShown();
 (function(){
-  if(cameFromSearch)return;
+  if(cameFromSearch || willShowIntroVideo)return;
   const img=document.getElementById('loadingimg');
   if(!img)return;
   if(img.complete && img.naturalWidth>0){ img.classList.add('show'); return; }
@@ -330,16 +340,18 @@ sessionStorage.removeItem('invasion_came_from_search');
 // terminado de sincronizar antes de ese tiempo — evita un parpadeo si
 // la carga real es muy rápida. No afecta al video de intro (que sigue
 // arrancando justo después de ocultarse #loading, sin cambios).
-// Si se vuelve desde search.html no hay imagen que mostrar (ver
-// cameFromSearch más arriba), así que tampoco se retiene #loading con
-// esta espera mínima — se oculta en cuanto boot() termine.
-const MIN_LOADING_MS=cameFromSearch?0:1500;
+// Si se vuelve desde search.html, o si va a reproducirse el video de
+// intro (ver willShowIntroVideo arriba), no hay imagen que mostrar, así
+// que tampoco se retiene #loading con esta espera mínima — se oculta en
+// cuanto boot() termine.
+const MIN_LOADING_MS=(cameFromSearch||willShowIntroVideo)?0:1500;
 const _bootStartMs=Date.now();
 
 async function boot(){
   // El import de invasion-core.js al principio de este mismo módulo ya
   // garantiza que window.InvasionCore existe antes de que llegue este punto.
   core = window.InvasionCore;
+  core.initInvasionBgm(); // música de fondo del modo Invasión (sounds/invasion.mp3, loop)
   const user = await core.authReady;
   if(!user){
     toast('⚠️ Debes iniciar sesión en el juego principal primero');
