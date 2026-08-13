@@ -437,21 +437,23 @@ function updateShieldUI(){
 function renderShieldButtons(){
   const wrap=document.getElementById('shieldBuyBtns');
   wrap.innerHTML='';
-  // Con un escudo de 7 días activo no se puede comprar el de 3 días
-  // (sí al revés: 7d con un 3d activo está permitido). Ver activateShield()
-  // en invasion-core.js, que es quien aplica esta regla de verdad.
-  const has7dActive = (myProfile.shieldUntil||0) > Date.now() && myProfile.shieldType === '7d';
+  // Misma regla que aplica activateShield() en invasion-core.js (fuente
+  // de verdad real): con un escudo activo no se puede volver a comprar
+  // el MISMO tipo, y tampoco se puede comprar 3d con un 7d activo. Sí se
+  // permite comprar 7d con un 3d activo (mejora la protección).
+  const now = Date.now();
+  const activeType = (myProfile.shieldUntil||0) > now ? myProfile.shieldType : '';
   core.CFG.SHIELDS_ENABLED.forEach(type=>{
     const hours=core.CFG.SHIELD_HOURS[type];
     const label = hours>=24 ? `${hours/24}d` : `${hours}h`;
     const cost = core.shieldCost(type, myProfile.lvl || 1);
-    const blockedBy7d = type==='3d' && has7dActive;
+    const blocked = !!activeType && (type===activeType || (type==='3d' && activeType==='7d'));
     const btn=document.createElement('button');
     btn.className='shieldBuyBtn';
-    btn.innerHTML = blockedBy7d
-      ? `Escudo ${label}<br>Bloqueado por 7d activo`
+    btn.innerHTML = blocked
+      ? `Escudo ${label}<br>Bloqueado por ${activeType} activo`
       : `Escudo ${label}<br>🪙 ${fmtClk(cost)}`;
-    btn.disabled = blockedBy7d || (myProfile.clk||0) < cost;
+    btn.disabled = blocked || (myProfile.clk||0) < cost;
     btn.onclick=()=>buyShield(type, cost);
     wrap.appendChild(btn);
   });
@@ -471,8 +473,8 @@ async function buyShield(type, expectedCost){
     console.error(e);
     if((e.message||'').includes('CLK insuficiente')){
       toast(`❌ Te faltan $CLK para este escudo (cuesta 🪙 ${fmtClk(expectedCost)})`);
-    }else if((e.message||'').includes('escudo de 7 días activo')){
-      toast('❌ Ya tienes un escudo de 7 días activo, espera a que termine');
+    }else if((e.message||'').includes('Ya tienes un escudo')){
+      toast(`❌ ${e.message}`);
       renderShieldButtons();
     }else{
       toast('❌ No se pudo activar el escudo');
