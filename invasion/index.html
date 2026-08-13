@@ -53,6 +53,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 #shieldPanel.inactive{border-color:rgba(239,68,68,.35)}
 .shieldRow{display:flex;align-items:center;gap:12px}
 .shieldIcon{font-size:32px}
+.shieldIcon img{width:32px;height:32px;object-fit:contain;display:block}
 .shieldTitle{font-family:var(--fh);font-size:16px;color:var(--text)}
 .shieldSub{font-size:12px;color:var(--muted);font-weight:700;margin-top:2px}
 .shieldCountdown{font-family:var(--fh);font-size:20px;color:var(--green);margin-left:auto}
@@ -410,7 +411,14 @@ function updateShieldUI(){
   const active = myProfile.shieldUntil > now;
   panel.classList.toggle('active', active);
   panel.classList.toggle('inactive', !active);
-  document.getElementById('shieldIcon').textContent = active ? '🛡️' : '⚠️';
+  const shieldIconEl = document.getElementById('shieldIcon');
+  if(active){
+    // Dorado para el escudo de 7 días, plateado para el de 3 días.
+    const imgSrc = myProfile.shieldType==='7d' ? 'images/escudodorado.png' : 'images/escudoplateado.png';
+    shieldIconEl.innerHTML = `<img src="${imgSrc}" alt="Escudo ${myProfile.shieldType}">`;
+  } else {
+    shieldIconEl.textContent = '⚠️';
+  }
   document.getElementById('shieldTitle').textContent = active
     ? `Escudo activo (${myProfile.shieldType})`
     : 'Sin escudo';
@@ -429,14 +437,21 @@ function updateShieldUI(){
 function renderShieldButtons(){
   const wrap=document.getElementById('shieldBuyBtns');
   wrap.innerHTML='';
+  // Con un escudo de 7 días activo no se puede comprar el de 3 días
+  // (sí al revés: 7d con un 3d activo está permitido). Ver activateShield()
+  // en invasion-core.js, que es quien aplica esta regla de verdad.
+  const has7dActive = (myProfile.shieldUntil||0) > Date.now() && myProfile.shieldType === '7d';
   core.CFG.SHIELDS_ENABLED.forEach(type=>{
     const hours=core.CFG.SHIELD_HOURS[type];
     const label = hours>=24 ? `${hours/24}d` : `${hours}h`;
     const cost = core.shieldCost(type, myProfile.lvl || 1);
+    const blockedBy7d = type==='3d' && has7dActive;
     const btn=document.createElement('button');
     btn.className='shieldBuyBtn';
-    btn.innerHTML=`Escudo ${label}<br>🪙 ${fmtClk(cost)}`;
-    btn.disabled = (myProfile.clk||0) < cost;
+    btn.innerHTML = blockedBy7d
+      ? `Escudo ${label}<br>Bloqueado por 7d activo`
+      : `Escudo ${label}<br>🪙 ${fmtClk(cost)}`;
+    btn.disabled = blockedBy7d || (myProfile.clk||0) < cost;
     btn.onclick=()=>buyShield(type, cost);
     wrap.appendChild(btn);
   });
@@ -456,6 +471,9 @@ async function buyShield(type, expectedCost){
     console.error(e);
     if((e.message||'').includes('CLK insuficiente')){
       toast(`❌ Te faltan $CLK para este escudo (cuesta 🪙 ${fmtClk(expectedCost)})`);
+    }else if((e.message||'').includes('escudo de 7 días activo')){
+      toast('❌ Ya tienes un escudo de 7 días activo, espera a que termine');
+      renderShieldButtons();
     }else{
       toast('❌ No se pudo activar el escudo');
     }
