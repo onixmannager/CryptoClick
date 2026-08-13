@@ -515,14 +515,21 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 #toast.show{opacity:1}
 
-/* AVISO DE ACTUALIZACIÓN DISPONIBLE — banner discreto, no tapa nada
-   crítico, se puede ignorar y se vuelve a mostrar en la próxima carga si
-   el usuario no actualiza ahora. */
-#updateBanner{position:fixed;left:50%;bottom:16px;transform:translateX(-50%) translateY(120%);width:calc(100% - 32px);max-width:380px;background:var(--card2);border:1px solid var(--glass-border);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;z-index:10000;box-shadow:0 12px 32px rgba(0,0,0,.5);transition:transform .35s ease}
-#updateBanner.show{transform:translateX(-50%) translateY(0)}
-#updateBanner .ubIcon{font-size:22px;flex-shrink:0}
-#updateBanner .ubText{flex:1;font-size:12.5px;font-weight:700;color:var(--text);line-height:1.3}
-#updateBanner .ubBtn{flex-shrink:0;padding:9px 14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a0a00;font-family:var(--fh);font-size:12px;cursor:pointer}
+/* AVISO DE ACTUALIZACIÓN DISPONIBLE — misma tarjeta-hoja-desde-abajo que
+   el Bonus Diario (#dailyov/#dailybox): overlay oscuro + tarjeta con
+   animación "sup". El usuario puede pulsar "Actualizar" para aplicar la
+   nueva versión, o "Ahora no" para cerrarla sin actualizar (no queda fija
+   tapando la pantalla; si sigue sin actualizar, se le puede volver a
+   avisar en la próxima carga). */
+#updateOv{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:10000;align-items:flex-end;justify-content:center}
+#updateOv.show{display:flex}
+#updateBanner{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease}
+#updateBanner .ubIcon{font-size:44px;display:block;margin-bottom:8px}
+#updateBanner h3{font-family:var(--fh);font-size:24px;color:var(--yellow);margin-bottom:6px}
+#updateBanner .ubText{color:var(--muted);font-size:13px;font-weight:700;margin-bottom:18px;line-height:1.4}
+#updateBanner .ubBtn{width:100%;padding:14px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:18px;color:#1a0a00;cursor:pointer;box-shadow:0 4px 20px rgba(255,215,0,.3)}
+#updateBanner .ubBtn:disabled{opacity:.6;cursor:not-allowed}
+#updateBanner .ubClose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
 
 #logo{text-decoration:none;color:inherit;cursor:pointer}
 
@@ -735,8 +742,8 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   /* ── OVERLAYS: center as real dialogs instead of mobile bottom
      sheets that would otherwise slam edge-to-edge across a wide
      viewport. ──────────────────────────────────────────────────── */
-  #noeov,#dailyov{align-items:center}
-  #noebox,#dailybox{
+  #noeov,#dailyov,#updateOv{align-items:center}
+  #noebox,#dailybox,#updateBanner{
     max-width:380px;
     border-radius:24px;
     animation:popin .4s cubic-bezier(.175,.885,.32,1.275);
@@ -1142,11 +1149,13 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 <div id="toast"></div>
 
 <!-- AVISO DE ACTUALIZACIÓN PWA -->
-<div id="updateBanner">
+<div id="updateOv"><div id="updateBanner">
   <div class="ubIcon">🚀</div>
-  <div class="ubText">Hay una versión nueva del juego lista</div>
+  <h3>¡Nueva versión!</h3>
+  <div class="ubText">Hay una actualización del juego lista para instalar</div>
   <button class="ubBtn" id="updateBannerBtn">Actualizar</button>
-</div>
+  <button class="ubClose" id="updateBannerClose">Ahora no</button>
+</div></div>
 
 <!-- ============ FIREBASE ============ -->
 <script type="module">
@@ -2811,13 +2820,20 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' })
       .then((registration) => {
         function promptUpdate(worker) {
-          const banner = document.getElementById('updateBanner');
+          const overlay = document.getElementById('updateOv');
           const btn = document.getElementById('updateBannerBtn');
-          banner.classList.add('show');
+          const closeBtn = document.getElementById('updateBannerClose');
+          overlay.classList.add('show');
           btn.onclick = () => {
             btn.textContent = '...';
             btn.disabled = true;
             worker.postMessage({ type: 'SKIP_WAITING' });
+          };
+          // "Ahora no": cierra la tarjeta sin actualizar. No queda fija
+          // tapando la pantalla; si el usuario no actualiza, se le puede
+          // volver a avisar en la próxima carga de la app.
+          closeBtn.onclick = () => {
+            overlay.classList.remove('show');
           };
         }
 
