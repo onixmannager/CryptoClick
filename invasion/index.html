@@ -302,11 +302,18 @@ function playIntroVideo(onDone){
 window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__skipInvasionIntroVideo(); };
 
 // ── Imagen de carga (preloadinvasion.jpeg) — se muestra SIEMPRE que se
-// entra al modo (a diferencia del video de intro, que solo la primera
-// vez). Si la imagen carga bien se revela con .show; si falla (red,
-// ruta, etc.) no hay texto de respaldo -eliminado a propósito- y
-// #loading se ve vacío sobre el fondo, sin romper el arranque. ──
+// entra al modo desde el juego padre (index.html raíz), a diferencia
+// del video de intro, que solo la primera vez. Si la imagen carga
+// bien se revela con .show; si falla (red, ruta, etc.) no hay texto
+// de respaldo -eliminado a propósito- y #loading se ve vacío sobre el
+// fondo, sin romper el arranque.
+// EXCEPCIÓN: si se vuelve desde search.html (botón "atrás" dentro del
+// propio modo Invasión), no debe mostrarse esta imagen — se detecta
+// por document.referrer y se marca en cameFromSearch más abajo, donde
+// se usa para ocultar #loading de inmediato sin esperar la imagen. ──
+const cameFromSearch = /\/invasion\/search\.html(?:[?#]|$)/.test(document.referrer);
 (function(){
+  if(cameFromSearch)return;
   const img=document.getElementById('loadingimg');
   if(!img)return;
   if(img.complete && img.naturalWidth>0){ img.classList.add('show'); return; }
@@ -319,7 +326,10 @@ window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__sk
 // terminado de sincronizar antes de ese tiempo — evita un parpadeo si
 // la carga real es muy rápida. No afecta al video de intro (que sigue
 // arrancando justo después de ocultarse #loading, sin cambios).
-const MIN_LOADING_MS=1500;
+// Si se vuelve desde search.html no hay imagen que mostrar (ver
+// cameFromSearch más arriba), así que tampoco se retiene #loading con
+// esta espera mínima — se oculta en cuanto boot() termine.
+const MIN_LOADING_MS=cameFromSearch?0:1500;
 const _bootStartMs=Date.now();
 
 async function boot(){
