@@ -227,13 +227,25 @@ function updateTimerUI(totalMs){
   document.getElementById('timerBar').style.width = Math.max(0,(timeLeftMs/totalMs*100))+'%';
 }
 
-async function endGame(won){
+async function endGame(_playerFoundAllDeposits){
+  // El parámetro que llega aquí (si el jugador encontró los 3 depósitos
+  // a tiempo o no) YA NO decide el resultado — se ignora a propósito.
+  // Ver CFG.WIN_PROBABILITY: el resultado real se decide con core.rollWin()
+  // más abajo, igual para todos los jugadores.
   if(gameEnded) return;
   gameEnded = true;
   cancelAnimationFrame(timerRAF);
 
+  // El resultado que CUENTA para el robo no es si el jugador encontró los
+  // 3 depósitos a tiempo — es una tirada con probabilidad fija
+  // (CFG.WIN_PROBABILITY, igual para cualquier atacante contra cualquier
+  // defensor, decisión de diseño del proyecto). El minijuego se sigue
+  // jugando y mostrando igual (mantiene la tensión/enganche), pero
+  // "encontrar los depósitos" ya no decide si se roba o no.
+  const won = core.rollWin();
+
   // Revela el resto de compartimentos sin marcar (feedback visual, no
-  // afecta al resultado — el resultado ya quedó fijado por won/depositsFound).
+  // afecta al resultado — el resultado ya quedó fijado arriba por rollWin()).
   document.querySelectorAll('.slot:not(.revealed)').forEach((el,i)=>{
     const idx=parseInt(el.dataset.idx);
     const type=slotTypes[idx];
@@ -248,8 +260,8 @@ async function endGame(won){
   titleEl.textContent = won?'¡INFILTRACIÓN EXITOSA!':'INFILTRACIÓN FALLIDA';
   titleEl.className='endTitle ' + (won?'win':'lose');
   document.getElementById('endDetail').textContent = won
-    ? 'Encontraste los 3 depósitos a tiempo.'
-    : 'No lograste encontrar los 3 depósitos.';
+    ? 'Lograste completar la infiltración.'
+    : 'La infiltración fue detectada a tiempo.';
   overlay.classList.add('show');
 
   try{
