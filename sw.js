@@ -4,7 +4,7 @@
 // - Firebase/Auth/Firestore y SDK JS van siempre a red.
 // - Iconos/manifest e imagenes externas pueden usar cache como respaldo offline.
 
-const VERSION = 'v3';
+const VERSION = 'v4';
 const SHELL_CACHE = `cryptoclick-shell-${VERSION}`;
 const ASSET_CACHE = `cryptoclick-assets-${VERSION}`;
 
@@ -130,7 +130,17 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.origin === self.location.origin) {
-    event.respondWith(cacheFirst(request));
+    // cacheFirst servía JS/CSS del propio origen para siempre sin
+    // comprobar si había una versión nueva en el servidor — cualquier
+    // archivo de código (ej. invasion-core.js) quedaba pegado a la
+    // primera versión que el navegador llegó a cachear, aunque se subiera
+    // un archivo distinto al servidor después. staleWhileRevalidate sigue
+    // sirviendo al instante desde caché (no se pierde velocidad offline)
+    // pero SIEMPRE dispara una petición de red en paralelo que refresca
+    // el caché para la siguiente vez — así una actualización de código
+    // tarda como mucho una recarga extra en llegar, no queda cacheada
+    // de forma indefinida.
+    event.respondWith(staleWhileRevalidate(request));
     return;
   }
 
