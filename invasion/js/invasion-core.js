@@ -525,6 +525,55 @@ async function getAttackHistory(uid, max = 20) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// MÚSICA DE FONDO DEL MODO INVASIÓN — sounds/invasion.mp3, en loop, a
+// través de las 3 pantallas del modo (index.html, search.html,
+// minigame.html). Se centraliza aquí (en vez de repetir el bloque en
+// cada HTML) para que las tres compartan el MISMO <audio>: al navegar
+// de una pantalla a otra el elemento se recrea (cada HTML es una carga
+// de página nueva), así que lo que sí se comparte de verdad es el
+// comportamiento y el estado de mute -mismo criterio que RULETA_SOUND_SRC/
+// MUSICA_FONDO_SOUND_SRC en ruleta.html, incluida la clave de
+// localStorage 'cck4_muted' para que el mute sea consistente con el
+// resto de la app (índice padre, ruleta, invasión).
+// ─────────────────────────────────────────────────────────────────────
+const INVASION_BGM_SRC = 'sounds/invasion.mp3';
+const INVASION_BGM_VOL = 0.15; // mismo nivel que MUSICA_FONDO_VOL en ruleta.html
+let _invasionMuted = false;
+try { _invasionMuted = localStorage.getItem('cck4_muted') === '1'; } catch (e) {}
+let _invasionBgmEl = null;
+
+function getInvasionBgmEl() {
+  if (!_invasionBgmEl) {
+    _invasionBgmEl = new Audio(INVASION_BGM_SRC);
+    _invasionBgmEl.preload = 'auto';
+    _invasionBgmEl.loop = true;
+    _invasionBgmEl.volume = _invasionMuted ? 0 : INVASION_BGM_VOL;
+    _invasionBgmEl.addEventListener('error', () => {
+      const err = _invasionBgmEl.error;
+      console.error('[música de fondo invasión] No se pudo cargar "' + INVASION_BGM_SRC + '". Código de error:', err ? err.code : '(desconocido)');
+    });
+  }
+  return _invasionBgmEl;
+}
+
+// Arranca la música de fondo en loop. Igual que en ruleta.html/index.html:
+// se intenta reproducir apenas se llama; si el navegador bloquea el
+// autoplay con sonido, se reintenta una sola vez en el primer
+// click/touch/tecla del usuario en esa página.
+function initInvasionBgm() {
+  if (_invasionMuted) return;
+  const el = getInvasionBgmEl();
+  el.play().catch(() => {
+    const reintentar = () => {
+      if (_invasionMuted) return;
+      el.play().catch(err => console.error('[música de fondo invasión] play() rechazado:', err.name, '-', err.message));
+      ['click', 'touchstart', 'keydown'].forEach(ev => document.removeEventListener(ev, reintentar));
+    };
+    ['click', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, reintentar, { once: true }));
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────
 // EXPORT — window.InvasionCore, mismo patrón que window.__fb en el padre.
 // ─────────────────────────────────────────────────────────────────────
 window.InvasionCore = {
@@ -533,4 +582,5 @@ window.InvasionCore = {
   syncProfileFromMainSave, findRandomTarget, checkCanInvade,
   resolveInvasion, activateShield, getActiveRevengeTarget, getAttackHistory,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
+  initInvasionBgm, // arranca la música de fondo del modo Invasión (loop, respeta cck4_muted)
 };
