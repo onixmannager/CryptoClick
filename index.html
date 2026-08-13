@@ -434,21 +434,26 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   border-radius:0;
   z-index:0;
 }
-/* Capa oscura + el resto del contenido (titulo, nombre, boton) flotan sobre
-   el video a pantalla completa en movil, con texto legible via degradado */
+/* Capa oscura suave + aviso de rango flotan sobre el video a pantalla
+   completa en movil, con texto legible via degradado. El aviso (rutitle+
+   runame) se muestra siempre que hay video, de forma compacta arriba
+   para no tapar la escena; rubonus y ruclose (boton "A MINAR") quedan
+   ocultos mientras hay video: el video termina solo (vid.onended) y
+   cierra el overlay, igual que el video de intro. */
 #rubox.has-video{
   position:fixed;inset:0;width:100%;max-width:none;height:100%;
-  display:flex;flex-direction:column;justify-content:flex-end;
-  padding:0 24px 40px;
-  background:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,.75) 85%,rgba(0,0,0,.9) 100%);
+  display:flex;flex-direction:column;justify-content:flex-start;
+  padding:calc(16px + env(safe-area-inset-top)) 24px 0;
+  background:none;
   border-radius:0;
 }
-#rubox.has-video #rutitle,#rubox.has-video #runame,#rubox.has-video #rubonus,#rubox.has-video #ruclose{
+#rubox.has-video #rutitle,#rubox.has-video #runame{
   position:relative;z-index:1;
-  display:none;
-}
-#rubox.has-video.video-ended #rutitle,#rubox.has-video.video-ended #runame,#rubox.has-video.video-ended #rubonus,#rubox.has-video.video-ended #ruclose{
   display:block;
+  text-shadow:0 2px 10px rgba(0,0,0,.85),0 0 4px rgba(0,0,0,.85);
+}
+#rubox.has-video #rubonus,#rubox.has-video #ruclose{
+  display:none;
 }
 
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
@@ -456,6 +461,14 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #runame{font-family:var(--fh);font-size:20px;color:var(--cyan);margin-bottom:6px}
 #rubonus{font-size:13px;color:var(--muted);margin-bottom:22px}
 #ruclose{background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;padding:14px 44px;cursor:pointer;font-family:var(--fh);font-size:20px;color:#1a0a00;box-shadow:0 4px 20px rgba(255,107,53,.4)}
+#ruskip{display:none}
+#rubox.has-video #ruskip{
+  display:block;
+  position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:2;
+  background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;
+  padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;
+  cursor:pointer;backdrop-filter:blur(4px);
+}
 
 
 #dailyov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;align-items:flex-end;justify-content:center}
@@ -755,17 +768,16 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   #aliasbox{max-width:400px}
 
   /* ── Video de rank-up en ESCRITORIO: mismo criterio que movil -pantalla
-     completa, proporcion vertical 9:16 sin recortar ni deformar-. En vez
-     de encajarlo en una tarjeta chica, el video cubre todo el viewport
-     igual que en movil y el titulo/boton flotan encima con el mismo
-     degradado. Como el viewport de escritorio es mas ancho que 9:16,
-     se usa object-fit:contain sobre fondo negro para que se vea la
-     MISMA franja vertical que en movil, ni estirada ni recortada a
-     los lados. ──────────────────────────────────────────────────── */
+     completa, proporcion vertical 9:16 sin recortar ni deformar-. El
+     video cubre todo el viewport igual que en movil y el aviso de rango
+     (titulo+nombre) flota arriba, compacto, sin taparlo. Como el
+     viewport de escritorio es mas ancho que 9:16, se usa object-fit:contain
+     sobre fondo negro para que se vea la MISMA franja vertical que en
+     movil, ni estirada ni recortada a los lados. ──────────────────── */
   #rubox.has-video{
     position:fixed;inset:0;width:100%;max-width:none;height:100%;
-    display:flex;flex-direction:column;justify-content:flex-end;
-    padding:0 24px 40px;
+    display:flex;flex-direction:column;justify-content:flex-start;
+    padding:calc(16px + env(safe-area-inset-top)) 24px 0;
     background:#000;
     border-radius:0;
     box-shadow:none;
@@ -776,12 +788,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     object-fit:contain;
     border-radius:0;
     display:block;
-  }
-  #rubox.has-video::before{
-    /* degradado suave para que el titulo no quede pegado al borde inferior del video */
-    content:'';position:fixed;left:0;right:0;bottom:0;height:40%;
-    background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.75) 70%,rgba(0,0,0,.9) 100%);
-    pointer-events:none;
   }
   #rubox.has-video #rutitle{margin-top:0}
 
@@ -1110,6 +1116,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
 <div id="ruov"><div id="rubox">
   <video id="ruvideo" playsinline></video>
+  <button id="ruskip" onclick="skipRankupVideo()">Saltar ⏭️</button>
   <span id="ruemoji">🎉</span>
   <div id="rutitle">¡SUBISTE DE RANGO!</div>
   <div id="runame">Nombre</div>
@@ -2367,8 +2374,9 @@ function showRankup(r){
   const vid=document.getElementById('ruvideo');
   const src=RANK_VIDEOS[r.name];
   box.classList.remove('has-video');
-  box.classList.remove('video-ended');
   vid.pause();vid.removeAttribute('src');vid.load();
+  vid.onended=null;vid.onerror=null;vid.oncanplay=null;
+  window.__skipRankupVideo=null;
   document.getElementById('ruov').classList.add('show');
   SFX.rankUp();rankBurst();
   if(src){
@@ -2384,17 +2392,22 @@ function showRankup(r){
     vid.src=src;
     vid.oncanplay=()=>{box.classList.add('has-video');vid.play().catch(()=>{});};
     vid.onerror=()=>{box.classList.remove('has-video');BGM.resume();};
-    // Al terminar el video: revelar titulo/nombre/bonus/boton (ocultos
-    // mientras el video estaba en pantalla, ver CSS .has-video) y cerrar
-    // el overlay automaticamente, igual que si el usuario tocara #ruclose.
-    vid.onended=()=>{
-      box.classList.add('video-ended');
+    // Al terminar el video (o si el usuario pulsa "Saltar", ver
+    // skipRankupVideo): cerrar el overlay automaticamente, igual que el
+    // video de intro. El aviso de rango (titulo+nombre) ya se mostró
+    // superpuesto sobre el video mientras se reproducía (ver CSS
+    // .has-video), así que no hace falta revelar nada al terminar.
+    const finish=()=>{
+      window.__skipRankupVideo=null;
       document.getElementById('ruov').classList.remove('show');
       vid.pause();
       BGM.resume();
     };
+    vid.onended=finish;
+    window.__skipRankupVideo=finish;
   }
 }
+function skipRankupVideo(){ if(window.__skipRankupVideo)window.__skipRankupVideo(); }
 
 function isDailyReady(){return Date.now()-S.lastDaily>86400000}
 function openDaily(){renderDG();document.getElementById('dailyov').classList.add('show');const cb=document.getElementById('dailyclaim');cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';}
@@ -2691,7 +2704,7 @@ const TIPS=['SINCRONIZANDO BLOCKCHAIN...','CARGANDO NODOS P2P...','VERIFICANDO B
    NO cuando arranca. Esto es lo que usa startGameForUser para saber el
    momento exacto en que ya no hay nada tapando el video de intro, en vez
    de adivinarlo con un setTimeout de duración fija que podía solaparse. */
-function runLoader(onDone){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');if(readLocalCandidate(window.__fbUser&&window.__fbUser.uid,true))toast('👋 ¡Bienvenido de nuevo, minero!');else toast('🎉 ¡Bienvenido a Crypto Click!');if(onDone)onDone();setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);},400);}},180);}
+function runLoader(onDone){const bar=document.getElementById('lbar'),tip=document.getElementById('ltip');let p=0,ti=0;const iv=setInterval(()=>{p+=Math.random()*18+4;if(p>100)p=100;bar.style.width=p+'%';tip.textContent=TIPS[ti%TIPS.length];ti++;if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loading').classList.add('hide');if(onDone)onDone();setTimeout(()=>{const l=document.getElementById('loading');if(l)l.remove()},700);},400);}},180);}
 
 /* ════════════════════════════════════════════════════════════════
    VIDEO DE INTRO — se reproduce una única vez, la primera vez que el
