@@ -462,6 +462,16 @@ async function activateShield(uid, shieldType) {
   if (!snap.exists()) throw new Error('Perfil de invasión no encontrado');
   const player = snap.data();
 
+  // No se puede comprar el escudo de 3 días mientras haya uno de 7 días
+  // activo: sería pagar por una duración menor que sobrescribiría (y
+  // recortaría) la protección de 7d ya pagada. En el sentido inverso sí
+  // se permite: comprar 7d con un 3d activo simplemente extiende/mejora
+  // la protección, así que no se bloquea.
+  const hasActiveShield = (player.shieldUntil || 0) > Date.now();
+  if (shieldType === '3d' && hasActiveShield && player.shieldType === '7d') {
+    throw new Error('Ya tienes un escudo de 7 días activo. Espera a que termine para comprar el de 3 días.');
+  }
+
   const cost = shieldCost(shieldType, player.lvl || 1);
   const currentClk = player.clk || 0;
   if (currentClk < cost) {
