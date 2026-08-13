@@ -117,19 +117,25 @@ async function boot(){
   try{
     myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
 
-    const check = core.checkCanInvade(myProfile);
-    if(!check.ok){
-      markDirectTargetFailed('No puedes invadir ahora mismo — vuelve al menú para ver cuánto falta.');
-      return;
-    }
-
-    // Flujo de venganza: llega con un objetivo directo fijado desde index.html,
-    // salta la búsqueda aleatoria pero pasa por las mismas validaciones.
+    // Se comprueba primero si es venganza o ataque normal, porque el
+    // mensaje/título que se muestra si algo falla depende de cuál sea
+    // — antes esto se decidía DESPUÉS de comprobar checkCanInvade, así
+    // que un simple cooldown en un ataque normal mostraba "no se pudo
+    // completar la venganza" aunque no hubiera venganza de por medio.
     const directTarget = sessionStorage.getItem('invasion_direct_target');
     if(directTarget){
       isRevengeFlow = sessionStorage.getItem('invasion_is_revenge')==='1';
       sessionStorage.removeItem('invasion_direct_target');
       sessionStorage.removeItem('invasion_is_revenge');
+    }
+
+    const check = core.checkCanInvade(myProfile);
+    if(!check.ok){
+      markSearchFailed('No puedes invadir ahora mismo — vuelve al menú para ver cuánto falta.', isRevengeFlow);
+      return;
+    }
+
+    if(directTarget){
       await searchDirectTarget(directTarget);
     }else{
       await searchRandom();
@@ -139,18 +145,24 @@ async function boot(){
     // de escaneo girando para siempre sin explicación — ver el mismo
     // problema y su arreglo en index.html/boot().
     console.error('boot() falló:', e);
-    markDirectTargetFailed('No se pudo cargar. Reintenta o avisa si persiste.');
+    markSearchFailed('No se pudo cargar. Reintenta o avisa si persiste.', isRevengeFlow);
   }
 }
 
 let directTargetFailed=false; // true si el fallo viene de un intento de VENGANZA
                                 // (reintentar al azar no tiene sentido en ese caso)
 
-function markDirectTargetFailed(msg){
+// Sustituye a la antigua markDirectTargetFailed(): el título y el
+// comportamiento de "Reintentar" ahora dependen de isRevenge, en vez de
+// asumir siempre que el fallo viene de una venganza. Un ataque normal
+// (isRevenge=false) que falla por cooldown/límite/error de red debe
+// poder reintentar la búsqueda al azar, no mandar al jugador de vuelta
+// al menú con un mensaje que no le corresponde.
+function markSearchFailed(msg, isRevenge){
   document.getElementById('statusText').textContent = msg;
-  document.getElementById('noneTitle').textContent = 'No se pudo completar la venganza';
-  document.getElementById('retryBtn2').textContent = '← Volver';
-  directTargetFailed = true;
+  document.getElementById('noneTitle').textContent = isRevenge ? 'No se pudo completar la venganza' : 'No se pudo lanzar el ataque';
+  document.getElementById('retryBtn2').textContent = isRevenge ? '← Volver' : '🔄 Reintentar';
+  directTargetFailed = isRevenge;
   showView('noneFound');
 }
 
@@ -162,18 +174,18 @@ async function searchDirectTarget(uid){
     const d = snap.data();
     const now = Date.now();
     if((d.shieldUntil||0) > now){
-      markDirectTargetFailed('Ese jugador activó un escudo — no puedes vengarte ahora.');
+      markSearchFailed('Ese jugador activó un escudo — no puedes vengarte ahora.', true);
       return;
     }
     if((d.clk||0) < core.CFG.MIN_CLK_TO_BE_TARGET){
-      markDirectTargetFailed('Ese jugador ya no tiene $CLK suficiente para robar.');
+      markSearchFailed('Ese jugador ya no tiene $CLK suficiente para robar.', true);
       return;
     }
     foundTarget = { uid, ...d };
     showResult();
   }catch(e){
     console.error(e);
-    markDirectTargetFailed('No se pudo cargar ese objetivo.');
+    markSearchFailed('No se pudo cargar ese objetivo.', true);
   }
 }
 
@@ -182,14 +194,17 @@ async function searchRandom(){
   try{
     foundTarget = await core.findRandomTarget(myProfile.uid, myProfile.recentTargets);
     if(!foundTarget){
+      document.getElementById('noneTitle').textContent = 'Sin objetivos ahora';
+      document.getElementById('statusText').textContent = 'No hay rivales disponibles en este momento. Revisa la consola (F12) para ver el motivo exacto — puede ser que ya invadiste a todos los candidatos disponibles hace menos de 4h.';
+      document.getElementById('retryBtn2').textContent = '🔄 Reintentar';
+      directTargetFailed = false;
       showView('noneFound');
       return;
     }
     showResult();
   }catch(e){
     console.error('findRandomTarget failed:',e);
-    document.getElementById('statusText').textContent='Error al buscar. Inténtalo de nuevo.';
-    showView('noneFound');
+    markSearchFailed('Error al buscar. Inténtalo de nuevo.', false);
   }
 }
 
