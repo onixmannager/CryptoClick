@@ -23,15 +23,6 @@
   --glass-border:rgba(255,255,255,.14);--glass-blur:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-/* Evita que al tocar/mantener presionado en cualquier parte de este modo
-   (móvil) se dispare el selector de texto nativo, y evita arrastrar
-   imágenes (p.ej. #loadingimg) — mismo criterio que el juego padre en
-   index.html. Los campos donde el usuario SÍ necesita escribir/seleccionar
-   (inputs, textarea) se excluyen explícitamente, igual que en el padre. */
-html,body{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-*{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-input,textarea{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
-img{-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:auto}
 html{width:100%;min-height:100vh;background-color:#0b0a14}
 body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;scrollbar-width:none;display:flex;justify-content:center}
 html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
