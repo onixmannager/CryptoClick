@@ -289,15 +289,6 @@ function playIntroVideo(onDone){
   fade.style.transitionDuration=INTRO_FADE_MS+'ms';
   fade.classList.remove('in'); // arranca tapado en negro
   ov.classList.add('show');
-  // Salvaguarda: en el instante en que el overlay del video se muestra,
-  // #loading (imagen de carga) se fuerza a oculto de inmediato -sin
-  // esperar su transition de .5s-, para que bajo ningún escenario quede
-  // la imagen todavía visible (aunque sea semitransparente, de paso a
-  // #loading.hide) solapada o por encima del video mientras este ya
-  // arrancó. boot() ya la oculta antes de llamar aquí en el flujo normal;
-  // esto es un cinturón de seguridad adicional, no sustituye a eso.
-  const loadingEl=document.getElementById('loading');
-  if(loadingEl){ loadingEl.classList.add('hide'); loadingEl.style.display='none'; }
   vid.onended=finish;
   vid.onerror=finish; // si el archivo no carga (red, ruta, etc.), seguimos sin bloquear el arranque
   // Fundido de ENTRADA: en cuanto el video empieza a reproducirse de
