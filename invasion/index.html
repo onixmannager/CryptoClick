@@ -94,10 +94,14 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
    dejarlo como respaldo). Se muestra SIEMPRE que se entra al modo (a
    diferencia del video de intro, que solo se ve la primera vez), a
    pantalla completa igual que el resto de overlays de este archivo.
-   object-fit:cover porque la imagen es vertical 9:16 (720x1280), mismo
-   criterio que el video de intro en MOVIL. Si la imagen no llega a
-   cargar (ver JS), #loading se ve vacío sobre el fondo #0b0a14 — es el
-   comportamiento pedido explícitamente, sin texto de respaldo. ── */
+   La imagen es vertical 9:16 (720x1280), mismo criterio que el video
+   de intro: en MOVIL object-fit:cover (llena el viewport). En
+   ESCRITORIO (ver media query min-width:901px más abajo) pasa a
+   object-fit:contain -misma proporción 9:16 sin recortar, centrada
+   con barras a los lados- igual que #introvideo. Si la imagen no
+   llega a cargar (ver JS), #loading se ve vacío sobre el fondo
+   #0b0a14 — es el comportamiento pedido explícitamente, sin texto de
+   respaldo. ── */
 #loadingimg{display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:99999}
 #loadingimg.show{display:block}
 
@@ -124,6 +128,11 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 #introskip{position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:100003;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;cursor:pointer;backdrop-filter:blur(4px)}
 @media (min-width:901px){
   #introvideo{width:100%;height:100%;object-fit:contain}
+  /* Misma lógica que el video: en ESCRITORIO se mantiene la proporción
+     vertical 9:16 completa de la imagen sin recortarla -object-fit:contain-,
+     centrada sobre el fondo #0b0a14 de #loading con barras a los lados,
+     en vez de cover (que recortaría los laterales en pantallas anchas). */
+  #loadingimg{object-fit:contain}
 }
 </style>
 </head>
@@ -306,7 +315,7 @@ window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__sk
 // terminado de sincronizar antes de ese tiempo — evita un parpadeo si
 // la carga real es muy rápida. No afecta al video de intro (que sigue
 // arrancando justo después de ocultarse #loading, sin cambios).
-const MIN_LOADING_MS=1000;
+const MIN_LOADING_MS=1500;
 const _bootStartMs=Date.now();
 
 async function boot(){
