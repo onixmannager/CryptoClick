@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crypto Alien — Minado tap-to-earn, arcade e invasión PvP</title>
-<meta name="description" content="Crypto Alien: minado tap-to-earn en segundo plano, 5 minijuegos arcade y modo Invasión PvP offline. Canjeá CLK por nivel en airdrops. Sumate al acceso anticipado.">
+<meta name="description" content="Crypto Alien: minado tap-to-earn con Invasión PvP offline como modo estrella. Canjeá tu nivel por CLK en airdrops de proyectos colaboradores. Jugá ahora.">
 <meta name="theme-color" content="#0B0A12">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -380,6 +380,20 @@
   .section { padding: 120px 0; border-top: 1px solid var(--border); position: relative; }
   .section--violet { background: linear-gradient(180deg, var(--violet-dim), transparent 60%); }
   .section--cta { text-align: center; }
+  .section--featured {
+    padding: 150px 0;
+    border-top: 1px solid var(--border-strong);
+    border-bottom: 1px solid var(--border-strong);
+    box-shadow: inset 0 0 120px rgba(184, 92, 255, 0.06);
+  }
+  .section--featured .eyebrow { color: var(--violet); font-size: 0.85rem; }
+  .section--featured h2 { font-size: clamp(2.2rem, 5.5vw, 3.6rem); }
+  .section--featured .section__lead { font-size: 1.15rem; max-width: 640px; }
+  .section--minor { padding: 72px 0; }
+  .section--minor h2 { font-size: clamp(1.4rem, 2.6vw, 1.9rem); margin-bottom: 12px; }
+  .section--minor .section__lead { font-size: 0.95rem; margin-bottom: 32px; }
+
+  .hero__actions { display: flex; gap: 14px; flex-wrap: wrap; }
   .section h2 {
     font-family: var(--font-display);
     font-weight: 700;
@@ -422,21 +436,6 @@
   }
   .social-row a:hover { border-color: var(--lime); color: var(--lime); }
 
-  /* Waitlist */
-  .waitlist { display: flex; gap: 12px; justify-content: center; max-width: 420px; margin: 0 auto; flex-wrap: wrap; }
-  .waitlist input {
-    flex: 1;
-    min-width: 200px;
-    background: var(--surface);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-  }
-  .waitlist input:focus { border-color: var(--lime); outline: none; }
-  .waitlist__note { margin-top: 14px; color: var(--lime); font-size: 0.85rem; min-height: 1.2em; }
   .platforms { display: flex; gap: 12px; justify-content: center; margin-top: 44px; color: var(--text-dim); font-size: 0.78rem; font-family: var(--font-mono); }
 
   /* Footer */
@@ -446,6 +445,9 @@
   .footer__links { display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; color: var(--text-dim); }
   .footer__links a:hover { color: var(--text); }
   .footer__legal { text-align: center; color: var(--text-dim); font-size: 0.72rem; opacity: 0.7; font-family: var(--font-mono); }
+  .footer__legal-row { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .footer__legal-links { display: flex; gap: 10px; font-size: 0.72rem; color: var(--text-dim); opacity: 0.85; }
+  .footer__legal-links a:hover { color: var(--lime); }
 
   /* Responsive */
   @media (max-width: 880px) {
@@ -477,12 +479,12 @@
   <div class="nav__inner">
     <a href="#top" class="nav__logo">CRYPTO<span>ALIEN</span></a>
     <div class="nav__links">
-      <a href="#nucleo">Cómo funciona</a>
-      <a href="#modos">Modos de juego</a>
+      <a href="#invasion">Invasión PvP</a>
       <a href="#token">Token CLK</a>
+      <a href="#colaboradores">Colaboradores</a>
     </div>
     <div class="nav__right">
-      <a href="#acceso" class="btn btn--sm btn--primary">Acceso anticipado</a>
+      <a href="#top" class="btn btn--sm btn--primary">Jugar ahora</a>
       <button class="nav__toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -558,7 +560,7 @@
         <h1>ASÍ MINA UN ALIEN.</h1>
         <p>Tap, misiones, minado offline, arcade e invasión — todo en un solo juego.</p>
         <div class="hero__actions" style="justify-content: center;">
-          <a href="#acceso" class="btn btn--primary">Sumate al acceso anticipado</a>
+          <a href="#top" class="btn btn--primary">Jugar ahora</a>
         </div>
       </div>
     </div>
@@ -568,26 +570,11 @@
   </div>
 </header>
 
-<section class="section" id="modos">
+<section class="section section--violet section--featured" id="invasion">
   <div class="container">
-    <p class="eyebrow">&gt; Señal_02 // Modo Arcade</p>
-    <h2 class="reveal">5 minijuegos, un solo token</h2>
-    <p class="section__lead reveal">Sumá CLK jugando, no solo tocando. Cinco minijuegos arcade independientes, cada uno con su propia forma de minar.</p>
-    <div class="cards cards--5">
-      <div class="card card--pending reveal"><span class="card__tag">01</span><h3>Minijuego 01</h3><p>Arte y nombre próximamente.</p></div>
-      <div class="card card--pending reveal"><span class="card__tag">02</span><h3>Minijuego 02</h3><p>Arte y nombre próximamente.</p></div>
-      <div class="card card--pending reveal"><span class="card__tag">03</span><h3>Minijuego 03</h3><p>Arte y nombre próximamente.</p></div>
-      <div class="card card--pending reveal"><span class="card__tag">04</span><h3>Minijuego 04</h3><p>Arte y nombre próximamente.</p></div>
-      <div class="card card--pending reveal"><span class="card__tag">05</span><h3>Minijuego 05</h3><p>Arte y nombre próximamente.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="section section--violet">
-  <div class="container">
-    <p class="eyebrow">&gt; Señal_03 // Modo Invasión — PvP offline</p>
-    <h2 class="reveal">Cómo funciona una invasión</h2>
-    <p class="section__lead reveal">No necesitás que el otro jugador esté conectado: invadís su base, le robás parte de lo que ya minó, y tus propias monedas quedan igual de expuestas a que te invadan a vos.</p>
+    <p class="eyebrow">&gt; Señal_02 // Modo Invasión — PvP offline</p>
+    <h2 class="reveal">Nadie está a salvo</h2>
+    <p class="section__lead reveal">El corazón competitivo de Crypto Alien. Invadís la base de otro jugador y le robás parte de lo que ya minó — 100% offline, sin esperar a que esté conectado. Tus propias monedas quedan igual de expuestas: nadie está a salvo, ni siquiera vos.</p>
     <div class="cards cards--2">
       <div class="card card--violet reveal">
         <span class="card__tag">PVP</span>
@@ -603,6 +590,19 @@
   </div>
 </section>
 
+<section class="section section--minor" id="modos">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_03 // Modo Arcade</p>
+    <h2 class="reveal">Minijuegos arcade</h2>
+    <p class="section__lead reveal">Un extra para sumar CLK jugando, no solo tocando.</p>
+    <div class="card card--pending reveal" style="max-width: 420px;">
+      <span class="card__tag">ARCADE</span>
+      <h3>Próximamente</h3>
+      <p>Estamos puliendo el set completo de minijuegos.</p>
+    </div>
+  </div>
+</section>
+
 <section class="section" id="token">
   <div class="container">
     <p class="eyebrow">&gt; Señal_04 // Token CLK</p>
@@ -611,6 +611,26 @@
     <div class="callout reveal">
       <span class="callout__label">IMPORTANTE</span>
       <p class="callout__text">El canje <strong>no</strong> depende de cuánto CLK minaste. Depende del <strong>nivel</strong> que alcanzaste en el juego.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="colaboradores">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_04.1 // Colaboradores</p>
+    <h2 class="reveal">Proyectos que canjean CLK</h2>
+    <p class="section__lead reveal">Estudios y proyectos aliados que reconocen tu nivel en Crypto Alien con airdrops dentro de los suyos.</p>
+    <div class="cards cards--2">
+      <div class="card reveal">
+        <span class="card__tag">COLABORADOR</span>
+        <h3>Cinonix</h3>
+        <p>Canjeá tu nivel de Crypto Alien por airdrops en Cinonix.</p>
+      </div>
+      <div class="card card--pending reveal">
+        <span class="card__tag">PRÓXIMAMENTE</span>
+        <h3>Lynx</h3>
+        <p>Colaboración en camino — detalles del canje, pronto.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -630,14 +650,12 @@
 
 <section class="section section--cta" id="acceso">
   <div class="container container--narrow">
-    <p class="eyebrow">&gt; Transmitiendo // Acceso anticipado</p>
-    <h2 class="reveal">Sé de los primeros en minar</h2>
-    <p class="section__lead reveal">Dejá tu email y te avisamos apenas se abra el acceso anticipado en desktop y móvil.</p>
-    <form class="waitlist reveal" id="waitlistForm">
-      <input type="email" name="email" required placeholder="tu@email.com" aria-label="Email">
-      <button type="submit" class="btn btn--primary">Unirme</button>
-    </form>
-    <p class="waitlist__note mono" id="waitlistNote"></p>
+    <p class="eyebrow">&gt; Transmitiendo // Empezá ahora</p>
+    <h2 class="reveal">Tu alien te está esperando</h2>
+    <p class="section__lead reveal">Disponible en desktop y móvil. Entrá y empezá a minar CLK ahora mismo.</p>
+    <div class="hero__actions reveal" style="justify-content: center;">
+      <a href="#top" class="btn btn--primary">Jugar ahora</a>
+    </div>
     <div class="platforms reveal">
       <span>DESKTOP</span><span>·</span><span>ANDROID</span><span>·</span><span>iOS</span>
     </div>
@@ -651,9 +669,9 @@
       <p class="footer__tag mono">Minado galáctico, en tus manos.</p>
     </div>
     <div class="footer__links">
-      <a href="#nucleo">Cómo funciona</a>
-      <a href="#modos">Modos de juego</a>
+      <a href="#invasion">Invasión PvP</a>
       <a href="#token">Token CLK</a>
+      <a href="#colaboradores">Colaboradores</a>
     </div>
     <div class="social-row" style="margin-top: 0;">
       <a href="#" class="mono">DISCORD</a>
@@ -661,7 +679,14 @@
       <a href="#" class="mono">X</a>
     </div>
   </div>
-  <p class="footer__legal">© 2026 CRYPTO ALIEN — CLK es un token de utilidad dentro del juego.</p>
+  <div class="footer__legal-row">
+    <p class="footer__legal">© 2026 CRYPTO ALIEN — CLK es un token de utilidad dentro del juego.</p>
+    <div class="footer__legal-links mono">
+      <a href="privacidad.html">Política de Privacidad</a>
+      <span>·</span>
+      <a href="terminos.html">Términos y Condiciones</a>
+    </div>
+  </div>
 </footer>
 
 <script>
@@ -808,17 +833,6 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll, { passive: true });
   updateSlots(0);
-
-  /* ---------- Waitlist (solo visual por ahora, ver nota en el chat) ---------- */
-  var form = document.getElementById('waitlistForm');
-  var note = document.getElementById('waitlistNote');
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      note.textContent = '✓ Anotado — te avisamos apenas abramos el acceso.';
-      form.reset();
-    });
-  }
 })();
 </script>
 
