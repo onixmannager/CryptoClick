@@ -98,7 +98,6 @@ function fmtClk(n){
 
 async function boot(){
   core = window.InvasionCore;
-  core.initInvasionBgm(); // música de fondo del modo Invasión (sounds/invasion.mp3, loop)
   const user = await core.authReady;
   if(!user){ window.location.href='./'; return; }
 

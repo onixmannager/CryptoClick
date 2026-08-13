@@ -108,7 +108,6 @@ function showView(id){
 
 async function boot(){
   core = window.InvasionCore;
-  core.initInvasionBgm(); // música de fondo del modo Invasión (sounds/invasion.mp3, loop)
   const user = await core.authReady;
   if(!user){
     document.getElementById('statusText').textContent='Inicia sesión en el juego principal primero.';
