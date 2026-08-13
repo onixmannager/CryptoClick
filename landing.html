@@ -3,804 +3,824 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Alien Click — Juego Tap to Earn $CLK</title>
-<meta name="theme-color" content="#050409">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>Crypto Alien — Minado tap-to-earn, arcade e invasión PvP</title>
+<meta name="description" content="Crypto Alien: minado tap-to-earn en segundo plano, 5 minijuegos arcade y modo Invasión PvP offline. Canjeá CLK por nivel en airdrops. Sumate al acceso anticipado.">
+<meta name="theme-color" content="#0B0A12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg: #0B0A12;
+    --surface: #16141F;
+    --border: rgba(232, 229, 250, 0.10);
+    --border-strong: rgba(232, 229, 250, 0.18);
+    --text: #EDEBFA;
+    --text-dim: #918EAA;
+    --lime: #C8FF4D;
+    --lime-dim: rgba(200, 255, 77, 0.12);
+    --violet: #B85CFF;
+    --violet-dim: rgba(184, 92, 255, 0.12);
+    --amber: #FFC369;
+    --amber-dim: rgba(255, 195, 105, 0.12);
 
-/* ── RESET & BASE ── */
-*{margin:0;padding:0;box-sizing:border-box}
+    --font-display: 'Chakra Petch', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+    --font-body: 'Inter', sans-serif;
 
-:root{
-  --black:#050409;
-  --deep:#0a0812;
-  --card:#0f0d1a;
-  --card2:#161326;
-  --gold:#FFD700;
-  --gold2:#FFA500;
-  --gold3:#FF6B35;
-  --pink:#FF3CAC;
-  --purple:#7C3AED;
-  --cyan:#00E5FF;
-  --green:#00FF88;
-  --white:#F5F0FF;
-  --muted:#6B6490;
-  --border:rgba(255,215,0,0.08);
-  --ticker-h: 40px;
-  --nav-h: 65px;
-}
+    --container: 1180px;
+    --radius: 3px;
+    --nav-h: 76px;
+  }
 
-html{scroll-behavior:smooth}
-body{
-  background:var(--black);
-  color:var(--white);
-  font-family:'Space Grotesk',sans-serif;
-  overflow-x:hidden;
-  cursor:none;
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
 
-/* ── CUSTOM CURSOR ── */
-#cursor{
-  position:fixed;width:16px;height:16px;
-  background:var(--gold);border-radius:50%;
-  pointer-events:none;z-index:99999;
-  mix-blend-mode:difference;
-  transition:transform .15s ease,width .2s,height .2s;
-  transform:translate(-50%,-50%);
-}
-#cursor2{
-  position:fixed;width:40px;height:40px;
-  border:1px solid rgba(255,215,0,.4);border-radius:50%;
-  pointer-events:none;z-index:99998;
-  transition:transform .35s ease;
-  transform:translate(-50%,-50%);
-}
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 
-/* ── NOISE OVERLAY ── */
-body::before{
-  content:'';
-  position:fixed;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events:none;z-index:0;opacity:.5;
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
 
-/* ── CANVAS ── */
-#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.025) 0px,
+      rgba(255,255,255,0.025) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+    opacity: 0.5;
+  }
 
-/* ── TICKER ── */
-.ticker-bar{
-  position:fixed;top:0;left:0;right:0;z-index:1001;
-  height:var(--ticker-h);background:var(--gold);overflow:hidden;
-}
-.ticker-inner{
-  display:flex;height:100%;align-items:center;
-  animation:marqueeScroll 18s linear infinite;white-space:nowrap;
-}
-.ticker-item{
-  display:inline-flex;align-items:center;gap:16px;padding:0 28px;
-  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
-  color:#1a0a00;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;
-}
-.ticker-sep{color:rgba(26,10,0,.3)}
+  img, canvas { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
 
-/* ── NAV ── */
-nav{
-  position:fixed;top:var(--ticker-h);left:0;right:0;z-index:1000;
-  height:var(--nav-h);padding:0 40px;
-  display:flex;align-items:center;justify-content:space-between;
-  backdrop-filter:blur(20px);background:rgba(5,4,9,0.6);
-  border-bottom:1px solid var(--border);
-}
-.nav-logo{
-  font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;
-  background:linear-gradient(90deg,var(--gold),var(--gold3));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  flex-shrink:0;
-}
-.nav-links{display:flex;gap:32px;align-items:center}
-.nav-links a{
-  color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;
-  letter-spacing:1px;text-transform:uppercase;transition:color .2s;white-space:nowrap;
-}
-.nav-links a:hover{color:var(--gold)}
-.nav-cta{
-  background:linear-gradient(135deg,var(--gold),var(--gold3));
-  color:#1a0a00;padding:10px 24px;border-radius:6px;
-  font-size:13px;font-weight:700;text-decoration:none;
-  letter-spacing:1px;text-transform:uppercase;
-  transition:transform .15s,box-shadow .15s;
-  box-shadow:0 0 20px rgba(255,215,0,.2);white-space:nowrap;flex-shrink:0;
-}
-.nav-cta:hover{transform:translateY(-2px);box-shadow:0 0 35px rgba(255,215,0,.4)}
+  :focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
 
-/* ══════════════════════════════════════════════════
-   IMAGE EFFECTS — acorde al tema dark/crypto/alien
-   ══════════════════════════════════════════════════ */
+  .container { max-width: var(--container); margin: 0 auto; padding: 0 28px; }
+  .container--narrow { max-width: 640px; }
+  .mono { font-family: var(--font-mono); letter-spacing: 0.02em; }
 
-/* ── HERO: alien principal en portada ── */
-.hero-alien-img {
-  display: block;
-  margin: 28px auto 0;
-  animation: heroFloat 5s ease-in-out infinite;
-  filter:
-    drop-shadow(0 0 30px rgba(255,215,0,0.45))
-    drop-shadow(0 0 80px rgba(255,107,53,0.2))
-    drop-shadow(0 0 140px rgba(255,60,172,0.1));
-  transition: filter .35s ease;
-}
-.hero-alien-img:hover {
-  filter:
-    drop-shadow(0 0 55px rgba(255,215,0,0.75))
-    drop-shadow(0 0 120px rgba(255,60,172,0.42))
-    drop-shadow(0 0 200px rgba(124,58,237,0.25));
-}
-@keyframes heroFloat {
-  0%,100% { transform: translateY(0px)   scale(1)    rotate(-1deg); }
-  30%      { transform: translateY(-14px) scale(1.03) rotate(1.2deg); }
-  65%      { transform: translateY(-8px)  scale(1.01) rotate(0deg); }
-}
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--lime);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 18px;
+    display: inline-block;
+  }
 
-/* ── AIRDROP SECTION: alien lateral con aura cyan/purple ── */
-.airdrop-visual img {
-  display: block;
-  max-width: 100%;
-  animation: airdropFloat 4.8s ease-in-out infinite;
-  filter:
-    drop-shadow(0 0 28px rgba(0,229,255,0.38))
-    drop-shadow(0 0 70px rgba(124,58,237,0.24))
-    drop-shadow(0 0 130px rgba(0,229,255,0.1));
-  transition: filter .35s ease;
-}
-.airdrop-visual img:hover {
-  filter:
-    drop-shadow(0 0 52px rgba(0,229,255,0.65))
-    drop-shadow(0 0 110px rgba(255,60,172,0.38))
-    drop-shadow(0 0 180px rgba(124,58,237,0.28));
-}
-@keyframes airdropFloat {
-  0%,100% { transform: translateY(0px)   rotate(0deg)    scale(1);    }
-  25%      { transform: translateY(-12px) rotate(1.8deg)  scale(1.02); }
-  55%      { transform: translateY(-20px) rotate(0deg)    scale(1.04); }
-  80%      { transform: translateY(-8px)  rotate(-1.5deg) scale(1.02); }
-}
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 26px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn--primary { background: var(--lime); color: #0B0A12; }
+  .btn--primary:hover { background: #d9ff7a; }
+  .btn--ghost { border-color: var(--border-strong); color: var(--text); }
+  .btn--ghost:hover { border-color: var(--lime); color: var(--lime); }
+  .btn--sm { padding: 10px 18px; font-size: 0.85rem; }
 
-/* ── JUGAR SECTION: alien en tarjeta play — dorado intenso, clickeable ── */
-.jugar-alien-img {
-  display: block;
-  margin: 0 auto 28px;
-  animation: jugarPulse 3.8s ease-in-out infinite;
-  filter:
-    drop-shadow(0 0 22px rgba(255,215,0,0.5))
-    drop-shadow(0 0 55px rgba(255,107,53,0.3))
-    drop-shadow(0 0 110px rgba(255,215,0,0.12));
-  transition: filter .3s ease, transform .3s ease;
-  cursor: pointer;
-}
-.jugar-alien-img:hover {
-  filter:
-    drop-shadow(0 0 55px rgba(255,215,0,0.8))
-    drop-shadow(0 0 110px rgba(255,60,172,0.5))
-    drop-shadow(0 0 180px rgba(255,107,53,0.3));
-  transform: scale(1.1) rotate(3deg) !important;
-  animation-play-state: paused;
-}
-@keyframes jugarPulse {
-  0%,100% { transform: translateY(0px)   scale(1)    rotate(0deg);   }
-  20%      { transform: translateY(-10px) scale(1.04) rotate(-1.2deg); }
-  50%      { transform: translateY(-18px) scale(1.07) rotate(1.8deg);  }
-  80%      { transform: translateY(-7px)  scale(1.03) rotate(-0.6deg); }
-}
+  /* Nav */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 500;
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+  .nav--scrolled {
+    background: rgba(11,10,18,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom-color: var(--border);
+  }
+  .nav__inner {
+    width: 100%;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .nav__logo { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.02em; }
+  .nav__logo span { color: var(--lime); }
+  .nav__links { display: flex; gap: 32px; font-size: 0.92rem; color: var(--text-dim); }
+  .nav__links a:hover { color: var(--text); }
+  .nav__right { display: flex; align-items: center; gap: 18px; }
+  .nav__toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+  }
+  .nav__toggle span { width: 22px; height: 2px; background: var(--text); }
 
-/* ── HERO ── */
-#hero{
-  position:relative;z-index:1;min-height:100vh;
-  padding:calc(var(--ticker-h) + var(--nav-h) + 60px) 20px 60px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;overflow:hidden;
-}
-section[id]{scroll-margin-top:calc(var(--ticker-h) + var(--nav-h))}
+  /* ============ Hero: móvil pinneado con secuencia de video-scrub ============ */
+  .hero {
+    position: relative;
+    /* 240 frames · alto de scroll por frame ajustado para que el gesto se sienta
+       "uno a uno" en desktop sin hacerse eterno. Ajustable vía --hero-vh. */
+    height: 900vh;
+    background: var(--bg);
+  }
+  .hero__pin {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: var(--nav-h);
+  }
+  .hero__bg-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at center, rgba(200,255,77,0.05), transparent 70%);
+    pointer-events: none;
+  }
 
-.hero-eyebrow{
-  display:inline-flex;align-items:center;gap:8px;
-  border:1px solid rgba(255,215,0,.25);border-radius:2px;padding:6px 16px;
-  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;
-  color:var(--gold);text-transform:uppercase;margin-bottom:32px;
-  animation:fadeUp .6s ease both;
-}
-.hero-eyebrow span{
-  width:6px;height:6px;border-radius:50%;background:var(--gold);
-  animation:blink 1.2s ease-in-out infinite;
-}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+  /* El "escenario": marco de teléfono centrado + zonas laterales para tarjetas.
+     Altura fija y predecible (nunca definida por su contenido) para que
+     jamás desborde el viewport pinneado, sea cual sea el slot activo. */
+  .hero__stage {
+    position: relative;
+    width: min(1180px, 94vw);
+    height: min(58vh, 580px);
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: 1fr minmax(220px, 300px) 1fr;
+    align-items: center;
+    justify-items: center;
+    gap: 20px;
+  }
 
-.hero-title{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(72px,14vw,180px);line-height:.9;letter-spacing:-2px;
-  animation:fadeUp .7s .1s ease both;position:relative;
-}
-.hero-title .line1{
-  display:block;
-  background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.6) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hero-title .line2{
-  display:block;
-  background:linear-gradient(135deg,var(--gold),var(--gold3),var(--pink));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  filter:drop-shadow(0 0 60px rgba(255,215,0,.3));
-}
-.hero-sub{
-  max-width:560px;margin:28px auto 0;
-  font-size:18px;line-height:1.7;color:rgba(245,240,255,.6);font-weight:400;
-  animation:fadeUp .7s .2s ease both;
-}
-.hero-sub strong{color:var(--gold);font-weight:700}
-.hero-btns{
-  display:flex;flex-wrap:wrap;gap:14px;justify-content:center;
-  margin-top:44px;animation:fadeUp .7s .3s ease both;
-}
-.btn-primary{
-  display:inline-flex;align-items:center;gap:10px;
-  background:linear-gradient(135deg,var(--gold),var(--gold3));
-  color:#1a0a00;padding:18px 36px;border-radius:6px;
-  font-size:16px;font-weight:700;text-decoration:none;
-  letter-spacing:.5px;text-transform:uppercase;
-  transition:transform .15s,box-shadow .2s;
-  box-shadow:0 8px 40px rgba(255,165,0,.3);position:relative;overflow:hidden;
-}
-.btn-primary::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.2) 50%,transparent 60%);
-  transform:translateX(-100%);transition:transform .5s;
-}
-.btn-primary:hover::after{transform:translateX(200%)}
-.btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 50px rgba(255,165,0,.45)}
-.btn-tg{
-  display:inline-flex;align-items:center;gap:10px;
-  background:rgba(0,136,204,.15);border:1px solid rgba(0,136,204,.4);
-  color:#fff;padding:18px 28px;border-radius:6px;
-  font-size:15px;font-weight:600;text-decoration:none;
-  transition:transform .15s,background .2s,border-color .2s;
-}
-.btn-tg:hover{transform:translateY(-3px);background:rgba(0,136,204,.3);border-color:rgba(0,136,204,.8)}
-.btn-tg-grupo{
-  display:inline-flex;align-items:center;gap:10px;
-  background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);
-  color:#fff;padding:18px 28px;border-radius:6px;
-  font-size:15px;font-weight:600;text-decoration:none;
-  transition:transform .15s,background .2s,border-color .2s;
-}
-.btn-tg-grupo:hover{transform:translateY(-3px);background:rgba(124,58,237,.3);border-color:rgba(124,58,237,.8)}
-.btn-icon{font-size:20px;line-height:1}
-.hero-stats{
-  display:flex;flex-wrap:wrap;gap:0;justify-content:center;
-  margin-top:64px;animation:fadeUp .7s .4s ease both;
-  border:1px solid var(--border);border-radius:8px;overflow:hidden;
-}
-.hstat{padding:20px 36px;text-align:center;border-right:1px solid var(--border)}
-.hstat:last-child{border-right:none}
-.hstat-val{
-  font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;
-  background:linear-gradient(135deg,var(--gold),var(--gold3));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hstat-lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:2px;margin-top:2px}
+  .hero__phone {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    height: 100%;
+    aspect-ratio: 9 / 19.5;
+    z-index: 3;
+  }
+  .hero__phone-frame {
+    position: absolute; inset: 0;
+    border-radius: 34px;
+    border: 3px solid rgba(232,229,250,0.22);
+    background: #000;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.6),
+      0 30px 80px rgba(0,0,0,0.55),
+      0 0 60px rgba(200,255,77,0.08);
+    overflow: hidden;
+  }
+  .hero__phone-frame::before {
+    /* notch */
+    content: '';
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 84px; height: 18px;
+    background: #000;
+    border-radius: 10px;
+    z-index: 5;
+  }
+  .hero__phone-screen {
+    position: absolute;
+    inset: 3px;
+    border-radius: 31px;
+    overflow: hidden;
+    background: #000;
+    display: grid;
+    place-items: center;
+  }
+  .hero__frame-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* NUNCA recorta: el video se ve completo, tal como pediste */
+    background: #000;
+  }
 
-/* ── SCROLL MARQUEE ── */
-.marquee-wrap{
-  position:relative;z-index:1;padding:20px 0;overflow:hidden;
-  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  background:rgba(255,215,0,.02);
-}
-.marquee-track{display:flex;gap:0;animation:marqueeScroll 22s linear infinite;white-space:nowrap;}
-.marquee-item{
-  display:inline-flex;align-items:center;gap:20px;padding:0 32px;
-  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
-  color:var(--gold);letter-spacing:2px;text-transform:uppercase;
-  border-right:1px solid rgba(255,215,0,.1);flex-shrink:0;
-}
-.marquee-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.5}
-@keyframes marqueeScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  /* Slots laterales donde entran las tarjetas de contenido durante el scroll.
+     Reservan espacio siempre (evita saltos de layout); el contenido interno
+     hace fade/slide in-out según el progreso del scroll. */
+  .hero__slot {
+    grid-row: 1;
+    width: 100%;
+    max-width: 340px;
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+  }
+  .hero__slot.is-active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .hero__slot--left { grid-column: 1; justify-self: end; text-align: right; }
+  .hero__slot--right { grid-column: 3; justify-self: start; text-align: left; }
 
-/* ── SECTIONS ── */
-section{position:relative;z-index:1}
-.container{max-width:1140px;margin:0 auto;padding:0 24px}
-.section-label{
-  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;
-  letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:16px;
-}
-.section-title{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(44px,7vw,88px);line-height:.95;letter-spacing:-1px;margin-bottom:20px;
-}
-.section-title em{
-  font-style:normal;
-  background:linear-gradient(135deg,var(--gold),var(--pink));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.section-sub{font-size:17px;line-height:1.7;color:rgba(245,240,255,.55);max-width:560px}
+  .hero__slot .card { background: rgba(22,20,31,0.82); backdrop-filter: blur(6px); }
+  .hero__slot--left .card { margin-left: auto; }
 
-/* ── AIRDROP SECTION ── */
-#airdrop{padding:120px 0 100px}
-.airdrop-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:60px;
-}
-.airdrop-visual{
-  position:relative;display:flex;align-items:center;justify-content:center;
-  overflow:visible;
-}
-.coin-hero{
-  width:260px;height:260px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);
-  box-shadow:0 0 80px rgba(255,165,0,.4),0 0 160px rgba(255,107,53,.2);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,.9);
-  letter-spacing:2px;animation:coinFloat 4s ease-in-out infinite;
-  position:relative;z-index:2;
-}
-.coin-hero::before{
-  content:'';position:absolute;inset:-3px;border-radius:50%;
-  background:conic-gradient(var(--gold),var(--gold3),var(--pink),var(--gold));
-  z-index:-1;animation:spin 8s linear infinite;
-}
-.coin-hero::after{
-  content:'';position:absolute;inset:3px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#fff8e1,#FFD700 38%,#FF6B35 75%,#c94a00);
-}
-.coin-label{position:absolute;z-index:3;font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,.92);letter-spacing:2px}
-@keyframes coinFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-18px) rotate(3deg)}}
-@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  /* Bloque de apertura (hook) y cierre (CTA), centrados debajo del teléfono
+     en su propio tramo — nunca compiten con los slots laterales. */
+  .hero__bottom-wrap {
+    position: relative;
+    flex: 0 0 auto;
+    width: min(460px, 90vw);
+    height: 118px;
+    margin-top: 20px;
+  }
+  .hero__bottom {
+    position: absolute;
+    inset: 0;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+  }
+  .hero__bottom.is-active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .hero__bottom h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.4rem, 3.2vw, 2.1rem);
+    line-height: 1.08;
+    margin-bottom: 8px;
+  }
+  .hero__bottom .eyebrow { margin-bottom: 8px; }
+  .hero__bottom p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 14px; }
 
-.orbit-ring{position:absolute;border-radius:50%;border:1px dashed;animation:orbitSpin linear infinite;}
-.or1{width:340px;height:340px;border-color:rgba(255,215,0,.15);animation-duration:16s}
-.or2{width:420px;height:420px;border-color:rgba(255,60,172,.08);animation-duration:24s;animation-direction:reverse}
-.or3{width:500px;height:500px;border-color:rgba(0,229,255,.06);animation-duration:32s}
-@keyframes orbitSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  .hero__signal {
+    position: absolute;
+    top: calc(var(--nav-h) + 20px);
+    right: 28px;
+    font-size: 0.72rem;
+    color: var(--lime);
+    z-index: 4;
+  }
+  .hero__scrollcue {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    z-index: 4;
+    animation: pulse 2.4s ease-in-out infinite;
+    text-align: center;
+  }
+  .hero__scrollcue.is-hidden {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-.airdrop-features{display:flex;flex-direction:column;gap:28px}
-.af{
-  display:flex;gap:20px;align-items:flex-start;padding:24px;
-  border:1px solid var(--border);border-radius:8px;background:rgba(255,215,0,.02);
-  transition:border-color .3s,background .3s;
-}
-.af:hover{border-color:rgba(255,215,0,.2);background:rgba(255,215,0,.04)}
-.af-ico{width:44px;height:44px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;}
-.af-ico.gold{background:rgba(255,215,0,.12)}
-.af-ico.pink{background:rgba(255,60,172,.12)}
-.af-ico.cyan{background:rgba(0,229,255,.12)}
-.af h3{font-size:16px;font-weight:700;margin-bottom:6px;color:var(--white)}
-.af p{font-size:14px;line-height:1.6;color:var(--muted)}
+  /* ---- Mobile real: sin marco de teléfono, video a pantalla completa ---- */
+  @media (max-width: 760px) {
+    .hero { height: 700vh; }
+    .hero__pin { padding-top: 0; }
+    .hero__stage {
+      width: 100%;
+      height: 100vh;
+      display: block;
+      position: relative;
+    }
+    .hero__phone {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
+      aspect-ratio: auto;
+    }
+    .hero__phone-frame {
+      position: absolute; inset: 0;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .hero__phone-frame::before { display: none; }
+    .hero__phone-screen { inset: 0; border-radius: 0; }
 
-/* ── HOW IT WORKS ── */
-#howto{padding:100px 0;background:linear-gradient(180deg,transparent,rgba(124,58,237,.04),transparent)}
-.steps-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
-  margin-top:60px;border:1px solid var(--border);border-radius:10px;overflow:hidden;
-}
-.step{padding:36px 28px;background:var(--card);position:relative;overflow:hidden;transition:background .3s;}
-.step:hover{background:var(--card2)}
-.step::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--gold),var(--gold3));
-  transform:scaleX(0);transition:transform .3s;transform-origin:left;
-}
-.step:hover::before{transform:scaleX(1)}
-.step-num{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:rgba(255,215,0,.08);margin-bottom:16px;}
-.step-ico{font-size:28px;margin-bottom:12px}
-.step h3{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--white)}
-.step p{font-size:13px;line-height:1.6;color:var(--muted)}
+    .hero__slot {
+      position: absolute;
+      left: 50%;
+      transform: translate(-50%, 12px);
+      width: 90%;
+      max-width: 360px;
+      z-index: 4;
+    }
+    .hero__slot.is-active { transform: translate(-50%, 0); }
+    .hero__slot--left, .hero__slot--right { grid-column: unset; justify-self: unset; text-align: center; }
+    .hero__slot--left .card, .hero__slot--right .card { margin-left: auto; margin-right: auto; }
+    /* Slots laterales pasan a apilarse arriba (bajo el nav) en mobile,
+       dejando el centro y el pie libres para el sujeto y el hook/close. */
+    .hero__slot--left { top: calc(var(--nav-h) + 18px); }
+    .hero__slot--right { top: calc(var(--nav-h) + 18px); }
 
-/* ── ECONOMY ── */
-#economy{padding:100px 0}
-.economy-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:center;margin-top:60px;}
-.eco-chart{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:36px;position:relative;overflow:hidden;}
-.eco-chart::before{content:'';position:absolute;top:-80px;right:-80px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,0,.06),transparent);}
-.eco-title-sm{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
-.eco-bars{display:flex;flex-direction:column;gap:16px}
-.eco-bar-row{display:flex;align-items:center;gap:14px}
-.eco-bar-lbl{font-size:13px;font-weight:600;color:rgba(245,240,255,.8);width:160px;flex-shrink:0}
-.eco-bar-track{flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
-.eco-bar-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.34,1.56,.64,1)}
-.eco-bar-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);width:36px;text-align:right;flex-shrink:0}
-.eco-cards{display:flex;flex-direction:column;gap:20px}
-.eco-card{padding:24px;border:1px solid var(--border);border-radius:8px;background:rgba(255,215,0,.02);transition:border-color .3s,transform .2s;}
-.eco-card:hover{border-color:rgba(255,215,0,.18);transform:translateX(6px)}
-.eco-card-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.eco-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.eco-card h3{font-size:15px;font-weight:700}
-.eco-card p{font-size:13px;line-height:1.6;color:var(--muted)}
+    .hero__bottom-wrap {
+      position: absolute;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 400px;
+      height: auto;
+      min-height: 150px;
+      margin-top: 0;
+      z-index: 4;
+      background: linear-gradient(180deg, transparent, rgba(11,10,18,0.88) 32%);
+      padding: 26px 16px 10px;
+      border-radius: 12px;
+    }
+    .hero__bottom { position: static; }
+    .hero__bottom:not(.is-active) { display: none; }
+  }
 
-/* ── COMMUNITY CTA ── */
-#community{padding:100px 0}
-.community-box{
-  border:1px solid rgba(255,215,0,.15);border-radius:16px;padding:80px 60px;text-align:center;
-  background:radial-gradient(ellipse at 50% 0%,rgba(255,215,0,.06) 0%,transparent 70%);
-  position:relative;overflow:hidden;
-}
-.community-box::before{content:'';position:absolute;inset:0;border-radius:16px;background:linear-gradient(180deg,rgba(255,215,0,.03) 0%,transparent 50%);}
-.community-box .section-title{font-size:clamp(42px,6vw,80px)}
-.community-btns{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:44px;}
-.cbtn-big{
-  display:inline-flex;align-items:center;gap:14px;padding:20px 32px;border-radius:8px;
-  font-size:16px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .2s;
-}
-.cbtn-big:hover{transform:translateY(-4px)}
-.cbtn-canal{background:linear-gradient(135deg,#0088cc,#006aaa);color:white;box-shadow:0 8px 40px rgba(0,136,204,.25)}
-.cbtn-canal:hover{box-shadow:0 16px 50px rgba(0,136,204,.45)}
-.cbtn-grupo{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:white;box-shadow:0 8px 40px rgba(124,58,237,.25)}
-.cbtn-grupo:hover{box-shadow:0 16px 50px rgba(124,58,237,.45)}
-.cbtn-juego{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#1a0a00;box-shadow:0 8px 40px rgba(255,165,0,.25)}
-.cbtn-juego:hover{box-shadow:0 16px 50px rgba(255,165,0,.45)}
-.cbtn-icon{font-size:24px}
-.cbtn-text{text-align:left;line-height:1.2}
-.cbtn-text span{display:block;font-size:12px;opacity:.7;font-weight:500;margin-top:2px;letter-spacing:.5px}
+  /* Sections */
+  .section { padding: 120px 0; border-top: 1px solid var(--border); position: relative; }
+  .section--violet { background: linear-gradient(180deg, var(--violet-dim), transparent 60%); }
+  .section--cta { text-align: center; }
+  .section h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    margin-bottom: 18px;
+  }
+  .section__lead { color: var(--text-dim); font-size: 1.05rem; max-width: 560px; margin-bottom: 56px; }
+  .section--cta .section__lead { margin-left: auto; margin-right: auto; margin-bottom: 40px; }
 
-/* ── FAQ ── */
-#faq{padding:100px 0}
-.faq-list{margin-top:60px;display:flex;flex-direction:column;gap:2px}
-.faq-item{border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--card);margin-bottom:4px}
-.faq-q{padding:22px 28px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .2s;font-size:16px;font-weight:600;gap:12px;}
-.faq-q:hover{background:var(--card2)}
-.faq-chevron{font-size:18px;color:var(--gold);transition:transform .3s;line-height:1;flex-shrink:0}
-.faq-a{padding:0 28px;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;font-size:14px;line-height:1.7;color:var(--muted)}
-.faq-item.open .faq-a{max-height:200px;padding:0 28px 22px}
-.faq-item.open .faq-chevron{transform:rotate(45deg)}
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
 
-/* ── FOOTER ── */
-footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:48px 0 32px;text-align:center;}
-.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;background:linear-gradient(90deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
-.footer-sub{font-size:13px;color:var(--muted);margin-bottom:32px}
-.footer-links{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-bottom:32px}
-.footer-links a{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s}
-.footer-links a:hover{color:var(--gold)}
-.footer-copy{font-size:12px;color:rgba(107,100,144,.5);font-family:'JetBrains Mono',monospace}
+  /* Cards */
+  .cards { display: grid; gap: 20px; }
+  .cards--3 { grid-template-columns: repeat(3, 1fr); }
+  .cards--5 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .cards--2 { grid-template-columns: repeat(2, 1fr); max-width: 640px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px; }
+  .card__tag { font-family: var(--font-mono); color: var(--lime); font-size: 0.8rem; margin-bottom: 14px; display: block; }
+  .card h3 { font-family: var(--font-display); font-size: 1.05rem; margin-bottom: 8px; }
+  .card p { color: var(--text-dim); font-size: 0.92rem; }
+  .card--violet .card__tag { color: var(--violet); }
+  .card--pending { border-style: dashed; }
+  .card--pending p { font-size: 0.8rem; font-style: italic; }
 
-/* ── ANIMATIONS ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
+  /* Callout */
+  .callout { border: 1px solid var(--amber); background: var(--amber-dim); border-radius: var(--radius); padding: 26px 28px; max-width: 640px; }
+  .callout__label { font-family: var(--font-mono); color: var(--amber); font-size: 0.78rem; margin-bottom: 10px; display: block; }
+  .callout__text { font-size: 1rem; }
+  .callout__text strong { color: var(--amber); }
 
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  :root{--nav-h:60px}
-  nav{padding:0 20px}
-  .nav-links{display:none}
-  .airdrop-grid,.economy-grid{grid-template-columns:1fr}
-  .airdrop-visual{order:-1;height:300px}
-  .steps-grid{grid-template-columns:1fr 1fr}
-  .coin-hero{width:200px;height:200px;font-size:38px}
-  .coin-label{font-size:38px}
-  .or1{width:260px;height:260px}
-  .or2{width:320px;height:320px}
-  .or3{width:380px;height:380px}
-  .hero-stats{flex-direction:column}
-  .hstat{border-right:none;border-bottom:1px solid var(--border)}
-  .hstat:last-child{border-bottom:none}
-  .community-box{padding:48px 24px}
-}
-@media(max-width:600px){
-  :root{--ticker-h:36px;--nav-h:54px;}
-  .ticker-item{font-size:10px;padding:0 12px;gap:8px}
-  nav{padding:0 14px;gap:12px}
-  .nav-logo{font-size:20px;letter-spacing:2px}
-  .nav-cta{padding:8px 12px;font-size:11px;letter-spacing:0}
-  .hero-btns{flex-direction:column;align-items:center}
-  .hero-btns a{width:100%;max-width:300px;justify-content:center}
-  .steps-grid{grid-template-columns:1fr}
-  .or2{width:260px;height:260px}
-  .or3{display:none}
-  .community-box{padding:36px 16px}
-  .community-btns{flex-direction:column;align-items:center}
-  .cbtn-big{width:100%;max-width:340px;justify-content:center}
-  .eco-bar-lbl{width:90px;font-size:11px}
-  .faq-q{font-size:14px;padding:16px}
-  .faq-a{font-size:13px}
-  .faq-item.open .faq-a{padding:0 16px 16px}
-}
+  /* Social row */
+  .social-row { display: flex; gap: 14px; margin-top: 32px; flex-wrap: wrap; }
+  .social-row a {
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    font-size: 0.8rem;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .social-row a:hover { border-color: var(--lime); color: var(--lime); }
+
+  /* Waitlist */
+  .waitlist { display: flex; gap: 12px; justify-content: center; max-width: 420px; margin: 0 auto; flex-wrap: wrap; }
+  .waitlist input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+  }
+  .waitlist input:focus { border-color: var(--lime); outline: none; }
+  .waitlist__note { margin-top: 14px; color: var(--lime); font-size: 0.85rem; min-height: 1.2em; }
+  .platforms { display: flex; gap: 12px; justify-content: center; margin-top: 44px; color: var(--text-dim); font-size: 0.78rem; font-family: var(--font-mono); }
+
+  /* Footer */
+  .footer { border-top: 1px solid var(--border); padding: 64px 0 32px; }
+  .footer__inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 32px; margin-bottom: 40px; }
+  .footer__tag { color: var(--text-dim); font-size: 0.8rem; margin-top: 8px; }
+  .footer__links { display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; color: var(--text-dim); }
+  .footer__links a:hover { color: var(--text); }
+  .footer__legal { text-align: center; color: var(--text-dim); font-size: 0.72rem; opacity: 0.7; font-family: var(--font-mono); }
+
+  /* Responsive */
+  @media (max-width: 880px) {
+    .nav__links { display: none; }
+    .nav__toggle { display: flex; }
+    .nav--open .nav__links {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: var(--nav-h);
+      left: 0; right: 0;
+      background: rgba(11,10,18,0.97);
+      padding: 24px 28px;
+      gap: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+  }
+  @media (max-width: 760px) {
+    .cards--3, .cards--5, .cards--2 { grid-template-columns: 1fr; }
+    .hero__signal { display: none; }
+    .section { padding: 80px 0; }
+    .footer__inner { flex-direction: column; }
+  }
 </style>
 </head>
 <body>
 
-<!-- CUSTOM CURSOR -->
-<div id="cursor"></div>
-<div id="cursor2"></div>
-
-<!-- BACKGROUND CANVAS -->
-<canvas id="bgCanvas"></canvas>
-
-<!-- TICKER -->
-<div class="ticker-bar">
-  <div class="ticker-inner" id="ticker">
-    <div class="ticker-item">🪙 $CLK TOKEN <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">🎮 JUEGO GRATIS <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">⛏️ MINA Y ACUMULA <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">📡 ÚNETE AL CANAL <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">🔄 CANJEABLE EN PROYECTOS ALIADOS <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">🎯 JUEGA · MINA · CANJEA <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">🪙 $CLK TOKEN <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">🎮 JUEGO GRATIS <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">⛏️ MINA Y ACUMULA <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">📡 ÚNETE AL CANAL <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">🔄 CANJEABLE EN PROYECTOS ALIADOS <span class="ticker-sep">·</span></div>
-    <div class="ticker-item">🎯 JUEGA · MINA · CANJEA <span class="ticker-sep">·</span></div>
+<nav class="nav" id="nav">
+  <div class="nav__inner">
+    <a href="#top" class="nav__logo">CRYPTO<span>ALIEN</span></a>
+    <div class="nav__links">
+      <a href="#nucleo">Cómo funciona</a>
+      <a href="#modos">Modos de juego</a>
+      <a href="#token">Token CLK</a>
+    </div>
+    <div class="nav__right">
+      <a href="#acceso" class="btn btn--sm btn--primary">Acceso anticipado</a>
+      <button class="nav__toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
-</div>
-
-<!-- NAV -->
-<nav>
-  <div class="nav-logo">₿ CRYPTO ALIEN CLICK</div>
-  <div class="nav-links">
-    <a href="#airdrop">Canje</a>
-    <a href="#howto">Cómo funciona</a>
-    <a href="#economy">Proyectos aliados</a>
-    <a href="#community">Comunidad</a>
-  </div>
-  <a href="index.html" class="nav-cta">⛏️ JUGAR AHORA</a>
 </nav>
 
-<!-- HERO -->
-<section id="hero">
-  <div class="hero-eyebrow"><span></span> Canjeable en proyectos aliados</div>
-  <h1 class="hero-title">
-    <span class="line1">MINA</span>
-    <span class="line2">$CLK</span>
-  </h1>
+<header class="hero" id="top">
+  <div class="hero__pin">
+    <div class="hero__bg-glow" aria-hidden="true"></div>
 
-  <!-- ── HERO IMAGE: flotar + glow dorado/naranja/rosa ── -->
-  <img
-    src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_044416658.png"
-    alt="Alien Coin"
-    class="hero-alien-img"
-    style="width:70%;max-width:420px;object-fit:contain;">
+    <div class="hero__stage">
 
-  <p class="hero-sub">
-    El juego de tap-to-earn donde <strong>tus tokens pueden canjearse en proyectos aliados</strong>.
-    Mina, sube de rango, invita amigos — y usa tus $CLK acumulados
-    en los programas de canje de nuestros proyectos asociados.
-  </p>
-  <div class="hero-btns">
-    <a href="index.html" class="btn-primary"><span class="btn-icon">⛏️</span> EMPEZAR A MINAR</a>
-    <a href="https://t.me/Crypto_Click_News" target="_blank" class="btn-tg"><span class="btn-icon">📢</span> Canal Telegram</a>
-    <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="btn-tg-grupo"><span class="btn-icon">👥</span> Grupo Comunidad</a>
-  </div>
-  <div class="hero-stats">
-    <div class="hstat"><div class="hstat-val" id="stat-players">∞</div><div class="hstat-lbl">Mineros Activos</div></div>
-    <div class="hstat"><div class="hstat-val">$CLK</div><div class="hstat-lbl">Token del Juego</div></div>
-    <div class="hstat"><div class="hstat-val">100%</div><div class="hstat-lbl">Gratis para jugar</div></div>
-    <div class="hstat"><div class="hstat-val">0€</div><div class="hstat-lbl">Sin inversión inicial</div></div>
-  </div>
-</section>
+      <!-- Slot 1 · frames 40–95 · la moneda se rompe, rayos a los bordes → tarjeta pegada al borde exterior -->
+      <div class="hero__slot hero__slot--left" data-slot data-start="40" data-end="95">
+        <div class="card">
+          <span class="card__tag">TAP</span>
+          <h3>Tap instantáneo</h3>
+          <p>Cada toque genera CLK en el momento, sin esperas.</p>
+        </div>
+      </div>
 
-<!-- MARQUEE -->
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <div class="marquee-item"><div class="marquee-dot"></div>MINAR $CLK</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>PROYECTOS ALIADOS</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>CANJE EXTERNO</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>TAP TO EARN</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>PLAY & EARN</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>CRYPTO CLICK</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>GRATIS TOTAL</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>MINAR $CLK</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>PROYECTOS ALIADOS</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>CANJE EXTERNO</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>TAP TO EARN</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>PLAY & EARN</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>CRYPTO CLICK</div>
-    <div class="marquee-item"><div class="marquee-dot"></div>GRATIS TOTAL</div>
-  </div>
-</div>
-
-<!-- CANJE SECTION -->
-<section id="airdrop">
-  <div class="container">
-    <div class="airdrop-grid">
-      <div>
-        <div class="section-label reveal">🔄 Canje en proyectos aliados</div>
-        <h2 class="section-title reveal"><em>Canjea</em><br>tus $CLK</h2>
-        <p class="section-sub reveal">Los $CLK que minas jugando pueden <strong style="color:var(--gold)">canjearse en proyectos externos aliados</strong>, según los programas y condiciones que cada proyecto establezca. Empieza a acumular hoy.</p>
-        <div class="airdrop-features reveal" style="margin-top:36px">
-          <div class="af">
-            <div class="af-ico gold">🏆</div>
-            <div><h3>Tu progreso es tuyo</h3><p>Cada $CLK que acumulas jugando queda guardado en tu partida y disponible para cuando quieras explorar los proyectos de canje disponibles.</p></div>
-          </div>
-          <div class="af">
-            <div class="af-ico pink">📣</div>
-            <div><h3>Suscríbete para novedades</h3><p>Únete al canal oficial de Telegram para enterarte cuando se anuncien nuevos proyectos aliados de canje.</p></div>
-          </div>
-          <div class="af">
-            <div class="af-ico cyan">👥</div>
-            <div><h3>Referidos = más tokens</h3><p>Invita amigos con tu código único y gana 25.000 $CLK extra por cada uno. Además, sus misiones también te benefician.</p></div>
+      <!-- El teléfono: video corriendo en su proporción nativa, nunca recortado -->
+      <div class="hero__phone">
+        <div class="hero__phone-frame">
+          <div class="hero__phone-screen">
+            <img id="frameImg" class="hero__frame-img" alt="Animación: la moneda CLK se rompe y revela al alien astronauta" src="frames/webp/alien_0001.webp">
           </div>
         </div>
       </div>
 
-      <!-- ── AIRDROP IMAGE: flotar + glow cyan/purple ── -->
-      <div class="airdrop-visual reveal">
-        <img
-          src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_053356494.png"
-          alt="Alien Coin"
-          style="width:70%;height:70%;object-fit:contain;">
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section id="howto">
-  <div class="container">
-    <div class="section-label reveal">⚡ Simple y gratuito</div>
-    <h2 class="section-title reveal">Cómo <em>funciona</em></h2>
-    <div class="steps-grid reveal">
-      <div class="step"><div class="step-num">01</div><div class="step-ico">⛏️</div><h3>Juega & Mina</h3><p>Toca la moneda para generar $CLK. Cuantos más tapes, más tokens acumulas. Gratis, sin registro, desde el navegador.</p></div>
-      <div class="step"><div class="step-num">02</div><div class="step-ico">⚡</div><h3>Mejora tu minería</h3><p>Compra upgrades — GPUs, farms, protocolos DeFi — para generar CLK automáticamente incluso cuando no juegas.</p></div>
-      <div class="step"><div class="step-num">03</div><div class="step-ico">📡</div><h3>Únete a Telegram</h3><p>Suscríbete al canal oficial para enterarte de los proyectos aliados de canje que se vayan anunciando.</p></div>
-      <div class="step"><div class="step-num">04</div><div class="step-ico">🔄</div><h3>Explora el canje</h3><p>Consulta la sección Canjear dentro del juego para ver los proyectos externos disponibles y sus condiciones.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- PROYECTOS ALIADOS SECTION -->
-<section id="economy">
-  <div class="container">
-    <div class="economy-grid">
-      <div>
-        <div class="section-label reveal">🔄 Cómo funciona el canje</div>
-        <h2 class="section-title reveal">Proyectos<br><em>aliados</em></h2>
-        <p class="section-sub reveal">$CLK es el token interno del juego. Fuera de Crypto Alien Click, algunos proyectos externos e independientes ofrecen programas de canje para $CLK, bajo sus propias condiciones y términos.</p>
-        <div class="eco-cards reveal" style="margin-top:36px">
-          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--gold)"></div><h3>Proyectos independientes</h3></div><p>Los programas de canje son operados por proyectos externos, ajenos a Crypto Alien Click. Cada uno define sus propias reglas, requisitos y disponibilidad.</p></div>
-          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--pink)"></div><h3>Todo el canje ocurre fuera de la app</h3></div><p>Crypto Alien Click no gestiona, garantiza ni realiza ningún canje. El canje se completa siempre en el sitio oficial del proyecto correspondiente.</p></div>
-          <div class="eco-card"><div class="eco-card-head"><div class="eco-dot" style="background:var(--cyan)"></div><h3>Infórmate antes de participar</h3></div><p>Te recomendamos revisar bien las condiciones de cada proyecto aliado antes de participar en sus programas de canje.</p></div>
+      <!-- Slot 2 · frames 100–145 · alien recién revelado, laterales limpios -->
+      <div class="hero__slot hero__slot--right" data-slot data-start="100" data-end="145">
+        <div class="card">
+          <span class="card__tag">MISIONES</span>
+          <h3>Misiones y mejoras</h3>
+          <p>Subís de nivel y tu potencia de minado crece con vos.</p>
         </div>
       </div>
-      <div class="reveal">
-        <div class="eco-chart">
-          <div class="eco-title-sm">Sobre los proyectos aliados</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.8">Los proyectos de canje mostrados en la sección Canjear del juego son de terceros independientes. Crypto Alien Click no controla su funcionamiento, disponibilidad ni condiciones — cada proyecto es responsable de su propio programa.</p>
-          <div style="margin-top:24px;padding-top:22px;border-top:1px solid var(--border)">
-            <div style="font-size:12px;color:var(--muted);line-height:1.7">ℹ️ Los proyectos aliados disponibles pueden variar con el tiempo. Consulta la sección Canjear dentro del juego para ver la lista actualizada.</div>
-          </div>
+
+      <!-- Slot 3 · frames 150–195 · alien quieto, mucho espacio lateral libre -->
+      <div class="hero__slot hero__slot--left" data-slot data-start="150" data-end="195">
+        <div class="card">
+          <span class="card__tag">OFFLINE</span>
+          <h3>Minado en segundo plano</h3>
+          <p>Tu alien sigue minando aunque cierres el juego.</p>
+        </div>
+      </div>
+
+      <!-- Slot 4 · frames 200–235 · planetas ocupan más espacio, tarjeta compacta al borde -->
+      <div class="hero__slot hero__slot--right" data-slot data-start="200" data-end="235">
+        <div class="card card--violet">
+          <span class="card__tag">INVASIÓN</span>
+          <h3>Nadie está a salvo</h3>
+          <p>PvP offline: robá CLK ya minado de otros jugadores.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Apertura (0–35) y cierre (225–240) van debajo del teléfono, apiladas
+         en el mismo hueco: solo una está visible a la vez según el slot activo.
+         Hermano directo de hero__stage (no anidado) para centrarse por sí solo. -->
+    <div class="hero__bottom-wrap">
+      <div class="hero__bottom" data-slot data-start="0" data-end="35" id="heroHook">
+        <p class="eyebrow">&gt; Transmisión entrante // Desktop + Móvil</p>
+        <h1>MINÁ MIENTRAS NO MIRÁS.</h1>
+        <p>Un juego tap-to-earn donde tu alien sigue minando CLK incluso con la app cerrada.</p>
+      </div>
+
+      <div class="hero__bottom" data-slot data-start="225" data-end="240" id="heroClose">
+        <p class="eyebrow">&gt; Señal decodificada</p>
+        <h1>ASÍ MINA UN ALIEN.</h1>
+        <p>Tap, misiones, minado offline, arcade e invasión — todo en un solo juego.</p>
+        <div class="hero__actions" style="justify-content: center;">
+          <a href="#acceso" class="btn btn--primary">Sumate al acceso anticipado</a>
         </div>
       </div>
     </div>
+
+    <p class="hero__signal mono" id="signalReadout">SEÑAL: 00% DECODIFICADA</p>
+    <p class="hero__scrollcue mono" id="scrollCue">SCROLLEÁ PARA EXPLORAR</p>
+  </div>
+</header>
+
+<section class="section" id="modos">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_02 // Modo Arcade</p>
+    <h2 class="reveal">5 minijuegos, un solo token</h2>
+    <p class="section__lead reveal">Sumá CLK jugando, no solo tocando. Cinco minijuegos arcade independientes, cada uno con su propia forma de minar.</p>
+    <div class="cards cards--5">
+      <div class="card card--pending reveal"><span class="card__tag">01</span><h3>Minijuego 01</h3><p>Arte y nombre próximamente.</p></div>
+      <div class="card card--pending reveal"><span class="card__tag">02</span><h3>Minijuego 02</h3><p>Arte y nombre próximamente.</p></div>
+      <div class="card card--pending reveal"><span class="card__tag">03</span><h3>Minijuego 03</h3><p>Arte y nombre próximamente.</p></div>
+      <div class="card card--pending reveal"><span class="card__tag">04</span><h3>Minijuego 04</h3><p>Arte y nombre próximamente.</p></div>
+      <div class="card card--pending reveal"><span class="card__tag">05</span><h3>Minijuego 05</h3><p>Arte y nombre próximamente.</p></div>
+    </div>
   </div>
 </section>
 
-
-
-<!-- COMMUNITY CTA -->
-<section id="community">
+<section class="section section--violet">
   <div class="container">
-    <div class="community-box reveal">
-      <div class="section-label">🌍 Únete ahora</div>
-      <h2 class="section-title">Forma parte<br>de la <em>comunidad</em></h2>
-      <p style="font-size:17px;line-height:1.7;color:rgba(245,240,255,.55);max-width:560px;margin:0 auto">
-        Suscríbete al canal oficial para enterarte de los proyectos aliados de canje a medida que se vayan anunciando. Sigue minando mientras tanto para acumular más $CLK.
-      </p>
-      <div class="community-btns">
-        <a href="#jugar" class="cbtn-big cbtn-juego"><span class="cbtn-icon">⛏️</span><div class="cbtn-text">Empezar a minar<span>Juega gratis ahora mismo</span></div></a>
-        <a href="https://t.me/Crypto_Click_News" target="_blank" class="cbtn-big cbtn-canal"><span class="cbtn-icon">📢</span><div class="cbtn-text">Canal de Noticias<span>Anuncios oficiales del juego</span></div></a>
-        <a href="https://t.me/CryptoClickGroupCommunity" target="_blank" class="cbtn-big cbtn-grupo"><span class="cbtn-icon">👥</span><div class="cbtn-text">Grupo Comunidad<span>Habla con otros mineros</span></div></a>
+    <p class="eyebrow">&gt; Señal_03 // Modo Invasión — PvP offline</p>
+    <h2 class="reveal">Cómo funciona una invasión</h2>
+    <p class="section__lead reveal">No necesitás que el otro jugador esté conectado: invadís su base, le robás parte de lo que ya minó, y tus propias monedas quedan igual de expuestas a que te invadan a vos.</p>
+    <div class="cards cards--2">
+      <div class="card card--violet reveal">
+        <span class="card__tag">PVP</span>
+        <h3>100% offline</h3>
+        <p>No necesitás que el rival esté conectado para invadirlo.</p>
+      </div>
+      <div class="card card--violet reveal">
+        <span class="card__tag">ROBO</span>
+        <h3>Te llevás lo ya minado</h3>
+        <p>Una parte de su CLK acumulado pasa a ser tuyo.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- PLAY SECTION -->
-<section id="jugar" style="padding:60px 0 40px;z-index:1;position:relative">
-  <div class="container" style="text-align:center">
-    <div class="section-label reveal">⛏️ Juega ahora</div>
-    <h2 class="section-title reveal">Empieza a <em>minar</em></h2>
-    <p class="section-sub reveal" style="margin:0 auto 40px">El juego funciona 100% en el navegador, sin instalación, sin registro. Solo entra y empieza a acumular $CLK.</p>
-    <div class="reveal" style="background:var(--card);border:1px solid rgba(255,215,0,.15);border-radius:16px;padding:60px 40px;max-width:600px;margin:0 auto">
-
-      <!-- ── JUGAR IMAGE: pulse dorado intenso, se escala al hover ── -->
-      <img
-        src="https://raw.githubusercontent.com/onixmannager/CryptoClick-images/refs/heads/main/BackgroundEraser_20260330_032954295.png"
-        alt="Alien Coin"
-        class="jugar-alien-img"
-        style="width:50%;height:50%;object-fit:contain;">
-
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px">CRYPTO ALIEN CLICK</div>
-      <p style="font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.6">Tap · Mina · Sube de rango · Canjea en proyectos aliados</p>
-      <a href="index.html" class="btn-primary" style="font-size:18px;padding:20px 48px">⛏️ &nbsp;ABRIR EL JUEGO</a>
-      <div style="margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px">GRATIS · SIN REGISTRO · EN TU NAVEGADOR</div>
+<section class="section" id="token">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_04 // Token CLK</p>
+    <h2 class="reveal">Cómo se canjea CLK</h2>
+    <p class="section__lead reveal">CLK es canjeable en proyectos de terceros que colaboran con Crypto Alien. El canje se hace por airdrops, anunciados en nuestras redes sociales.</p>
+    <div class="callout reveal">
+      <span class="callout__label">IMPORTANTE</span>
+      <p class="callout__text">El canje <strong>no</strong> depende de cuánto CLK minaste. Depende del <strong>nivel</strong> que alcanzaste en el juego.</p>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section id="faq">
+<section class="section">
   <div class="container">
-    <div class="section-label reveal">❓ Preguntas frecuentes</div>
-    <h2 class="section-title reveal">FAQ</h2>
-    <div class="faq-list reveal">
-      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Es gratis jugar? <span class="faq-chevron">+</span></div><div class="faq-a">Completamente gratis. No necesitas invertir ni un céntimo para jugar y acumular $CLK.</div></div>
-      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Qué son los proyectos aliados de canje? <span class="faq-chevron">+</span></div><div class="faq-a">Son proyectos externos e independientes, ajenos a Crypto Alien Click, que ofrecen sus propios programas de canje para $CLK. Cada uno define sus condiciones, y el canje siempre se realiza en el sitio oficial de ese proyecto, fuera de esta app.</div></div>
-      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Dónde veo los proyectos aliados disponibles? <span class="faq-chevron">+</span></div><div class="faq-a">En la sección Canjear dentro del juego. Ahí encontrarás la lista actualizada de proyectos y un enlace directo al sitio oficial de cada uno.</div></div>
-      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Se guardan mis tokens? <span class="faq-chevron">+</span></div><div class="faq-a">Sí. Tu progreso se guarda automáticamente en tu dispositivo mediante localStorage. También puedes exportar un código de partida en la sección "Mi Partida" para transferirlo a otro dispositivo o navegador.</div></div>
-      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Tengo que suscribirme a Telegram para canjear? <span class="faq-chevron">+</span></div><div class="faq-a">No es obligatorio, pero te recomendamos suscribirte al canal oficial para enterarte cuando se anuncien nuevos proyectos aliados de canje.</div></div>
-      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Qué pasa si invito amigos? <span class="faq-chevron">+</span></div><div class="faq-a">Recibes 25.000 $CLK extra por cada amigo que use tu código de referido. Además, si ellos mismos invitan a más personas, la comunidad crece para todos.</div></div>
+    <p class="eyebrow">&gt; Señal_05 // Airdrops</p>
+    <h2 class="reveal">Seguí la señal</h2>
+    <p class="section__lead reveal" style="margin-bottom: 0;">Los airdrops se anuncian por redes sociales, no dentro del juego. Seguinos para no perderte ninguno.</p>
+    <div class="social-row reveal">
+      <a href="#" class="mono">DISCORD</a>
+      <a href="#" class="mono">TELEGRAM</a>
+      <a href="#" class="mono">X</a>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="container">
-    <div class="footer-logo">₿ CRYPTO ALIEN CLICK</div>
-    <div class="footer-sub">Tap to earn · Canjeable en proyectos aliados</div>
-    <div class="footer-links">
-      <a href="index.html">Jugar ahora</a>
-      <a href="https://t.me/Crypto_Click_News" target="_blank">📢 Canal Telegram</a>
-      <a href="https://t.me/CryptoClickGroupCommunity" target="_blank">👥 Grupo Comunidad</a>
-      <a href="#faq">FAQ</a>
-      <a href="#economy">Economía</a>
-      <a href="privacidad.html">Privacidad</a>
-      <a href="terminos.html">Términos y Condiciones</a>
+<section class="section section--cta" id="acceso">
+  <div class="container container--narrow">
+    <p class="eyebrow">&gt; Transmitiendo // Acceso anticipado</p>
+    <h2 class="reveal">Sé de los primeros en minar</h2>
+    <p class="section__lead reveal">Dejá tu email y te avisamos apenas se abra el acceso anticipado en desktop y móvil.</p>
+    <form class="waitlist reveal" id="waitlistForm">
+      <input type="email" name="email" required placeholder="tu@email.com" aria-label="Email">
+      <button type="submit" class="btn btn--primary">Unirme</button>
+    </form>
+    <p class="waitlist__note mono" id="waitlistNote"></p>
+    <div class="platforms reveal">
+      <span>DESKTOP</span><span>·</span><span>ANDROID</span><span>·</span><span>iOS</span>
     </div>
-    <div class="footer-copy">© 2026 TECNOLOGÍAS ONIX · CRYPTO ALIEN CLICK · $CLK TOKEN · TODOS LOS DERECHOS RESERVADOS</div>
   </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div>
+      <p class="nav__logo">CRYPTO<span>ALIEN</span></p>
+      <p class="footer__tag mono">Minado galáctico, en tus manos.</p>
+    </div>
+    <div class="footer__links">
+      <a href="#nucleo">Cómo funciona</a>
+      <a href="#modos">Modos de juego</a>
+      <a href="#token">Token CLK</a>
+    </div>
+    <div class="social-row" style="margin-top: 0;">
+      <a href="#" class="mono">DISCORD</a>
+      <a href="#" class="mono">TELEGRAM</a>
+      <a href="#" class="mono">X</a>
+    </div>
+  </div>
+  <p class="footer__legal">© 2026 CRYPTO ALIEN — CLK es un token de utilidad dentro del juego.</p>
 </footer>
 
 <script>
-// ── CURSOR ──
-const cur=document.getElementById('cursor');
-const cur2=document.getElementById('cursor2');
-let mx=0,my=0,cx=0,cy=0;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
-setInterval(()=>{cx+=(mx-cx)*.15;cy+=(my-cy)*.15;cur2.style.left=cx+'px';cur2.style.top=cy+'px';},16);
-document.querySelectorAll('a,button').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{cur.style.width='28px';cur.style.height='28px';});
-  el.addEventListener('mouseleave',()=>{cur.style.width='16px';cur.style.height='16px';});
-});
+(function () {
+  'use strict';
 
-// ── BACKGROUND PARTICLES ──
-const canvas=document.getElementById('bgCanvas');
-const ctx=canvas.getContext('2d');
-let W=0,H=0;
-function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
-resize();window.addEventListener('resize',resize);
-const STARS=[];
-for(let i=0;i<160;i++){STARS.push({x:Math.random(),y:Math.random(),s:Math.random()*1.5+.3,o:Math.random()*.6+.1,sp:Math.random()*.0003+.00005,col:Math.random()>.85?'255,215,0':Math.random()>.7?'255,60,172':'245,240,255'})}
-const NODES=[];
-for(let i=0;i<35;i++){NODES.push({x:Math.random()*100,y:Math.random()*100,vx:(Math.random()-.5)*.06,vy:(Math.random()-.5)*.06,s:Math.random()*2+1})}
-function drawBg(){
-  ctx.clearRect(0,0,W,H);
-  STARS.forEach(s=>{s.y-=s.sp;if(s.y<0)s.y=1;ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.s,0,Math.PI*2);ctx.fillStyle=`rgba(${s.col},${s.o})`;ctx.fill();});
-  NODES.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>100)n.vx*=-1;if(n.y<0||n.y>100)n.vy*=-1;});
-  NODES.forEach((a,i)=>{
-    NODES.slice(i+1).forEach(b=>{
-      const dx=(a.x-b.x)/100*W,dy=(a.y-b.y)/100*H,dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<140){ctx.beginPath();ctx.moveTo(a.x/100*W,a.y/100*H);ctx.lineTo(b.x/100*W,b.y/100*H);ctx.strokeStyle=`rgba(255,215,0,${.04*(1-dist/140)})`;ctx.lineWidth=.5;ctx.stroke();}
-    });
-    ctx.beginPath();ctx.arc(a.x/100*W,a.y/100*H,a.s,0,Math.PI*2);ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fill();
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Nav ---------- */
+  var nav = document.getElementById('nav');
+  var navToggle = document.getElementById('navToggle');
+  navToggle.addEventListener('click', function () {
+    var open = nav.classList.toggle('nav--open');
+    navToggle.setAttribute('aria-expanded', String(open));
   });
-  requestAnimationFrame(drawBg);
-}
-drawBg();
+  document.querySelectorAll('.nav__links a').forEach(function (a) {
+    a.addEventListener('click', function () { nav.classList.remove('nav--open'); });
+  });
+  window.addEventListener('scroll', function () {
+    nav.classList.toggle('nav--scrolled', window.scrollY > 40);
+  }, { passive: true });
 
-// ── SCROLL REVEAL ──
-const revels=document.querySelectorAll('.reveal');
-const io=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*80);});},{threshold:.12});
-revels.forEach(r=>io.observe(r));
+  /* ---------- Reveal on scroll ---------- */
+  var revealEls = document.querySelectorAll('.reveal');
+  if (prefersReducedMotion) {
+    revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+  } else if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+  }
 
-// ── FAQ ──
-function toggleFaq(el){const item=el.parentElement;const isOpen=item.classList.contains('open');document.querySelectorAll('.faq-item.open').forEach(f=>f.classList.remove('open'));if(!isOpen)item.classList.add('open');}
+  /* =========================================================
+     MOTOR DE VIDEO-SCRUB: 240 fotogramas reales, uno por frame
+     del video original (24fps × 10s), atados 1:1 al scroll.
+     -----------------------------------------------------------
+     Carpeta: frames/webp/alien_0001.webp ... alien_0240.webp
+     Si una imagen no carga, se salta a la siguiente disponible
+     sin romper la secuencia ni tirar error visible al usuario.
+     ========================================================= */
+  var FRAME_COUNT = 240;
+  var FRAME_PATH = function (i) {
+    return 'frames/webp/alien_' + String(i + 1).padStart(4, '0') + '.webp';
+  };
+  // Cuántos frames precargar antes de habilitar el scroll-scrub. El resto
+  // se seguirá cargando en segundo plano mientras el usuario ya interactúa.
+  var PRELOAD_BEFORE_START = 24;
 
-// ── COUNTER ──
-function animateCounter(el,target,suffix=''){let start=0;const inc=target/(2000/16);const iv=setInterval(()=>{start+=inc;if(start>=target){start=target;clearInterval(iv);}el.textContent=Math.floor(start).toLocaleString('es')+suffix;},16);}
-const statIO=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){animateCounter(document.getElementById('stat-players'),12480,'+');statIO.disconnect();}});},{threshold:.5});
-const heroStats=document.querySelector('.hero-stats');
-if(heroStats)statIO.observe(heroStats);
+  var heroEl = document.querySelector('.hero');
+  var frameImg = document.getElementById('frameImg');
+  var signalReadout = document.getElementById('signalReadout');
+  var scrollCue = document.getElementById('scrollCue');
+  var slots = Array.prototype.slice.call(document.querySelectorAll('[data-slot]'));
 
-// ── SMOOTH NAV ──
-document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}});});
+  var frameSrcs = [];
+  var frameLoadedOk = new Array(FRAME_COUNT).fill(false);
+  for (var i = 0; i < FRAME_COUNT; i++) frameSrcs.push(FRAME_PATH(i));
+
+  function preloadRange(start, end, onDone) {
+    var remaining = end - start;
+    if (remaining <= 0) { if (onDone) onDone(); return; }
+    for (var idx = start; idx < end; idx++) {
+      (function (n) {
+        var img = new Image();
+        img.onload = function () { frameLoadedOk[n] = true; done(); };
+        img.onerror = function () { frameLoadedOk[n] = false; done(); };
+        img.src = frameSrcs[n];
+      })(idx);
+    }
+    function done() {
+      remaining--;
+      if (remaining <= 0 && onDone) onDone();
+    }
+  }
+
+  var scrubReady = false;
+  preloadRange(0, Math.min(PRELOAD_BEFORE_START, FRAME_COUNT), function () {
+    scrubReady = true;
+    preloadRange(PRELOAD_BEFORE_START, FRAME_COUNT, null); // resto en segundo plano
+  });
+
+  // Si un frame puntual falló, retrocede al último frame válido conocido
+  // en vez de mostrar una imagen rota a mitad de la animación.
+  var lastGoodIdx = 0;
+  function showFrame(idx) {
+    idx = Math.min(FRAME_COUNT - 1, Math.max(0, idx));
+    var target = idx;
+    if (!frameLoadedOk[target]) {
+      // busca hacia atrás el frame válido más cercano
+      var back = target;
+      while (back > 0 && !frameLoadedOk[back]) back--;
+      target = frameLoadedOk[back] ? back : lastGoodIdx;
+    }
+    if (target !== lastGoodIdx || frameImg.getAttribute('data-idx') !== String(target)) {
+      frameImg.src = frameSrcs[target];
+      frameImg.setAttribute('data-idx', String(target));
+      lastGoodIdx = target;
+    }
+  }
+
+  function getProgress() {
+    var rect = heroEl.getBoundingClientRect();
+    var total = heroEl.offsetHeight - window.innerHeight;
+    if (total <= 0) return 1;
+    var scrolled = -rect.top;
+    return Math.min(Math.max(scrolled / total, 0), 1);
+  }
+
+  function updateSlots(currentFrame) {
+    slots.forEach(function (slot) {
+      var start = Number(slot.getAttribute('data-start'));
+      var end = Number(slot.getAttribute('data-end'));
+      var active = currentFrame >= start && currentFrame <= end;
+      slot.classList.toggle('is-active', active);
+    });
+  }
+
+  var ticking = false;
+  function onScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(function () {
+        var progress = getProgress();
+        var frameIdx = Math.round(progress * (FRAME_COUNT - 1));
+
+        if (scrubReady) showFrame(frameIdx);
+        updateSlots(frameIdx);
+
+        signalReadout.textContent = 'SEÑAL: ' + Math.round(progress * 100) + '% DECODIFICADA';
+        scrollCue.classList.toggle('is-hidden', progress > 0.03);
+
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  updateSlots(0);
+
+  /* ---------- Waitlist (solo visual por ahora, ver nota en el chat) ---------- */
+  var form = document.getElementById('waitlistForm');
+  var note = document.getElementById('waitlistNote');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      note.textContent = '✓ Anotado — te avisamos apenas abramos el acceso.';
+      form.reset();
+    });
+  }
+})();
 </script>
+
 </body>
-  </html>
+</html>
