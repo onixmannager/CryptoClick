@@ -308,10 +308,14 @@ window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__sk
 // de respaldo -eliminado a propósito- y #loading se ve vacío sobre el
 // fondo, sin romper el arranque.
 // EXCEPCIÓN: si se vuelve desde search.html (botón "atrás" dentro del
-// propio modo Invasión), no debe mostrarse esta imagen — se detecta
-// por document.referrer y se marca en cameFromSearch más abajo, donde
-// se usa para ocultar #loading de inmediato sin esperar la imagen. ──
-const cameFromSearch = /\/invasion\/search\.html(?:[?#]|$)/.test(document.referrer);
+// propio modo Invasión), no debe mostrarse esta imagen. Se detecta con
+// un marcador en sessionStorage escrito justo antes de navegar hacia
+// search.html (ver invadeBtn/revengeBtn más abajo) — document.referrer
+// no es fiable aquí (PWA standalone, políticas de referrer, etc.), así
+// que se usa el mismo mecanismo de sessionStorage que ya usa el resto
+// del archivo para pasar datos entre index.html/search.html/minigame.html.
+const cameFromSearch = sessionStorage.getItem('invasion_came_from_search')==='1';
+sessionStorage.removeItem('invasion_came_from_search');
 (function(){
   if(cameFromSearch)return;
   const img=document.getElementById('loadingimg');
@@ -472,6 +476,9 @@ function updateInvadeButton(){
 }
 
 document.getElementById('invadeBtn').onclick=()=>{
+  sessionStorage.setItem('invasion_came_from_search','1'); // para que, al volver con "←" desde
+                                                              // search.html, no se muestre de nuevo
+                                                              // la imagen de carga (ver cameFromSearch)
   window.location.href='search.html';
 };
 
@@ -484,6 +491,8 @@ document.getElementById('revengeBtn').onclick=async ()=>{
   }
   sessionStorage.setItem('invasion_direct_target', target.attackerUid);
   sessionStorage.setItem('invasion_is_revenge', '1');
+  sessionStorage.setItem('invasion_came_from_search','1'); // idem invadeBtn: evita reaparición
+                                                              // de la imagen de carga al volver
   window.location.href='search.html'; // search.html detecta invasion_direct_target
                                         // y salta la búsqueda aleatoria, pero SÍ
                                         // muestra la pantalla de confirmación de
