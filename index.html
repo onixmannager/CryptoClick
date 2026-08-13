@@ -445,6 +445,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 }
 #rubox.has-video #rutitle,#rubox.has-video #runame,#rubox.has-video #rubonus,#rubox.has-video #ruclose{
   position:relative;z-index:1;
+  display:none;
+}
+#rubox.has-video.video-ended #rutitle,#rubox.has-video.video-ended #runame,#rubox.has-video.video-ended #rubonus,#rubox.has-video.video-ended #ruclose{
+  display:block;
 }
 
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
@@ -2363,6 +2367,7 @@ function showRankup(r){
   const vid=document.getElementById('ruvideo');
   const src=RANK_VIDEOS[r.name];
   box.classList.remove('has-video');
+  box.classList.remove('video-ended');
   vid.pause();vid.removeAttribute('src');vid.load();
   document.getElementById('ruov').classList.add('show');
   SFX.rankUp();rankBurst();
@@ -2379,6 +2384,15 @@ function showRankup(r){
     vid.src=src;
     vid.oncanplay=()=>{box.classList.add('has-video');vid.play().catch(()=>{});};
     vid.onerror=()=>{box.classList.remove('has-video');BGM.resume();};
+    // Al terminar el video: revelar titulo/nombre/bonus/boton (ocultos
+    // mientras el video estaba en pantalla, ver CSS .has-video) y cerrar
+    // el overlay automaticamente, igual que si el usuario tocara #ruclose.
+    vid.onended=()=>{
+      box.classList.add('video-ended');
+      document.getElementById('ruov').classList.remove('show');
+      vid.pause();
+      BGM.resume();
+    };
   }
 }
 
