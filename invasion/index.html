@@ -314,7 +314,6 @@ async function boot(){
 }
 
 function renderAll(){
-  document.getElementById('balMiniNum').textContent = fmtClk(myProfile.clk);
   renderShieldButtons();
   updateShieldUI();
   updateInvadeButton();
@@ -364,7 +363,6 @@ async function buyShield(type, expectedCost){
     myProfile.shieldUntil = shieldUntil;
     myProfile.shieldType = type;
     myProfile.clk = newClk;
-    document.getElementById('balMiniNum').textContent = fmtClk(myProfile.clk);
     renderShieldButtons();
     updateShieldUI();
     toast(`🛡️ Escudo activado por 🪙 ${fmtClk(cost)}`);
