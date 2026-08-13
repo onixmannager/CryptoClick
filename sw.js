@@ -4,7 +4,7 @@
 // - Firebase/Auth/Firestore y SDK JS van siempre a red.
 // - Iconos/manifest e imagenes externas pueden usar cache como respaldo offline.
 
-const VERSION = 'v4';
+const VERSION = 'v5';
 const SHELL_CACHE = `cryptoclick-shell-${VERSION}`;
 const ASSET_CACHE = `cryptoclick-assets-${VERSION}`;
 
