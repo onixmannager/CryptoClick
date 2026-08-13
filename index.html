@@ -89,6 +89,13 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #ruletaLink{right:8px;width:60px;top:35px}
 #escudoLink{left:3px;width:65px;top:240px}
 #invasionLink{right:0px;width:89px;top:242px}
+/* Notificación (punto rojo con borde blanco) sobre el icono correspondiente:
+   tiro de ruleta disponible / invasión disponible / has sido invadido. Mismo
+   estilo visual que .ndot (usado en nav-missions) pero posicionado pegado a
+   la esquina superior derecha del icono del minijuego en vez de dentro de
+   un botón de la barra inferior. */
+.minigameDot{display:none;position:absolute;top:-2px;right:-2px;width:16px;height:16px;background:var(--red);border:2px solid var(--bg);border-radius:50%;z-index:3;box-shadow:0 0 6px rgba(239,68,68,.7)}
+.minigameDot.show{display:block}
 #rankpill{display:inline-block;background:linear-gradient(135deg,var(--purple),var(--blue));border-radius:20px;padding:6px 16px;font-size:13px;font-weight:800;letter-spacing:.5px;box-shadow:0 0 16px rgba(139,92,246,.5);transition:background .5s;margin-top:6px}
 
 /* BALANCE */
@@ -472,6 +479,21 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #dailyclaim:disabled{opacity:.4;cursor:not-allowed}
 #dailyclose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
 
+/* POPUP DE ROBO — aparece al iniciar sesión si el jugador fue invadido y
+   todavía está dentro de la ventana de venganza (24h). Mismo esqueleto
+   visual "hoja desde abajo" que #dailyov/#dailybox. */
+#robov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;align-items:flex-end;justify-content:center}
+#robov.show{display:flex}
+#robobox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease}
+#robobox .robicon{font-size:44px;display:block;margin-bottom:8px}
+#robobox h3{font-family:var(--fh);font-size:22px;color:var(--red);margin-bottom:6px}
+#robobox p{color:var(--muted);font-size:13px;margin-bottom:6px;line-height:1.5}
+#robobox p b{color:var(--text)}
+#robshieldnote{font-size:11.5px;color:var(--orange);font-weight:700;margin-bottom:16px;display:none}
+#robrevenge{width:100%;padding:14px;background:linear-gradient(135deg,var(--orange),var(--red));border:none;border-radius:14px;font-family:var(--fh);font-size:18px;color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(239,68,68,.3);margin-top:10px}
+#robrevenge:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+#robclose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
+
 /* ── Video de INTRO/presentación — se muestra una sola vez, la primera vez
    que se entra a la app (antes de pedir el alias). Tiene su propio audio,
    por eso la música de fondo (BGM) se pausa mientras se reproduce (ver
@@ -746,8 +768,8 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   /* ── OVERLAYS: center as real dialogs instead of mobile bottom
      sheets that would otherwise slam edge-to-edge across a wide
      viewport. ──────────────────────────────────────────────────── */
-  #noeov,#dailyov,#updateOv{align-items:center}
-  #noebox,#dailybox,#updateBanner{
+  #noeov,#dailyov,#updateOv,#robov{align-items:center}
+  #noebox,#dailybox,#updateBanner,#robobox{
     max-width:380px;
     border-radius:24px;
     animation:popin .4s cubic-bezier(.175,.885,.32,1.275);
@@ -892,9 +914,9 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="screen-mine" class="screen active">
     <div id="bal-area">
       <a href="arcade/index.html" id="arcadeLink" class="minigameLink" aria-label="Arcade"><img src="images/arcade.png" alt="Arcade"></a>
-      <a href="ruleta.html" id="ruletaLink" class="minigameLink" aria-label="Ruleta" onclick="forceSave()"><img src="images/ruleta.png" alt="Ruleta"></a>
+      <a href="ruleta.html" id="ruletaLink" class="minigameLink" aria-label="Ruleta" onclick="forceSave()"><img src="images/ruleta.png" alt="Ruleta"><div class="minigameDot" id="ruletaDot"></div></a>
       <img src="images/escudo.png" id="escudoLink" class="minigameLink" alt="Escudo">
-      <a href="invasion/" id="invasionLink" class="minigameLink" aria-label="Invasión" onclick="forceSave()"><img src="images/invasion.png" alt="Invasión"></a>
+      <a href="invasion/" id="invasionLink" class="minigameLink" aria-label="Invasión" onclick="forceSave()"><img src="images/invasion.png" alt="Invasión"><div class="minigameDot" id="invasionDot"></div></a>
       <div id="balnum">0</div>
       <div id="ballabel">$CLK TOKENS</div>
       <div id="rankpill">🐣 Crypto Noob</div>
@@ -1125,6 +1147,16 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <button id="dailyclose" onclick="document.getElementById('dailyov').classList.remove('show')">Cerrar</button>
 </div></div>
 
+<!-- POPUP: te han invadido/robado (ver checkInvasionNotifications()) -->
+<div id="robov"><div id="robobox">
+  <span class="robicon">👾</span>
+  <h3>¡Te han invadido!</h3>
+  <p id="robtext"></p>
+  <div id="robshieldnote">🛡️ Tiene un escudo activo: no puedes vengarte todavía.</div>
+  <button id="robrevenge" onclick="goRevengeFromPopup()">VENGARME AHORA</button>
+  <button id="robclose" onclick="document.getElementById('robov').classList.remove('show')">Cerrar</button>
+</div></div>
+
 <div id="introov">
   <video id="introvideo" src="videos/alieniniciocohete.mp4" playsinline></video>
   <div id="introfade"></div>
@@ -1252,6 +1284,109 @@ onAuthStateChanged(auth, (user) => {
     const l = document.getElementById('loading'); if (l) l.classList.remove('hide');
   }
 });
+</script>
+
+<!-- ============ NOTIFICACIONES DE INVASIÓN (badges + popup de robo) ============
+     Reutiliza el módulo invasion-core.js (misma app Firebase que ya está
+     inicializada arriba: invasion-core.js hace getApps().length? antes de
+     crear una nueva) para no reimplementar cooldowns/escudo/venganza aparte.
+     Expone window.InvasionNotify.check(), llamado desde startGameForUser(). -->
+<script type="module">
+import './invasion/js/invasion-core.js';
+
+function fmtClkNotif(n){
+  n=Math.floor(n||0);
+  if(n>=1e12)return(n/1e12).toFixed(2)+'T';
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return n+'';
+}
+function escapeHtmlNotif(s){
+  const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;
+}
+
+// Punto rojo del icono de Ruleta: mismo cooldown de 24h que ruleta.html
+// (RULETA_COOLDOWN_MS). Recibe S.lastRuletaSpin como parámetro en vez de
+// leer la variable global S directamente: S se declara con `const` dentro
+// de un <script> clásico (no-module) más abajo, y los bindings de nivel
+// superior de un script clásico NO son visibles desde un <script
+// type="module"> como este (solo lo serían si colgaran de window, y no es
+// el caso aquí) — pasarlo como argumento evita depender de ese scope.
+function updateRuletaDot(lastRuletaSpin){
+  const dot=document.getElementById('ruletaDot');
+  if(!dot)return;
+  const RULETA_COOLDOWN_MS=24*60*60*1000;
+  const last=lastRuletaSpin||0;
+  const ready=!last||(Date.now()-last)>=RULETA_COOLDOWN_MS;
+  dot.classList.toggle('show',ready);
+}
+window.updateRuletaDot=updateRuletaDot;
+
+let _invasionNotifChecking=false;
+async function checkInvasionNotifications(){
+  if(_invasionNotifChecking)return;
+  _invasionNotifChecking=true;
+  try{
+    const core=window.InvasionCore;
+    const user=window.__fbUser;
+    if(!core||!user)return;
+
+    const myProfile={ uid:user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+
+    // Punto rojo del icono de Invasión: puede lanzar una invasión ahora mismo.
+    const invDot=document.getElementById('invasionDot');
+    if(invDot)invDot.classList.toggle('show', core.checkCanInvade(myProfile).ok);
+
+    // Popup de robo: solo si sigue dentro de la ventana de venganza (24h).
+    const target=await core.getActiveRevengeTarget(myProfile.uid);
+    if(!target)return;
+
+    // Escudo del atacante: si lo tiene activo AHORA, la venganza no se puede
+    // completar (resolveInvasion la rechaza), así que el botín queda
+    // inaccesible y se avisa en vez de dejar pulsar un botón que fallará.
+    let attackerShielded=false;
+    try{
+      const attackerSnap=await core.getDoc(core.doc(core.db,'invasion_players',target.attackerUid));
+      if(attackerSnap.exists()){
+        const ad=attackerSnap.data();
+        attackerShielded=(ad.shieldUntil||0)>Date.now();
+      }
+    }catch(e){ console.warn('No se pudo comprobar el escudo del atacante:',e); }
+
+    window._pendingRevengeTarget={ attackerUid:target.attackerUid, shielded:attackerShielded };
+
+    document.getElementById('robtext').innerHTML=
+      '<b>'+escapeHtmlNotif(target.attackerAlias||'Otro minero')+'</b> te ha invadido y te ha robado <b>'+fmtClkNotif(target.stolenAmount)+' $CLK</b>.';
+    const note=document.getElementById('robshieldnote');
+    const btn=document.getElementById('robrevenge');
+    if(attackerShielded){
+      note.style.display='block';
+      btn.disabled=true;
+      btn.textContent='BOTÍN INACCESIBLE (ESCUDO ACTIVO)';
+    }else{
+      note.style.display='none';
+      btn.disabled=false;
+      btn.textContent='VENGARME AHORA';
+    }
+    document.getElementById('robov').classList.add('show');
+  }catch(e){
+    console.error('checkInvasionNotifications falló:',e);
+  }finally{
+    _invasionNotifChecking=false;
+  }
+}
+window.checkInvasionNotifications=checkInvasionNotifications;
+
+window.goRevengeFromPopup=function(){
+  const t=window._pendingRevengeTarget;
+  if(!t||t.shielded)return;
+  document.getElementById('robov').classList.remove('show');
+  sessionStorage.setItem('invasion_direct_target', t.attackerUid);
+  sessionStorage.setItem('invasion_is_revenge', '1');
+  if(window.forceSave)forceSave();
+  window.location.href='invasion/search.html';
+};
 </script>
 
 <script>
@@ -2774,6 +2909,7 @@ window.startGameForUser=async function(user){
   await loadCloud(user.uid);
   window.__fbUser=user;
   recalc();upd();checkMiss();
+  if(window.updateRuletaDot)updateRuletaDot();
   _appReadyForSave=true;
   localSaveNow();
   _dirtySinceCloud=true;
@@ -2799,6 +2935,9 @@ window.startGameForUser=async function(user){
     if(!S.alias){
       // Primera vez que entra: video de presentación primero y, al terminar
       // (o si el usuario lo salta), el overlay para elegir alias de siempre.
+      // No se comprueban notificaciones de invasión aquí: un jugador que
+      // recién entra por primera vez no puede haber sido invadido todavía,
+      // y además el popup de robo no debe competir con el video/alias.
       _introShown=true;
       playIntroVideo(()=>{
         document.getElementById('aliasov').classList.add('show');
@@ -2808,6 +2947,12 @@ window.startGameForUser=async function(user){
       // No hay intro que mostrar (alias ya existente): la música puede
       // sonar normalmente desde ya con el próximo gesto del usuario.
       BGM.allowStart();
+      // Notificaciones de invasión (badges de ruleta/invasión + popup de
+      // robo): solo para usuarios recurrentes, para no competir con el
+      // video de intro ni con el overlay de alias de la primera vez. Es una
+      // llamada de red aparte (Firestore del modo Invasión) así que no
+      // bloquea nada de lo anterior si tarda o falla.
+      if(window.checkInvasionNotifications)checkInvasionNotifications();
     }
   });
 };
