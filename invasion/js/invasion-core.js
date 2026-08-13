@@ -525,16 +525,15 @@ async function getAttackHistory(uid, max = 20) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// MÚSICA DE FONDO DEL MODO INVASIÓN — sounds/invasion.mp3, en loop, a
-// través de las 3 pantallas del modo (index.html, search.html,
-// minigame.html). Se centraliza aquí (en vez de repetir el bloque en
-// cada HTML) para que las tres compartan el MISMO <audio>: al navegar
-// de una pantalla a otra el elemento se recrea (cada HTML es una carga
-// de página nueva), así que lo que sí se comparte de verdad es el
-// comportamiento y el estado de mute -mismo criterio que RULETA_SOUND_SRC/
-// MUSICA_FONDO_SOUND_SRC en ruleta.html, incluida la clave de
-// localStorage 'cck4_muted' para que el mute sea consistente con el
-// resto de la app (índice padre, ruleta, invasión).
+// MÚSICA DE FONDO DEL MODO INVASIÓN — sounds/invasion.mp3, en loop,
+// SOLO en invasion/index.html (la pantalla principal del modo). No
+// suena en search.html ni en minigame.html -decisión de producto, no
+// limitación técnica-. Se centraliza aquí en vez de vivir directamente
+// en index.html porque el resto de utilidades de Invasión ya siguen
+// este mismo patrón (window.InvasionCore) -mismo criterio que
+// RULETA_SOUND_SRC/MUSICA_FONDO_SOUND_SRC en ruleta.html, incluida la
+// clave de localStorage 'cck4_muted' para que el mute sea consistente
+// con el resto de la app (índice padre, ruleta, invasión).
 // ─────────────────────────────────────────────────────────────────────
 const INVASION_BGM_SRC = 'sounds/invasion.mp3';
 const INVASION_BGM_VOL = 0.15; // mismo nivel que MUSICA_FONDO_VOL en ruleta.html
@@ -573,6 +572,21 @@ function initInvasionBgm() {
   });
 }
 
+// Pausa/reanuda la música de fondo de Invasión — mismo patrón que
+// BGM.pause()/BGM.resume() en el índice padre, usado ahí para que la
+// música de fondo del juego no se solape con el audio propio del video
+// de intro. Aquí se usa por el mismo motivo: el video de intro de
+// Invasión (invasioncortapresentacion.mp4) también reproduce con sonido
+// (ver playIntroVideo() en index.html, vid.muted=false), así que sin
+// esto invasion.mp3 sonaría a la vez que el audio del video.
+function pauseInvasionBgm() {
+  if (_invasionBgmEl && !_invasionBgmEl.paused) _invasionBgmEl.pause();
+}
+function resumeInvasionBgm() {
+  if (_invasionMuted || !_invasionBgmEl) return;
+  _invasionBgmEl.play().catch(() => {}); // si el navegador lo bloquea aquí, initInvasionBgm ya dejó un reintento armado en el primer gesto
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // EXPORT — window.InvasionCore, mismo patrón que window.__fb en el padre.
 // ─────────────────────────────────────────────────────────────────────
@@ -583,4 +597,5 @@ window.InvasionCore = {
   resolveInvasion, activateShield, getActiveRevengeTarget, getAttackHistory,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
   initInvasionBgm, // arranca la música de fondo del modo Invasión (loop, respeta cck4_muted)
+  pauseInvasionBgm, resumeInvasionBgm, // para no solapar con el audio propio del video de intro
 };
