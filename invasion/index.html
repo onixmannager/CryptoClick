@@ -90,11 +90,41 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 #loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s}
 #loading.hide{opacity:0;pointer-events:none}
 .ll{font-family:var(--fh);font-size:24px;color:var(--yellow)}
+
+/* ── Video de INTRO de Invasión — se muestra una sola vez, la primera
+   vez que se entra a este modo (misma lógica y misma interfaz que el
+   video de presentación del juego padre en index.html: overlay a
+   pantalla completa con fundido de entrada/salida y botón "Saltar").
+   No hay música de fondo propia en Invasión con la que solaparse, así
+   que aquí no hace falta pausar/reanudar ningún BGM.
+
+   El video está en vertical 9:16. En MOVIL ocupa todo el viewport con
+   object-fit:cover. En ESCRITORIO (min-width:901px) se mantiene la
+   MISMA proporción 9:16 sin estirar, centrada sobre fondo negro con
+   object-fit:contain -igual criterio que el padre-.
+
+   #introfade es una capa negra por encima del video que se usa SOLO
+   para el fundido de 1s de entrada/salida; no recorta ni adelanta el
+   video, que sigue su curso completo por debajo. ─────────────────── */
+#introov{display:none;position:fixed;inset:0;background:#000;z-index:100000;align-items:center;justify-content:center}
+#introov.show{display:flex}
+#introvideo{width:100%;height:100%;object-fit:cover}
+#introfade{position:fixed;inset:0;background:#000;z-index:100002;opacity:1;pointer-events:none;transition:opacity 1s linear}
+#introfade.in{opacity:0}
+#introskip{position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:100003;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;cursor:pointer;backdrop-filter:blur(4px)}
+@media (min-width:901px){
+  #introvideo{width:100%;height:100%;object-fit:contain}
+}
 </style>
 </head>
 <body>
 
 <div id="loading"><div class="ll">👾 INVASIÓN</div></div>
+<div id="introov">
+  <video id="introvideo" src="videos/invasioncortapresentacion.mp4" playsinline></video>
+  <div id="introfade"></div>
+  <button id="introskip" onclick="skipIntroVideo()">Saltar ⏭️</button>
+</div>
 <div id="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 
 <div id="app">
@@ -182,6 +212,72 @@ function fmtCountdown(ms){
 
 let core, myProfile, countdownInterval, invadeHintInterval;
 
+/* ── Video de presentación de Invasión, mismo criterio que el video de
+   intro del juego padre (index.html): se reproduce una sola vez, la
+   primera vez que se entra a este modo, con fundido de entrada/salida
+   de 1s sobre una capa negra (#introfade) que no toca ni recorta el
+   video -éste sigue su curso completo por debajo-. Como este archivo
+   es un <script type="module">, sus declaraciones no quedan colgadas
+   de window por defecto, así que skipIntroVideo se expone a mano para
+   que el botón "Saltar" (onclick en HTML) pueda encontrarla.
+   La "primera vez" se recuerda en localStorage bajo la misma
+   convención de prefijo cck4_ que usa el resto del proyecto (ver
+   cck4_muted/cck4_refs en index.html), así que una vez visto no
+   vuelve a aparecer aunque se recargue o se reabra la app. ────────── */
+const INVASION_INTRO_KEY='cck4_invasion_intro_shown';
+const INTRO_FADE_MS=1000;
+function invasionIntroAlreadyShown(){
+  try{ return localStorage.getItem(INVASION_INTRO_KEY)==='1'; }catch(e){ return false; }
+}
+function markInvasionIntroShown(){
+  try{ localStorage.setItem(INVASION_INTRO_KEY,'1'); }catch(e){}
+}
+function playIntroVideo(onDone){
+  const ov=document.getElementById('introov');
+  const vid=document.getElementById('introvideo');
+  const fade=document.getElementById('introfade');
+  if(!ov||!vid){onDone();return}
+  let done=false;
+  let outStarted=false;
+  // Fundido de SALIDA: arranca 1s antes de que el video termine, para
+  // que justo cuando llega a su último frame ya esté en negro. No toca
+  // la reproducción -sigue corriendo hasta el final real-, solo tapa
+  // visualmente ese último segundo.
+  const onTime=()=>{
+    if(outStarted||!vid.duration)return;
+    if(vid.duration-vid.currentTime<=INTRO_FADE_MS/1000){
+      outStarted=true;
+      fade.classList.remove('in');
+    }
+  };
+  vid.addEventListener('timeupdate',onTime);
+  const finish=()=>{
+    if(done)return; done=true;
+    vid.removeEventListener('timeupdate',onTime);
+    vid.pause();
+    ov.classList.remove('show');
+    fade.classList.remove('in'); // listo en negro por si se necesitara reutilizar el overlay
+    markInvasionIntroShown();
+    onDone();
+  };
+  vid.currentTime=0;
+  vid.muted=false;
+  fade.style.transitionDuration=INTRO_FADE_MS+'ms';
+  fade.classList.remove('in'); // arranca tapado en negro
+  ov.classList.add('show');
+  vid.onended=finish;
+  vid.onerror=finish; // si el archivo no carga (red, ruta, etc.), seguimos sin bloquear el arranque
+  // Fundido de ENTRADA: en cuanto el video empieza a reproducirse de
+  // verdad (no solo "play() resuelto", sino el primer frame ya
+  // avanzando) se desvanece el negro. requestAnimationFrame tras
+  // play() evita un parpadeo si el primer frame tarda en pintarse.
+  vid.play().then(()=>{
+    requestAnimationFrame(()=>fade.classList.add('in'));
+  }).catch(finish); // autoplay con sonido puede fallar sin gesto previo del usuario
+  window.__skipInvasionIntroVideo=finish;
+}
+window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__skipInvasionIntroVideo(); };
+
 async function boot(){
   // El import de invasion-core.js al principio de este mismo módulo ya
   // garantiza que window.InvasionCore existe antes de que llegue este punto.
@@ -198,9 +294,22 @@ async function boot(){
     renderAll();
     document.getElementById('loading').classList.add('hide');
 
-    countdownInterval = setInterval(updateShieldUI, 1000);
-    loadHistory();
-    checkRevenge();
+    const startRest=()=>{
+      countdownInterval = setInterval(updateShieldUI, 1000);
+      loadHistory();
+      checkRevenge();
+    };
+    // El video de presentación (si aplica) arranca SOLO cuando el
+    // loading ya terminó de ocultarse, nunca en paralelo con él —mismo
+    // criterio que el video de intro del juego padre en index.html—.
+    // El resto del arranque (countdown, historial, revancha) espera a
+    // que termine o se salte el video para no competir por atención
+    // con él mientras está en pantalla.
+    if(!invasionIntroAlreadyShown()){
+      playIntroVideo(startRest);
+    }else{
+      startRest();
+    }
   }catch(e){
     // Sin este catch, cualquier fallo aquí (permisos, red, lo que sea)
     // dejaba el loader colgado para siempre en silencio, sin mostrar
