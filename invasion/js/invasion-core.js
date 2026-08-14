@@ -64,9 +64,12 @@ const CFG = {
   // misGoal = g*1.6^(lvl-1)) — aquí: costeBase * exponente^(lvl-1).
   // '7d' usa una base y exponente mayores que '3d' para que salga siempre
   // más caro que '3d' en cualquier nivel, no solo en el nivel 1.
+  // base x3 (200->600, 450->1350) a petición expresa: mismo patrón de
+  // escalado por nivel (exp intacto), todo el eje de precios multiplicado
+  // por 3 en cualquier nivel.
   SHIELD_COST: {
-    '3d': { base: 200,  exp: 1.12 },
-    '7d': { base: 450,  exp: 1.14 },
+    '3d': { base: 600,  exp: 1.12 },
+    '7d': { base: 1350, exp: 1.14 },
   },
 
   // Probabilidad de victoria fija para CUALQUIER atacante contra
