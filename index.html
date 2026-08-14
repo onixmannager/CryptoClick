@@ -2924,17 +2924,22 @@ function renderShieldModalContent(){
     return;
   }
 
-  status.textContent = active
-    ? `Escudo activo (${shieldState.shieldType}) — te protege en Invasión durante ${fmtShieldCountdown(shieldState.shieldUntil-now)} más`
-    : 'No tienes escudo activo: eres un objetivo válido en Invasión';
-
-  wrap.innerHTML='';
   // Etiqueta fija por tipo (no calculada desde SHIELD_HOURS): a petición
   // expresa, el botón muestra solo '12H.' (plata / '3d') o '24H.' (dorado
   // / '7d') tal cual, en vez de derivarla de las horas configuradas -que
   // con 24h daría '1d' por el corte hours>=24 de más abajo, redundante
   // aquí solo por claridad y ya no usado para el texto del botón-.
+  // Reutilizada también en el status text de más abajo: shieldType guarda
+  // el código interno ('3d'/'7d', heredado de cuando esos escudos duraban
+  // 3 y 7 días reales), no la duración actual, así que mostrarlo tal cual
+  // en el texto decía "(7d)" para un escudo que hoy dura 24h.
   const SHIELD_LABELS_FIJAS = { '3d': '12H.', '7d': '24H.' };
+
+  status.textContent = active
+    ? `Escudo activo (${SHIELD_LABELS_FIJAS[shieldState.shieldType] || shieldState.shieldType}) — te protege en Invasión durante ${fmtShieldCountdown(shieldState.shieldUntil-now)} más`
+    : 'No tienes escudo activo: eres un objetivo válido en Invasión';
+
+  wrap.innerHTML='';
   // Imagen del escudo correspondiente a cada tipo, mismo criterio que
   // icon.src más arriba y que invasion/index.html (dorado='7d', plateado
   // resto) — se añade DENTRO de cada botón de compra, a petición expresa,
