@@ -55,7 +55,14 @@ const CFG = {
   // '3d' y '7d' se puedan COMPRAR (ver SHIELDS_ENABLED) — el resto del
   // sistema (expiración, cuenta atrás, filtrado de objetivos) funciona
   // igual para los 4 tipos sin cambios de esquema.
-  SHIELD_HOURS: { '6h': 6, '24h': 24, '3d': 72, '7d': 168 },
+  // NOTA: las claves '3d'/'7d' son solo el identificador técnico del
+  // escudo plata/dorado (heredado de cuando duraban 3 y 7 días) — se
+  // mantienen así aposta para no tocar el resto del sistema (Firestore,
+  // comparaciones de tipo activo, selección de imagen en index.html),
+  // pero el NÚMERO de horas ya no corresponde a esos nombres: por
+  // modelo de negocio, el escudo plata ('3d') dura 12h y el dorado
+  // ('7d') dura 24h.
+  SHIELD_HOURS: { '6h': 6, '24h': 24, '3d': 12, '7d': 24 },
   SHIELDS_ENABLED: ['3d', '7d'],
 
   // Coste en $CLK de cada escudo, escalado por nivel del jugador con el
