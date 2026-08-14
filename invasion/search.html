@@ -273,6 +273,24 @@ async function searchDirectTarget(uid){
   playSinExitoVideo();
   showView('scanning');
   try{
+    // isRevengeFlow llega de sessionStorage (ver boot() más arriba), que
+    // el propio navegador del jugador puede escribir a mano — nada
+    // impide entrar aquí con invasion_is_revenge='1' forzado contra un
+    // uid que nunca atacó a este jugador, o del que ya se vengó. Se
+    // revalida aquí, ANTES de mostrar el rival y dejar avanzar al
+    // minijuego, para que el mensaje de error sea claro de inmediato en
+    // vez de que el jugador juegue una partida entera y descubra al
+    // volver que no contó como venganza (resolveInvasion() también
+    // revalida esto de forma obligatoria — ver esa función — esta
+    // comprobación de aquí es solo para dar el aviso pronto, no la única
+    // barrera).
+    if(isRevengeFlow){
+      const legit = await core.isLegitimateRevenge(myProfile.uid, uid);
+      if(!legit){
+        markSearchFailed('Ya no puedes vengarte de ese jugador — puede que ya te hayas vengado o que hayan pasado más de 24h.', true);
+        return;
+      }
+    }
     const snap = await core.getDoc(core.doc(core.db,'invasion_players',uid));
     if(!snap.exists()) throw new Error('target not found');
     const d = snap.data();
