@@ -15,6 +15,14 @@
   --glass:rgba(10,12,22,.5);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+/* Evita que al tocar/mantener presionado en cualquier parte de la app
+   (móvil) se dispare el selector de texto nativo. Los campos donde el
+   usuario SÍ necesita escribir/seleccionar (inputs, textarea) se excluyen
+   explícitamente justo debajo para no romper la edición de texto. */
+html,body{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+*{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+input,textarea{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
+img{-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:auto;user-drag:none}
 html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow:hidden}
 
 /* ── Video de RESULTADO a pantalla completa — sustituye al antiguo radar
