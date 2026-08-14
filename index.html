@@ -1232,6 +1232,13 @@ const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
+// Sin esto, signOut(auth) cierra la sesión de Firebase pero NO la cookie de sesión
+// de Google del navegador, así que el popup/redirect de signInWithPopup reutiliza esa
+// cookie y auto-selecciona la última cuenta de Google usada, sin dar opción a elegir
+// otra (esto es lo que se percibía como "no me deja entrar con otra cuenta, entra
+// directo con la última"). prompt:'select_account' obliga a Google a mostrar siempre
+// la pantalla de selección de cuenta.
+provider.setCustomParameters({ prompt: 'select_account' });
 
 window.__fb = { auth, db, doc, getDoc, setDoc, serverTimestamp, signOut, collection, query, orderBy, limit, getDocs };
 
@@ -1724,7 +1731,17 @@ function readLocalCandidate(uid,allowLegacy){
     if(allowLegacy){
       const legacyRaw=localStorage.getItem(SAVE_KEY);
       const legacyData=parseSave(legacyRaw);
-      if(legacyData)return{raw:legacyRaw,data:legacyData,key:SAVE_KEY,legacy:true};
+      if(legacyData){
+        // La clave legacy 'cck4' (sin uid) es de una versión anterior a que existiera
+        // saveKeyForUid(). Se consume una sola vez para migrar su progreso al uid que
+        // la reclama aquí. Si no se borra, se queda flotando en el navegador para
+        // siempre y el PRÓXIMO usuario "nuevo" (sin datos propios en cck4_user_<uid>
+        // ni en Firestore) que inicie sesión en ese mismo dispositivo la hereda sin
+        // ninguna relación con esa cuenta: eso es lo que se percibía como "entro con
+        // una cuenta nueva y carga datos de otra persona".
+        try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+        return{raw:legacyRaw,data:legacyData,key:SAVE_KEY,legacy:true};
+      }
     }
   }catch(e){}
   return null;
