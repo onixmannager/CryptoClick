@@ -195,6 +195,15 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────
+// Misma clave/formato de localStorage que index.html y ruleta.html (ver
+// SAVE_KEY_PREFIX y sanitize() ahí): permite leer aquí el saldo que el
+// jugador acaba de guardar en el padre antes de que llegue a Firestore.
+// ─────────────────────────────────────────────────────────────────────
+const SAVE_KEY = 'cck4';
+const SAVE_KEY_PREFIX = 'cck4_user_';
+function saveKeyForUid(uid) { return uid ? SAVE_KEY_PREFIX + uid : SAVE_KEY; }
+
+// ─────────────────────────────────────────────────────────────────────
 // SINCRONIZAR PERFIL DE INVASIÓN desde saves/{uid} (el saldo/nivel real
 // del juego padre). Se llama al entrar al modo y tras resolver un
 // combate. Escribe invasion_players/{uid} E invasion_targets/{uid} en un
@@ -211,6 +220,14 @@ onAuthStateChanged(auth, async (user) => {
 // normal tras jugar el juego principal). Sin esta comparación, un
 // jugador que gana un robo y vuelve al hub vería su saldo antiguo,
 // como si el robo no hubiera pasado.
+//
+// TAMPOCO se toma ciegamente de saves/ frente a localStorage: saves/
+// se sube desde el padre como mucho cada 20s (CLOUD_MIN_INTERVAL en
+// index.html), así que si el jugador tapeó ahí y entra a Invasión antes
+// de esos 20s, saves/ todavía tiene un clk viejo aunque localStorage ya
+// tenga el correcto. Por eso mainClk también se compara contra el
+// lastSave del localStorage local: si éste es más reciente que
+// saves/.updatedAt, manda localStorage.
 // ─────────────────────────────────────────────────────────────────────
 async function syncProfileFromMainSave(uid) {
   let mainSnap;
@@ -231,6 +248,19 @@ async function syncProfileFromMainSave(uid) {
     const mainUpdatedAt = mainSnap.data().updatedAt;
     mainUpdatedMs = mainUpdatedAt && mainUpdatedAt.toMillis ? mainUpdatedAt.toMillis() : 0;
   }
+  // Si localStorage tiene un guardado MÁS RECIENTE que saves/ (el padre
+  // tapeó y aún no pasaron los 20s de CLOUD_MIN_INTERVAL), ese clk local
+  // manda sobre el de Firestore que acabamos de leer arriba.
+  try {
+    const localRaw = localStorage.getItem(saveKeyForUid(uid));
+    const localData = localRaw ? JSON.parse(localRaw) : null;
+    const localSavedMs = (localData && localData.lastSave) || 0;
+    if (localData && localSavedMs > mainUpdatedMs) {
+      if (typeof localData.clk === 'number' && localData.clk >= 0) mainClk = Math.floor(localData.clk);
+      if (typeof localData.lvl === 'number' && localData.lvl >= 1) lvl = Math.floor(localData.lvl);
+      mainUpdatedMs = localSavedMs;
+    }
+  } catch (e) { /* localStorage no disponible (modo privado, etc.): seguimos solo con saves/ */ }
 
   const playerRef = doc(db, 'invasion_players', uid);
   let existing;
