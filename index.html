@@ -86,10 +86,15 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #bal-area{position:relative}
 .minigameLink{position:absolute;top:-6px;display:inline-flex;flex-shrink:0;z-index:2;transition:transform .12s}
 .minigameLink img{display:block;width:100%;height:auto;object-fit:contain}
-#arcadeLink:active,#ruletaLink:active,#invasionLink:active{transform:scale(.9)}
+#arcadeLink:active,#ruletaLink:active,#invasionLink:active,#escudoLink:active{transform:scale(.9)}
 #arcadeLink{left:2px;width:73px;top:31px}
 #ruletaLink{right:8px;width:60px;top:35px}
-#escudoLink{left:3px;width:65px;top:239px}
+#escudoLink{left:3px;width:65px;top:239px;cursor:pointer;transition:transform .12s,opacity .25s,filter .25s}
+/* Escudo SIN comprar/activo: semitransparente y oscurecido, para que se
+   note de un vistazo que no protege ahora mismo. En cuanto hay un
+   escudo activo (invasion_players/{uid}.shieldUntil > ahora) se quita
+   esta clase vía JS y vuelve a su aspecto normal (ver renderEscudoIcon()). */
+#escudoLink.inactive{opacity:.4;filter:grayscale(.6) brightness(.65)}
 #invasionLink{right:0px;width:78px;top:230px}
 #rankpill{display:inline-block;background:linear-gradient(135deg,var(--purple),var(--blue));border-radius:20px;padding:6px 16px;font-size:13px;font-weight:800;letter-spacing:.5px;box-shadow:0 0 16px rgba(139,92,246,.5);transition:background .5s;margin-top:6px}
 
@@ -486,6 +491,25 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #dailyclaim{width:100%;padding:14px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:20px;color:#1a0a00;cursor:pointer;box-shadow:0 4px 20px rgba(255,215,0,.3)}
 #dailyclaim:disabled{opacity:.4;cursor:not-allowed}
 #dailyclose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
+
+/* ESCUDO (compra desde el index padre) — mismo esqueleto visual que
+   #dailyov/#dailybox: hoja oscura desde abajo con animación "sup". La
+   compra en sí reutiliza invasion/js/invasion-core.js (activateShield),
+   así que las reglas de negocio (coste por nivel, no repetir el mismo
+   tipo mientras esté activo, no poder comprar 3d con un 7d activo) son
+   exactamente las mismas que dentro del modo Invasión — un único sitio
+   decide esas reglas, este modal solo las refleja. */
+#shieldOv{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;align-items:flex-end;justify-content:center}
+#shieldOv.show{display:flex}
+#shieldBox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease}
+#shieldBox h3{font-family:var(--fh);font-size:22px;color:var(--yellow);margin-bottom:6px}
+#shieldBoxIcon{width:56px;height:56px;object-fit:contain;margin:0 auto 10px}
+#shieldStatusLine{color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.5}
+#shieldBuyBtnsMain{display:flex;gap:8px;margin-bottom:8px}
+.shieldBuyBtnMain{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 6px;font-family:var(--fb);font-weight:800;font-size:12.5px;color:var(--text);cursor:pointer;text-align:center;line-height:1.5}
+.shieldBuyBtnMain:active{transform:scale(.96)}
+.shieldBuyBtnMain:disabled{opacity:.4;cursor:not-allowed}
+#shieldClose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:4px}
 
 /* ── Video de INTRO/presentación — se muestra una sola vez, la primera vez
    que se entra a la app (antes de pedir el alias). Tiene su propio audio,
@@ -901,7 +925,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     <div id="bal-area">
       <a href="arcade/index.html" id="arcadeLink" class="minigameLink" aria-label="Arcade" onclick="SFX.navClick()"><img src="images/arcade.png" alt="Arcade"></a>
       <a href="ruleta.html" id="ruletaLink" class="minigameLink" aria-label="Ruleta" onclick="SFX.navClick();forceSave()"><img src="images/ruleta.png" alt="Ruleta"></a>
-      <img src="images/escudo.png" id="escudoLink" class="minigameLink" alt="Escudo">
+      <img src="images/escudo.png" id="escudoLink" class="minigameLink inactive" alt="Escudo" aria-label="Escudo" onclick="openShieldModal()">
       <a href="invasion/" id="invasionLink" class="minigameLink" aria-label="Invasión" onclick="SFX.navClick();forceSave()"><img src="images/invasion.png" alt="Invasión"></a>
       <div id="balnum">0</div>
       <div id="ballabel">$CLK TOKENS</div>
@@ -1134,6 +1158,14 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <button id="dailyclose" onclick="document.getElementById('dailyov').classList.remove('show')">Cerrar</button>
 </div></div>
 
+<div id="shieldOv"><div id="shieldBox">
+  <img id="shieldBoxIcon" src="images/escudo.png" alt="Escudo">
+  <h3>Escudo de Invasión</h3>
+  <div id="shieldStatusLine">Cargando…</div>
+  <div id="shieldBuyBtnsMain"></div>
+  <button id="shieldClose" onclick="document.getElementById('shieldOv').classList.remove('show')">Cerrar</button>
+</div></div>
+
 <div id="introov">
   <video id="introvideo" src="videos/alieniniciocohete.mp4" playsinline></video>
   <div id="introfade"></div>
@@ -1181,6 +1213,11 @@ import {
   getFirestore, doc, getDoc, setDoc, serverTimestamp,
   collection, query, orderBy, limit, getDocs
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+// Reglas de negocio del escudo (coste, duración, qué se puede comprar
+// encima de qué) viven en un único sitio: invasion/js/invasion-core.js.
+// Este import solo hace disponible window.InvasionCore; no se usa nada
+// del propio módulo aquí arriba, así que no hace falta capturar nada.
+import './invasion/js/invasion-core.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAEVcDHhKSyPd4n_U-DXzJI7lskY7BTiyI",
@@ -2358,6 +2395,9 @@ setInterval(()=>{
   if(S.pph>0)addClk(S.pph/3600*dt,'passive');
   tickMiningBar(now);
   upd();save();checkMiss();
+  renderEscudoIcon(); // detecta aquí mismo cuándo expira el escudo, sin esperar a que el jugador reabra el modal o recargue
+  const shieldOv=document.getElementById('shieldOv');
+  if(shieldOv && shieldOv.classList.contains('show')) renderShieldModalContent();
 },1000);
 
 // Intento periódico de subir a la nube. Alineado con CLOUD_MIN_INTERVAL: no tiene sentido
@@ -2809,11 +2849,162 @@ function playIntroVideo(onDone){
 function skipIntroVideo(){ if(window.__skipIntroVideo)window.__skipIntroVideo(); }
 
 let _gameStarted=false;
+// ─────────────────────────────────────────────────────────────────────
+// ESCUDO DE INVASIÓN — comprado y consultado desde el index padre.
+// Toda la regla de negocio real (coste por nivel, duración, qué tipo se
+// puede comprar encima de qué) vive en invasion/js/invasion-core.js
+// (activateShield/shieldCost/CFG); este bloque solo LEE ese estado para
+// pintar el icono #escudoLink y ofrece el mismo flujo de compra que ya
+// existe dentro de invasion/index.html, pero en un modal propio del hub.
+// ─────────────────────────────────────────────────────────────────────
+let shieldState = { shieldUntil: 0, shieldType: '', lvl: 1, clk: 0 }; // valor por defecto hasta que syncShieldState() resuelva
+let shieldSynced = false; // true tras la primera respuesta real de syncProfileFromMainSave; distingue "aún no llegó nada" de "sincronizado y sin escudo"
+
+async function syncShieldState(){
+  try{
+    const core = window.InvasionCore;
+    if(!core || !window.__fbUser) return;
+    // syncProfileFromMainSave crea invasion_players/{uid} si todavía no
+    // existe (jugador que nunca entró en invasion/) y siempre devuelve
+    // clk/lvl ya conciliados con saves/{uid} — mismo criterio que usa
+    // invasion/index.html en su propio boot().
+    const p = await core.syncProfileFromMainSave(window.__fbUser.uid);
+    shieldState = { shieldUntil: p.shieldUntil || 0, shieldType: p.shieldType || '', lvl: p.lvl || 1, clk: p.clk || 0 };
+    shieldSynced = true;
+    renderEscudoIcon();
+    const shieldOv=document.getElementById('shieldOv');
+    if(shieldOv && shieldOv.classList.contains('show')) renderShieldModalContent();
+  }catch(e){
+    console.error('syncShieldState falló:', e);
+  }
+}
+
+function renderEscudoIcon(){
+  const img = document.getElementById('escudoLink');
+  if(!img) return;
+  const active = shieldState.shieldUntil > Date.now();
+  img.classList.toggle('inactive', !active);
+  // Dorado para 7 días, plateado para 3 días — mismo criterio de imagen
+  // que invasion/index.html usa en su propio panel de escudo.
+  img.src = active
+    ? (shieldState.shieldType==='7d' ? 'images/escudodorado.png' : 'images/escudoplateado.png')
+    : 'images/escudo.png';
+}
+
+function openShieldModal(){
+  document.getElementById('shieldOv').classList.add('show');
+  renderShieldModalContent();
+}
+
+function renderShieldModalContent(){
+  const core = window.InvasionCore;
+  const icon = document.getElementById('shieldBoxIcon');
+  const status = document.getElementById('shieldStatusLine');
+  const wrap = document.getElementById('shieldBuyBtnsMain');
+  const now = Date.now();
+  const active = shieldState.shieldUntil > now;
+
+  icon.src = active
+    ? (shieldState.shieldType==='7d' ? 'images/escudodorado.png' : 'images/escudoplateado.png')
+    : 'images/escudo.png';
+
+  if(!core || !shieldSynced){
+    // O bien invasion-core.js todavía no ha terminado de cargar, o bien
+    // syncShieldState() todavía no ha traído el clk/lvl real del
+    // jugador — en ambos casos mejor un mensaje de carga honesto que
+    // botones con costes que podrían no reflejar el saldo real todavía.
+    status.textContent = 'Cargando datos del escudo…';
+    wrap.innerHTML = '';
+    return;
+  }
+
+  status.textContent = active
+    ? `Escudo activo (${shieldState.shieldType}) — te protege en Invasión durante ${fmtShieldCountdown(shieldState.shieldUntil-now)} más`
+    : 'No tienes escudo activo: eres un objetivo válido en Invasión';
+
+  wrap.innerHTML='';
+  core.CFG.SHIELDS_ENABLED.forEach(type=>{
+    const hours = core.CFG.SHIELD_HOURS[type];
+    const label = hours>=24 ? `${hours/24}d` : `${hours}h`;
+    const cost = core.shieldCost(type, shieldState.lvl || 1);
+    // Misma regla que activateShield() en invasion-core.js: con un
+    // escudo activo no se puede volver a comprar el MISMO tipo, y
+    // tampoco se puede comprar 3d con un 7d activo. Comprar 7d con un
+    // 3d activo sí está permitido (mejora la protección).
+    const blocked = active && (type===shieldState.shieldType || (type==='3d' && shieldState.shieldType==='7d'));
+    const btn=document.createElement('button');
+    btn.className='shieldBuyBtnMain';
+    btn.innerHTML = blocked
+      ? `Escudo ${label}<br>Bloqueado por ${shieldState.shieldType} activo`
+      : `Escudo ${label}<br>🪙 ${fmt(cost)}`;
+    btn.disabled = blocked || (shieldState.clk||0) < cost;
+    btn.onclick=()=>buyShieldFromMain(type, cost);
+    wrap.appendChild(btn);
+  });
+}
+
+async function buyShieldFromMain(type, expectedCost){
+  const core = window.InvasionCore;
+  if(!core || !window.__fbUser) return;
+  try{
+    const { shieldUntil, cost } = await core.activateShield(window.__fbUser.uid, type);
+    shieldState.shieldUntil = shieldUntil;
+    shieldState.shieldType = type;
+    shieldState.clk = Math.max(0, (shieldState.clk||0) - cost);
+    // El cobro real ya ocurrió en Firestore dentro de activateShield —
+    // aquí solo se refleja ese mismo descuento en el balance visible del
+    // juego principal (S.clk/#balnum), mismo patrón que buyUp() usa para
+    // cualquier otra compra con $CLK. Se resta directo (no con
+    // spendClk(), que es una guarda de "¿alcanza?" pensada para decidir
+    // si la compra procede; aquí la compra ya procedió del lado del
+    // servidor, así que el resultado no es opcional) y con suelo en 0
+    // por si S.clk estuviera momentáneamente desincronizado por otra
+    // pestaña/dispositivo.
+    S.clk = Math.max(0, S.clk - cost);
+    recalc();
+    upd();
+    forceSave();
+    renderEscudoIcon();
+    renderShieldModalContent();
+    toast(`🛡️ Escudo activado por 🪙 ${fmt(cost)}`);
+  }catch(e){
+    console.error(e);
+    if((e.message||'').includes('CLK insuficiente')){
+      toast(`❌ Te faltan $CLK para este escudo (cuesta 🪙 ${fmt(expectedCost)})`);
+    }else if((e.message||'').includes('Ya tienes un escudo')){
+      toast(`❌ ${e.message}`);
+      renderShieldModalContent();
+    }else{
+      toast('❌ No se pudo activar el escudo');
+    }
+  }
+}
+
+// fmt(n) (arriba, ya definida para el $CLK del juego principal) se
+// reutiliza tal cual para el coste de los escudos, mismo formato. Solo
+// el countdown de días/horas es nuevo (no existe equivalente en el
+// padre): se define aparte porque invasion/index.html sí tiene el suyo
+// propio (fmtCountdown) pero ese vive en un módulo distinto, no
+// accesible desde aquí.
+function fmtShieldCountdown(ms){
+  if(ms<=0)return '';
+  const s=Math.floor(ms/1000);
+  const d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60);
+  if(d>0)return `${d}d ${h}h`;
+  if(h>0)return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
 window.startGameForUser=async function(user){
   if(_gameStarted)return; // evita doble init si onAuthStateChanged dispara más de una vez
   _gameStarted=true;
   await loadCloud(user.uid);
   window.__fbUser=user;
+  // Estado del escudo de Invasión (icono semitransparente/oscuro cuando no
+  // hay ninguno activo). Deliberadamente SIN await: no debe retrasar el
+  // arranque del juego principal por una llamada a un módulo secundario;
+  // el icono simplemente se actualiza en cuanto la lectura termine.
+  syncShieldState();
   recalc();upd();checkMiss();
   _appReadyForSave=true;
   localSaveNow();
