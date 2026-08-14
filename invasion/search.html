@@ -188,7 +188,7 @@ function playExitoVideo(){
 // el retraso se cuente desde ahí y no se acumule si showView('result'/
 // 'noneFound') se llama más de una vez (p.ej. al reintentar).
 const _pageEnterMs = Date.now();
-const RESULT_DELAY_MS = 2000;
+const RESULT_DELAY_MS = 3000;
 function showView(id){
   if(id!=='scanning'){
     const wait = Math.max(0, RESULT_DELAY_MS-(Date.now()-_pageEnterMs));
