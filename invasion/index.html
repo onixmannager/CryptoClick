@@ -443,15 +443,26 @@ function renderShieldButtons(){
   // permite comprar 7d con un 3d activo (mejora la protección).
   const now = Date.now();
   const activeType = (myProfile.shieldUntil||0) > now ? myProfile.shieldType : '';
+  // Etiqueta fija por tipo (no calculada desde SHIELD_HOURS): a petición
+  // expresa, el botón muestra solo '12H.' (plata / '3d') o '24H.' (dorado
+  // / '7d') tal cual, en vez de derivarla de las horas configuradas -que
+  // con 24h daría '1d' por el corte hours>=24 que usaba antes esta misma
+  // etiqueta-. Mismo criterio que renderShieldModalContent() en el
+  // index.html padre.
+  const SHIELD_LABELS_FIJAS = { '3d': '12H.', '7d': '24H.' };
   core.CFG.SHIELDS_ENABLED.forEach(type=>{
-    const hours=core.CFG.SHIELD_HOURS[type];
-    const label = hours>=24 ? `${hours/24}d` : `${hours}h`;
+    const label = SHIELD_LABELS_FIJAS[type] || `${core.CFG.SHIELD_HOURS[type]}h`;
     const cost = core.shieldCost(type, myProfile.lvl || 1);
     const blocked = !!activeType && (type===activeType || (type==='3d' && activeType==='7d'));
     const btn=document.createElement('button');
     btn.className='shieldBuyBtn';
+    // El texto "Bloqueado por X activo" se elimina a petición expresa:
+    // el botón bloqueado se queda SOLO con la etiqueta de duración (sin
+    // coste, que no aplica porque no se puede comprar en ese estado), y
+    // sigue deshabilitado (btn.disabled más abajo) para impedir la
+    // compra mientras el otro escudo esté activo.
     btn.innerHTML = blocked
-      ? `Escudo ${label}<br>Bloqueado por ${activeType} activo`
+      ? `Escudo ${label}`
       : `Escudo ${label}<br>🪙 ${fmtClk(cost)}`;
     btn.disabled = blocked || (myProfile.clk||0) < cost;
     btn.onclick=()=>buyShield(type, cost);
