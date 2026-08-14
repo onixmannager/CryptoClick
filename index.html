@@ -2988,6 +2988,31 @@ async function syncShieldState(){
     // clk/lvl ya conciliados con saves/{uid} — mismo criterio que usa
     // invasion/index.html en su propio boot().
     const p = await core.syncProfileFromMainSave(window.__fbUser.uid);
+    // syncProfileFromMainSave puede devolver un clk YA CONCILIADO con
+    // invasion_players (ver esa función): si el jugador ganó un robo en
+    // Invasión después del último guardado del padre, p.clk refleja esa
+    // ganancia aunque S.clk (el estado real del padre, el que ve el
+    // jugador en el HUD y el que se guarda) todavía no. Sin este ajuste,
+    // esa ganancia se queda solo en shieldState (que no alimenta S) y el
+    // PRÓXIMO autoguardado normal del padre sobrescribe saves/{uid} con
+    // el clk de antes del robo — perdiéndola para siempre, tal como
+    // advierte el comentario "LIMITACIÓN CONOCIDA" en resolveInvasion()
+    // (invasion-core.js).
+    // Solo se ajusta cuando p.clk > S.clk (ganancia neta desde Invasión).
+    // NO se resta cuando p.clk < S.clk (p.ej. robo sufrido): S.clk puede
+    // ir momentáneamente por delante de lo que syncProfileFromMainSave
+    // leyó si el jugador siguió tapeando mientras esta llamada estaba en
+    // vuelo (el guardado local tiene un debounce de 800ms, ver save()),
+    // y restar ahí arriesgaría descontarle al jugador $CLK ganado
+    // legítimamente por un simple desfase de timing, no por un robo real.
+    if(_appReadyForSave && typeof p.clk==='number' && isFinite(p.clk) && p.clk>S.clk){
+      // addClk() suma también a totalClk, igual que cualquier otra fuente
+      // de $CLK (bonus diario, offline, etc.) — el robo cuenta como
+      // progreso real del jugador.
+      addClk(p.clk-S.clk,'invasion');
+      upd();
+      forceSave();
+    }
     shieldState = { shieldUntil: p.shieldUntil || 0, shieldType: p.shieldType || '', lvl: p.lvl || 1, clk: p.clk || 0 };
     shieldSynced = true;
     renderEscudoIcon();
