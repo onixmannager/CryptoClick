@@ -1334,8 +1334,18 @@ const SFX=(()=>{
     }catch(e){ ctx=null; }
     return ctx;
   }
-  // El navegador exige un gesto del usuario para arrancar el AudioContext.
+  // El navegador exige un gesto del usuario para arrancar el AudioContext,
+  // PERO esa exigencia NO aplica cuando se llega por navegación contigua
+  // desde una página del mismo origen (p.ej. el link "← Volver" de
+  // invasion/index.html o ruleta.html) -el user gesture de esa navegación
+  // ya cuenta-. Por eso se intenta resume() ya mismo al cargar, en vez de
+  // esperar pasivamente al primer toque: si el navegador lo permite (que es
+  // el caso típico al volver desde otra página del juego), el audio queda
+  // listo sin necesitar ningún toque extra. Si el intento falla (llegada
+  // directa, sin navegación previa), el listener de abajo sigue como
+  // respaldo igual que antes.
   function unlock(){ const c=ensure(); if(c&&c.state==='suspended')c.resume(); }
+  unlock();
   ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{once:true,passive:true}));
 
   function tone(freq,dur,type,gainPeak,when,glideTo){
@@ -1477,13 +1487,19 @@ const BGM=(()=>{
       setupMediaSession();
       ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,start,{once:true,passive:true}));
     },
-    // Habilita que la música arranque. Si ya hubo un gesto del usuario
-    // mientras estaba bloqueada (p.ej. tocó "Continuar con Google", o
-    // "Saltar" en el video de intro), arranca inmediatamente con ese
-    // gesto ya gastado; si no, espera al próximo toque/click normal.
+    // Habilita que la música arranque. Se intenta start() ya mismo: en
+    // navegación contigua desde una página del mismo origen (el link
+    // "← Volver" de invasion/index.html o ruleta.html) el navegador no
+    // exige un gesto nuevo, así que la música puede arrancar sin esperar
+    // ningún toque -antes esto solo se intentaba si _pendingGesture era
+    // true, es decir, solo si el listener 'once' ya se había disparado-.
+    // start() ya maneja el fallo con .catch() sin romper nada si el intento
+    // no está permitido (llegada directa sin navegación previa): se queda
+    // esperando el próximo toque, igual que antes.
     allowStart(){
       _canStart=true;
-      if(_pendingGesture){ _pendingGesture=false; start(); }
+      _pendingGesture=false;
+      start();
     },
     onMuteChanged(){ applyVolume(); },
     pause(){ pausePublic(); },
