@@ -646,7 +646,27 @@ async function loadHistory(page){
     }
     panel.innerHTML='';
     const now=Date.now();
-    result.rows.forEach(r=>{
+
+    // BUG corregido aquí: withinRevengeWindow solo miraba "dentro de las
+    // 24h", sin comprobar si esa venganza ya se había hecho — así que el
+    // botón "Vengarse" se quedaba en la fila para siempre (dentro de la
+    // ventana) aunque el jugador ya se hubiera vengado, y no había forma
+    // de ver en el historial que la venganza había ocurrido. Ahora se
+    // comprueba con core.hasRevengedAttack() (mismo criterio que usa
+    // core.getActiveRevengeTarget() para el panel naranja de arriba) y,
+    // si ya hubo venganza, la fila muestra "Vengado" en vez del botón.
+    // Se resuelve en paralelo, una llamada por fila candidata (como
+    // mucho HIST_PAGE_SIZE de esta página), no una por cada fila del
+    // historial completo.
+    const revengeChecks = await Promise.all(result.rows.map(r=>{
+      const isMeAttacker = r.role==='attacker';
+      const createdMs = r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : Date.now();
+      const withinRevengeWindow = !isMeAttacker && r.won && (now - createdMs <= core.CFG.REVENGE_WINDOW_MS);
+      if(!withinRevengeWindow) return Promise.resolve(false);
+      return core.hasRevengedAttack(myProfile.uid, r.attackerUid, createdMs);
+    }));
+
+    result.rows.forEach((r,i)=>{
       const isMeAttacker = r.role==='attacker';
       const won = r.won;
       const icon = isMeAttacker ? (won?'💰':'💥') : (won?'😱':'🛡️');
@@ -668,17 +688,27 @@ async function loadHistory(page){
         <div class="histAmount ${amountClass}">${amountText}</div>
       `;
       // Botón "Vengarse" por fila: solo cuando YO fui el defensor, quien
-      // me atacó GANÓ el robo, y sigue dentro de la misma ventana de 24h
-      // que ya usa core.getActiveRevengeTarget() (CFG.REVENGE_WINDOW_MS) —
-      // misma regla de negocio que el panel naranja de arriba, aplicada
-      // aquí por fila en vez de solo al ataque más reciente.
-      const withinRevengeWindow = !isMeAttacker && won && (now - createdMs <= core.CFG.REVENGE_WINDOW_MS);
-      if(withinRevengeWindow){
+      // me atacó GANÓ el robo, sigue dentro de la misma ventana de 24h
+      // que ya usa core.getActiveRevengeTarget() (CFG.REVENGE_WINDOW_MS)
+      // Y todavía no me he vengado de ese ataque concreto (ver
+      // revengeChecks arriba) — misma regla de negocio que el panel
+      // naranja de arriba, aplicada aquí por fila en vez de solo al
+      // ataque más reciente.
+      const isMeDefender = !isMeAttacker;
+      const withinRevengeWindow = isMeDefender && won && (now - createdMs <= core.CFG.REVENGE_WINDOW_MS);
+      const alreadyRevenged = revengeChecks[i];
+      if(withinRevengeWindow && !alreadyRevenged){
         const rBtn=document.createElement('button');
         rBtn.className='histRevengeBtn';
         rBtn.textContent='Vengarse';
         rBtn.onclick=()=>goRevengeOn(r.attackerUid);
         row.appendChild(rBtn);
+      }else if(withinRevengeWindow && alreadyRevenged){
+        const doneBadge=document.createElement('button');
+        doneBadge.className='histRevengeBtn';
+        doneBadge.textContent='Vengado';
+        doneBadge.disabled=true;
+        row.appendChild(doneBadge);
       }
       panel.appendChild(row);
     });
