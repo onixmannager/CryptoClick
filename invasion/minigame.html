@@ -14,7 +14,12 @@
   --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
   --glass:rgba(10,12,22,.42);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* input/textarea no hay en este archivo, pero se deja la excepción por
+   consistencia con el resto del proyecto (index.html raíz, search.html,
+   invasion/index.html) por si se añade alguno en el futuro. */
+input,textarea{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
+img{-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:auto;user-drag:none}
 html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);display:flex;justify-content:center;overflow:hidden}
 #app{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;padding:20px 16px;position:relative}
 
