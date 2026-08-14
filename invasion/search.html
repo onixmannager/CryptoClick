@@ -15,14 +15,6 @@
   --glass:rgba(10,12,22,.5);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-/* Evita que al tocar/mantener presionado en cualquier parte de la app
-   (móvil) se dispare el selector de texto nativo. Los campos donde el
-   usuario SÍ necesita escribir/seleccionar (inputs, textarea) se excluyen
-   explícitamente justo debajo para no romper la edición de texto. */
-html,body{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-*{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-input,textarea{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
-img{-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:auto;user-drag:none}
 html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow:hidden}
 
 /* ── Video de RESULTADO a pantalla completa — sustituye al antiguo radar
@@ -189,7 +181,23 @@ function playExitoVideo(){
 
 // Muestra el chip de "escaneando" o el panel de resultado (rival /
 // sin objetivos) SOBRE el video, sin tapar el centro de la pantalla.
+// El resultado (rival encontrado o sin objetivos) tarda 2s en aparecer
+// desde que se entra a la página, aunque la búsqueda real ya haya
+// terminado antes — 'scanning' no se retrasa, es lo que se ve mientras
+// tanto. _pageEnterMs marca el instante de entrada a la página para que
+// el retraso se cuente desde ahí y no se acumule si showView('result'/
+// 'noneFound') se llama más de una vez (p.ej. al reintentar).
+const _pageEnterMs = Date.now();
+const RESULT_DELAY_MS = 2000;
 function showView(id){
+  if(id!=='scanning'){
+    const wait = Math.max(0, RESULT_DELAY_MS-(Date.now()-_pageEnterMs));
+    setTimeout(()=>_showView(id), wait);
+    return;
+  }
+  _showView(id);
+}
+function _showView(id){
   document.getElementById('searchingChip').classList.toggle('show', id==='scanning');
   document.getElementById('result').classList.toggle('show', id==='result');
   document.getElementById('noneFound').classList.toggle('show', id==='noneFound');
