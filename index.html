@@ -94,10 +94,11 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
    note de un vistazo que no protege ahora mismo. En cuanto hay un
    escudo activo (invasion_players/{uid}.shieldUntil > ahora) se quita
    esta clase vía JS y vuelve a su aspecto normal (ver renderEscudoIcon()).
-   opacity:.7 en vez de .4 y un oscurecimiento más suave: con el fondo
-   oscuro de la app (--bg:#0b0a14), los valores anteriores dejaban el
-   icono casi invisible en vez de simplemente "apagado". */
-#escudoLink.inactive{opacity:.7;filter:grayscale(.45) brightness(.85)}
+   opacity:.85 y un desaturado más ligero: el usuario pidió más
+   visibilidad todavía tras el primer ajuste (.4→.7); esto se acerca ya
+   al límite de "apagado pero perfectamente visible" antes de dejar de
+   distinguirse del estado activo. */
+#escudoLink.inactive{opacity:.85;filter:grayscale(.3) brightness(.92)}
 #invasionLink{right:0px;width:78px;top:230px}
 #rankpill{display:inline-block;background:linear-gradient(135deg,var(--purple),var(--blue));border-radius:20px;padding:6px 16px;font-size:13px;font-weight:800;letter-spacing:.5px;box-shadow:0 0 16px rgba(139,92,246,.5);transition:background .5s;margin-top:6px}
 
@@ -788,8 +789,8 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   /* ── OVERLAYS: center as real dialogs instead of mobile bottom
      sheets that would otherwise slam edge-to-edge across a wide
      viewport. ──────────────────────────────────────────────────── */
-  #noeov,#dailyov,#updateOv{align-items:center}
-  #noebox,#dailybox,#updateBanner{
+  #noeov,#dailyov,#updateOv,#shieldOv{align-items:center}
+  #noebox,#dailybox,#updateBanner,#shieldBox{
     max-width:380px;
     border-radius:24px;
     animation:popin .4s cubic-bezier(.175,.885,.32,1.275);
