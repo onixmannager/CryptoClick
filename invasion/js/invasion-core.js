@@ -549,6 +549,46 @@ async function getAttackHistory(uid, max = 20) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// HISTORIAL PAGINADO — misma fuente que getAttackHistory() (dos queries
+// fusionadas), pero pensado para un selector de páginas con números en
+// vez de una lista fija. Se trae un lote combinado más grande UNA sola
+// vez (fetchCap filas por rol, tope FETCH_CAP_MAX) y la paginación en
+// sí ocurre en cliente sobre ese array ya ordenado — evita el problema
+// de sincronizar cursors de Firestore entre DOS queries distintas
+// (atacante/defensor) que tendrían que avanzar juntas página a página.
+// Para el volumen de este modo (un historial personal, no un ranking
+// global) esto es más simple y fiable que paginar en el propio
+// Firestore, a costa de un techo fijo de filas totales visibles
+// (FETCH_CAP_MAX) en vez de paginación infinita.
+// ─────────────────────────────────────────────────────────────────────
+const HIST_FETCH_CAP_MAX = 200; // tope total (atacante+defensor) por consulta
+async function getAttackHistoryPage(uid, page = 1, pageSize = 15) {
+  const fetchCap = Math.min(HIST_FETCH_CAP_MAX, Math.max(pageSize * 10, pageSize));
+  const [asAttacker, asDefender] = await Promise.all([
+    getDocs(query(collection(db, 'invasion_attacks'), where('attackerUid', '==', uid), orderBy('createdAt', 'desc'), limit(fetchCap))),
+    getDocs(query(collection(db, 'invasion_attacks'), where('defenderUid', '==', uid), orderBy('createdAt', 'desc'), limit(fetchCap))),
+  ]);
+  const rows = [];
+  asAttacker.forEach(d => rows.push({ id: d.id, role: 'attacker', ...d.data() }));
+  asDefender.forEach(d => rows.push({ id: d.id, role: 'defender', ...d.data() }));
+  rows.sort((a, b) => {
+    const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+    return tb - ta;
+  });
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const start = (safePage - 1) * pageSize;
+  return {
+    rows: rows.slice(start, start + pageSize),
+    page: safePage,
+    totalPages,
+    totalRows: rows.length,
+    truncated: rows.length >= fetchCap, // puede haber más filas de las que este lote trajo
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────
 // MÚSICA DE FONDO DEL MODO INVASIÓN — sounds/invasion.mp3, en loop,
 // SOLO en invasion/index.html (la pantalla principal del modo). No
 // suena en search.html ni en minigame.html -decisión de producto, no
@@ -637,7 +677,7 @@ window.InvasionCore = {
   CFG, db, auth, authReady,
   difficultyFor, todayKeyUTC, shieldCost, rollWin,
   syncProfileFromMainSave, findRandomTarget, checkCanInvade,
-  resolveInvasion, activateShield, getActiveRevengeTarget, getAttackHistory,
+  resolveInvasion, activateShield, getActiveRevengeTarget, getAttackHistory, getAttackHistoryPage,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
   initInvasionBgm, // arranca la música de fondo del modo Invasión (loop, respeta cck4_muted)
   pauseInvasionBgm, resumeInvasionBgm, // para no solapar con el audio propio del video de intro
