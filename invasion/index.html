@@ -96,6 +96,28 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 .histAmount.lose{color:var(--red)}
 .histTime{font-size:10px;color:var(--muted);margin-top:2px}
 .emptyHist{text-align:center;color:var(--muted);font-size:12px;font-weight:700;padding:20px 0}
+/* Botón "Vengarse" dentro de una fila del historial — mismo color que
+   #revengeBtn (var(--orange)) para que se lea como la misma acción,
+   pero en tamaño reducido porque vive dentro de una fila compacta en
+   vez de ser el único CTA de un panel. Solo aparece en filas que
+   cumplen la condición de venganza (ver renderHistRevengeBtn en el
+   script): soy el defensor, gané quien me atacó, y sigue dentro de
+   CFG.REVENGE_WINDOW_MS. */
+.histRevengeBtn{flex-shrink:0;background:var(--orange);border:none;border-radius:8px;padding:6px 10px;font-family:var(--fb);font-weight:800;font-size:11px;color:#fff;cursor:pointer}
+.histRevengeBtn:active{transform:scale(.94)}
+.histRevengeBtn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Selector de páginas numeradas debajo del panel de historial — mismo
+   criterio visual que .shieldBuyBtn (fondo var(--card2), borde sutil)
+   para no introducir un lenguaje visual nuevo. La página activa se
+   distingue con el gradiente de #invadeBtn, ya usado en esta misma
+   pantalla como acento de acción/selección. */
+#histPager{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.histPageBtn{background:var(--card2);border:1px solid var(--border);border-radius:8px;min-width:30px;height:30px;padding:0 8px;font-family:var(--fb);font-weight:800;font-size:12px;color:var(--text);cursor:pointer}
+.histPageBtn:active{transform:scale(.92)}
+.histPageBtn.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent}
+.histPageBtn:disabled{opacity:.35;cursor:not-allowed}
+
 
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 #toast.show{opacity:1}
@@ -210,6 +232,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
       <div class="panel" id="histPanel">
         <div class="emptyHist">Cargando historial…</div>
       </div>
+      <div id="histPager"></div>
     </div>
   </main>
 </div>
@@ -592,16 +615,38 @@ async function checkRevenge(){
   }catch(e){ console.error('checkRevenge failed:',e); }
 }
 
-async function loadHistory(){
+let histCurrentPage = 1;
+const HIST_PAGE_SIZE = 15;
+
+// Dispara el mismo flujo que #revengeBtn (guardar el objetivo en
+// sessionStorage y navegar a search.html), pero a partir de un
+// attackerUid/attackerAlias sueltos en vez de core.getActiveRevengeTarget()
+// — así una fila cualquiera del historial puede iniciar la venganza sin
+// depender de que ese ataque sea el "último sufrido" que el panel naranja
+// de arriba rastrea.
+function goRevengeOn(attackerUid){
+  sessionStorage.setItem('invasion_direct_target', attackerUid);
+  sessionStorage.setItem('invasion_is_revenge', '1');
+  sessionStorage.setItem('invasion_came_from_search','1'); // idem invadeBtn/revengeBtn: evita
+                                                              // reaparición de la imagen de carga
+  window.location.href='search.html';
+}
+
+async function loadHistory(page){
   const panel=document.getElementById('histPanel');
+  const pager=document.getElementById('histPager');
+  histCurrentPage = page || histCurrentPage;
   try{
-    const rows = await core.getAttackHistory(myProfile.uid, 15);
-    if(rows.length===0){
+    const result = await core.getAttackHistoryPage(myProfile.uid, histCurrentPage, HIST_PAGE_SIZE);
+    histCurrentPage = result.page; // por si se pidió una página fuera de rango, queda acotada
+    if(result.totalRows===0){
       panel.innerHTML='<div class="emptyHist">Aún no hay robos registrados</div>';
+      pager.innerHTML='';
       return;
     }
     panel.innerHTML='';
-    rows.forEach(r=>{
+    const now=Date.now();
+    result.rows.forEach(r=>{
       const isMeAttacker = r.role==='attacker';
       const won = r.won;
       const icon = isMeAttacker ? (won?'💰':'💥') : (won?'😱':'🛡️');
@@ -622,11 +667,44 @@ async function loadHistory(){
         <div class="histText">${text}<div class="histTime">${timeAgo(createdMs)}</div></div>
         <div class="histAmount ${amountClass}">${amountText}</div>
       `;
+      // Botón "Vengarse" por fila: solo cuando YO fui el defensor, quien
+      // me atacó GANÓ el robo, y sigue dentro de la misma ventana de 24h
+      // que ya usa core.getActiveRevengeTarget() (CFG.REVENGE_WINDOW_MS) —
+      // misma regla de negocio que el panel naranja de arriba, aplicada
+      // aquí por fila en vez de solo al ataque más reciente.
+      const withinRevengeWindow = !isMeAttacker && won && (now - createdMs <= core.CFG.REVENGE_WINDOW_MS);
+      if(withinRevengeWindow){
+        const rBtn=document.createElement('button');
+        rBtn.className='histRevengeBtn';
+        rBtn.textContent='Vengarse';
+        rBtn.onclick=()=>goRevengeOn(r.attackerUid);
+        row.appendChild(rBtn);
+      }
       panel.appendChild(row);
     });
+    renderHistPager(result.page, result.totalPages);
   }catch(e){
     console.error('loadHistory failed:',e);
     panel.innerHTML='<div class="emptyHist">No se pudo cargar el historial</div>';
+    pager.innerHTML='';
+  }
+}
+
+// Selector de páginas con números — mismo criterio que el resto de
+// botones de esta pantalla (deshabilitado mientras es la página activa
+// o mientras no hay a dónde ir). Con totalPages<=1 no se muestra nada,
+// para no dejar un selector vacío de una sola página sin sentido.
+function renderHistPager(currentPage, totalPages){
+  const pager=document.getElementById('histPager');
+  pager.innerHTML='';
+  if(totalPages<=1) return;
+  for(let p=1;p<=totalPages;p++){
+    const btn=document.createElement('button');
+    btn.className='histPageBtn'+(p===currentPage?' active':'');
+    btn.textContent=String(p);
+    btn.disabled = p===currentPage;
+    btn.onclick=()=>loadHistory(p);
+    pager.appendChild(btn);
   }
 }
 
