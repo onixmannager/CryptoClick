@@ -435,6 +435,19 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #ruvideo{display:none;object-fit:cover}
 #rubox.has-video #ruemoji{display:none}
 
+/* Mientras showRankup() espera a que el video confirme que puede
+   reproducirse (vid.oncanplay), .wait-video oculta el layout clasico
+   (emoji+titulo+nombre+bonus+boton) para que no haya un "flash" de
+   texto y boton "A MINAR" antes de que arranque el video. Se usa
+   visibility en vez de display:none para no interrumpir la animacion
+   popin de #rubox ni desplazar el layout. Se quita al llegar oncanplay
+   (pasando directo a .has-video) o en onerror (revela el layout clasico
+   de toda la vida como fallback). Si el rango no tiene video configurado,
+   esta clase nunca se aplica y el modal se ve igual que siempre. */
+#rubox.wait-video #ruemoji,#rubox.wait-video #rutitle,
+#rubox.wait-video #runame,#rubox.wait-video #rubonus,
+#rubox.wait-video #ruclose{visibility:hidden}
+
 #rubox.has-video #ruvideo{
   display:block;
   position:fixed;inset:0;
@@ -2486,10 +2499,15 @@ function showRankup(r){
   const box=document.getElementById('rubox');
   const vid=document.getElementById('ruvideo');
   const src=RANK_VIDEOS[r.name];
-  box.classList.remove('has-video');
+  box.classList.remove('has-video','wait-video');
   vid.pause();vid.removeAttribute('src');vid.load();
   vid.onended=null;vid.onerror=null;vid.oncanplay=null;
   window.__skipRankupVideo=null;
+  // Si este rango tiene video, .wait-video oculta el layout clasico
+  // (texto+boton) desde el primer frame en que se abre el overlay, para
+  // que no haya un "flash" de eso antes de que el video este listo.
+  // Sin video, el modal se abre directo con su layout de siempre.
+  if(src)box.classList.add('wait-video');
   document.getElementById('ruov').classList.add('show');
   SFX.rankUp();rankBurst();
   if(src){
@@ -2503,8 +2521,8 @@ function showRankup(r){
     BGM.pause();
     vid.muted=false;
     vid.src=src;
-    vid.oncanplay=()=>{box.classList.add('has-video');vid.play().catch(()=>{});};
-    vid.onerror=()=>{box.classList.remove('has-video');BGM.resume();};
+    vid.oncanplay=()=>{box.classList.remove('wait-video');box.classList.add('has-video');vid.play().catch(()=>{});};
+    vid.onerror=()=>{box.classList.remove('has-video','wait-video');BGM.resume();};
     // Al terminar el video (o si el usuario pulsa "Saltar", ver
     // skipRankupVideo): cerrar el overlay automaticamente, igual que el
     // video de intro. El aviso de rango (titulo+nombre) ya se mostró
