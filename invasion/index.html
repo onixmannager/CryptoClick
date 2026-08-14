@@ -438,7 +438,7 @@ function updateShieldUI(){
   const shieldIconEl = document.getElementById('shieldIcon');
   if(active){
     // Dorado para el escudo de 7 días, plateado para el de 3 días.
-    const imgSrc = myProfile.shieldType==='' ? 'images/escudodorado.png' : 'images/escudoplateado.png';
+    const imgSrc = myProfile.shieldType==='7d' ? 'images/escudodorado.png' : 'images/escudoplateado.png';
     shieldIconEl.innerHTML = `<img src="${imgSrc}" alt="Escudo ${myProfile.shieldType}">`;
   } else {
     shieldIconEl.innerHTML = `<img src="images/sinescudo.png" alt="Sin escudo">`;
