@@ -2934,7 +2934,17 @@ function renderShieldModalContent(){
     btn.innerHTML = blocked
       ? `Escudo ${label}<br>Bloqueado por ${shieldState.shieldType} activo`
       : `Escudo ${label}<br>🪙 ${fmt(cost)}`;
-    btn.disabled = blocked || (shieldState.clk||0) < cost;
+    // shieldState.clk es un snapshot de $CLK tomado UNA vez al arrancar
+    // la sesión (ver syncShieldState() / startGameForUser) y no se
+    // vuelve a refrescar mientras el jugador sigue jugando y acumulando
+    // saldo. Para decidir si el botón se puede pulsar hay que comparar
+    // contra S.clk, que es el mismo saldo en vivo que ve el jugador en
+    // el HUD (#balnum) — no contra shieldState.clk, que quedaría
+    // desfasado y bloquearía compras que sí se pueden pagar. El coste
+    // real se vuelve a comprobar en el servidor dentro de
+    // activateShield() antes de cobrar, así que esto es solo para que
+    // el botón refleje correctamente si la compra es posible.
+    btn.disabled = blocked || (S.clk||0) < cost;
     btn.onclick=()=>buyShieldFromMain(type, cost);
     wrap.appendChild(btn);
   });
