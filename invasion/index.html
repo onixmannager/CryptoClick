@@ -61,6 +61,10 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 .shieldBuyBtn{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 6px;font-weight:800;font-size:12px;color:var(--text);cursor:pointer;text-align:center;line-height:1.5}
 .shieldBuyBtn:active{transform:scale(.96)}
 .shieldBuyBtn:disabled{opacity:.4;cursor:not-allowed}
+/* Icono del tipo de escudo (plateado/dorado) dentro de cada botón de
+   compra, encima del texto de duración/coste que ya había — mismo
+   criterio que .shieldBuyBtnImg en el index.html padre. */
+.shieldBuyBtnImg{display:block;width:28px;height:28px;object-fit:contain;margin:0 auto 4px}
 
 /* BOTÓN INVASIÓN */
 #invadeBtn{width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:18px;cursor:pointer;box-shadow:0 8px 24px rgba(255,60,172,.35)}
@@ -450,8 +454,15 @@ function renderShieldButtons(){
   // etiqueta-. Mismo criterio que renderShieldModalContent() en el
   // index.html padre.
   const SHIELD_LABELS_FIJAS = { '3d': '12H.', '7d': '24H.' };
+  // Imagen del escudo correspondiente a cada tipo, mismo criterio que
+  // updateShieldUI() más arriba (dorado='7d', plateado el resto) y que
+  // index.html padre — se añade DENTRO de cada botón de compra, a
+  // petición expresa, sin quitar el icono de #shieldIcon que ya muestra
+  // el escudo ACTIVO por separado; este es el icono de cada OPCIÓN.
+  const SHIELD_IMG_POR_TIPO = { '3d': 'images/escudoplateado.png', '7d': 'images/escudodorado.png' };
   core.CFG.SHIELDS_ENABLED.forEach(type=>{
     const label = SHIELD_LABELS_FIJAS[type] || `${core.CFG.SHIELD_HOURS[type]}h`;
+    const imgSrc = SHIELD_IMG_POR_TIPO[type];
     const cost = core.shieldCost(type, myProfile.lvl || 1);
     const blocked = !!activeType && (type===activeType || (type==='3d' && activeType==='7d'));
     const btn=document.createElement('button');
@@ -461,9 +472,10 @@ function renderShieldButtons(){
     // coste, que no aplica porque no se puede comprar en ese estado), y
     // sigue deshabilitado (btn.disabled más abajo) para impedir la
     // compra mientras el otro escudo esté activo.
+    const imgTag = `<img src="${imgSrc}" alt="" class="shieldBuyBtnImg">`;
     btn.innerHTML = blocked
-      ? `Escudo ${label}`
-      : `Escudo ${label}<br>🪙 ${fmtClk(cost)}`;
+      ? `${imgTag}Escudo ${label}`
+      : `${imgTag}Escudo ${label}<br>🪙 ${fmtClk(cost)}`;
     btn.disabled = blocked || (myProfile.clk||0) < cost;
     btn.onclick=()=>buyShield(type, cost);
     wrap.appendChild(btn);
