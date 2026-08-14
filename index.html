@@ -89,16 +89,16 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #arcadeLink:active,#ruletaLink:active,#invasionLink:active,#escudoLink:active{transform:scale(.9)}
 #arcadeLink{left:2px;width:73px;top:31px}
 #ruletaLink{right:8px;width:60px;top:35px}
-#escudoLink{left:3px;width:65px;top:239px;cursor:pointer;transition:transform .12s,opacity .25s,filter .25s}
-/* Escudo SIN comprar/activo: semitransparente y oscurecido, para que se
-   note de un vistazo que no protege ahora mismo. En cuanto hay un
-   escudo activo (invasion_players/{uid}.shieldUntil > ahora) se quita
-   esta clase vía JS y vuelve a su aspecto normal (ver renderEscudoIcon()).
-   opacity:.85 y un desaturado más ligero: el usuario pidió más
-   visibilidad todavía tras el primer ajuste (.4→.7); esto se acerca ya
-   al límite de "apagado pero perfectamente visible" antes de dejar de
-   distinguirse del estado activo. */
-#escudoLink.inactive{opacity:.85;filter:grayscale(.3) brightness(.92)}
+#escudoLink{left:3px;width:65px;top:239px;cursor:pointer}
+/* Escudo SIN comprar/activo: la imagen se ve al 100% (sin opacity ni
+   filter, a petición expresa: "visibilidad total") y un velo sólido
+   gris/negro la tapa por encima con ::after — no es transparencia, es
+   una capa física encima del icono, por eso necesita un wrapper propio
+   (el <span> #escudoLink) en vez de aplicarse sobre el <img> mismo. En
+   cuanto hay un escudo activo (invasion_players/{uid}.shieldUntil >
+   ahora) se quita .inactive vía JS, el velo desaparece y se ve el
+   icono normal (ver renderEscudoIcon()). */
+#escudoLink.inactive::after{content:'';position:absolute;inset:0;background:rgba(24,23,34,.86);border-radius:10px}
 #invasionLink{right:0px;width:78px;top:230px}
 #rankpill{display:inline-block;background:linear-gradient(135deg,var(--purple),var(--blue));border-radius:20px;padding:6px 16px;font-size:13px;font-weight:800;letter-spacing:.5px;box-shadow:0 0 16px rgba(139,92,246,.5);transition:background .5s;margin-top:6px}
 
@@ -929,7 +929,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     <div id="bal-area">
       <a href="arcade/index.html" id="arcadeLink" class="minigameLink" aria-label="Arcade" onclick="SFX.navClick()"><img src="images/arcade.png" alt="Arcade"></a>
       <a href="ruleta.html" id="ruletaLink" class="minigameLink" aria-label="Ruleta" onclick="SFX.navClick();forceSave()"><img src="images/ruleta.png" alt="Ruleta"></a>
-      <img src="images/escudo.png" id="escudoLink" class="minigameLink inactive" alt="Escudo" aria-label="Escudo" onclick="openShieldModal()">
+      <span id="escudoLink" class="minigameLink inactive" role="button" tabindex="0" aria-label="Escudo" onclick="openShieldModal()"><img src="images/escudo.png" id="escudoLinkImg" alt="Escudo"></span>
       <a href="invasion/" id="invasionLink" class="minigameLink" aria-label="Invasión" onclick="SFX.navClick();forceSave()"><img src="images/invasion.png" alt="Invasión"></a>
       <div id="balnum">0</div>
       <div id="ballabel">$CLK TOKENS</div>
@@ -2884,10 +2884,11 @@ async function syncShieldState(){
 }
 
 function renderEscudoIcon(){
-  const img = document.getElementById('escudoLink');
-  if(!img) return;
+  const wrap = document.getElementById('escudoLink');
+  const img = document.getElementById('escudoLinkImg');
+  if(!wrap || !img) return;
   const active = shieldState.shieldUntil > Date.now();
-  img.classList.toggle('inactive', !active);
+  wrap.classList.toggle('inactive', !active);
   // Dorado para 7 días, plateado para 3 días — mismo criterio de imagen
   // que invasion/index.html usa en su propio panel de escudo.
   img.src = active
