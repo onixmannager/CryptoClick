@@ -421,7 +421,7 @@ function updateShieldUI(){
     const imgSrc = myProfile.shieldType==='7d' ? 'images/escudodorado.png' : 'images/escudoplateado.png';
     shieldIconEl.innerHTML = `<img src="${imgSrc}" alt="Escudo ${myProfile.shieldType}">`;
   } else {
-    shieldIconEl.textContent = '⚠️';
+    shieldIconEl.innerHTML = `<img src="images/sinescudo.png" alt="Sin escudo">`;
   }
   document.getElementById('shieldTitle').textContent = active
     ? `Escudo activo (${myProfile.shieldType})`
