@@ -2954,6 +2954,24 @@ async function buyShieldFromMain(type, expectedCost){
   const core = window.InvasionCore;
   if(!core || !window.__fbUser) return;
   try{
+    // activateShield() cobra en el servidor releyendo invasion_players/{uid}
+    // en Firestore, NO el shieldState que hay en memoria en el cliente. Ese
+    // documento solo se pone al día cuando syncProfileFromMainSave() corre
+    // (dentro de syncShieldState()), y eso hasta ahora solo pasaba una vez,
+    // al arrancar la sesión — si el jugador seguía jugando y acumulando
+    // $CLK después, invasion_players.clk se quedaba con el saldo viejo del
+    // login, y el servidor rechazaba la compra con "CLK insuficiente"
+    // aunque S.clk (el saldo real y en pantalla) sí alcanzara. Por eso,
+    // justo antes de comprar: 1) se fuerza a subir S.clk actual a
+    // saves/{uid} sin esperar el intervalo normal de autoguardado
+    // (forceSaveCloud ya hace exactamente esto en otros puntos del código,
+    // p.ej. startGameForUser), y 2) se resincroniza invasion_players desde
+    // ese saves/{uid} recién actualizado (mismo mecanismo de
+    // syncProfileFromMainSave que ya concilia por updatedAt). Con ambos
+    // pasos, cuando activateShield() relea invasion_players/{uid} ya
+    // encuentra el clk real y actual, no uno desfasado.
+    await forceSaveCloud();
+    await syncShieldState();
     const { shieldUntil, cost } = await core.activateShield(window.__fbUser.uid, type);
     shieldState.shieldUntil = shieldUntil;
     shieldState.shieldType = type;
