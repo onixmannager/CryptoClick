@@ -2924,9 +2924,14 @@ function renderShieldModalContent(){
     : 'No tienes escudo activo: eres un objetivo válido en Invasión';
 
   wrap.innerHTML='';
+  // Etiqueta fija por tipo (no calculada desde SHIELD_HOURS): a petición
+  // expresa, el botón muestra solo '12H.' (plata / '3d') o '24H.' (dorado
+  // / '7d') tal cual, en vez de derivarla de las horas configuradas -que
+  // con 24h daría '1d' por el corte hours>=24 de más abajo, redundante
+  // aquí solo por claridad y ya no usado para el texto del botón-.
+  const SHIELD_LABELS_FIJAS = { '3d': '12H.', '7d': '24H.' };
   core.CFG.SHIELDS_ENABLED.forEach(type=>{
-    const hours = core.CFG.SHIELD_HOURS[type];
-    const label = hours>=24 ? `${hours/24}d` : `${hours}h`;
+    const label = SHIELD_LABELS_FIJAS[type] || `${core.CFG.SHIELD_HOURS[type]}h`;
     const cost = core.shieldCost(type, shieldState.lvl || 1);
     // Misma regla que activateShield() en invasion-core.js: con un
     // escudo activo no se puede volver a comprar el MISMO tipo, y
@@ -2935,8 +2940,13 @@ function renderShieldModalContent(){
     const blocked = active && (type===shieldState.shieldType || (type==='3d' && shieldState.shieldType==='7d'));
     const btn=document.createElement('button');
     btn.className='shieldBuyBtnMain';
+    // El texto "Bloqueado por X activo" se elimina a petición expresa:
+    // el botón bloqueado se queda SOLO con la etiqueta de duración (sin
+    // coste, que no aplica porque no se puede comprar en ese estado), y
+    // sigue deshabilitado (btn.disabled más abajo) para impedir la
+    // compra mientras el otro escudo esté activo.
     btn.innerHTML = blocked
-      ? `Escudo ${label}<br>Bloqueado por ${shieldState.shieldType} activo`
+      ? `Escudo ${label}`
       : `Escudo ${label}<br>🪙 ${fmt(cost)}`;
     // shieldState.clk es un snapshot de $CLK tomado UNA vez al arrancar
     // la sesión (ver syncShieldState() / startGameForUser) y no se
