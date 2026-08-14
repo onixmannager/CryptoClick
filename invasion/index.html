@@ -43,6 +43,9 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
 #balMiniIcon{font-size:17px}
 #balMiniNum{font-family:var(--fh);font-size:18px;color:var(--yellow);line-height:1}
 #balMiniLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:1px}
+#muteBtn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,border-color .2s;flex-shrink:0}
+#muteBtn:active{transform:scale(.88)}
+#muteBtn.off{opacity:.5;border-color:var(--border)}
 
 main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 
@@ -161,6 +164,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
   <div id="topbar">
     <a href="../index.html" id="backHome" aria-label="Volver al juego principal">←</a>
     <a href="#" id="logo"></a>
+    <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
     <div id="balMini">
       <span id="balMiniIcon">🪙</span>
       <div><div id="balMiniNum">–</div><div id="balMiniLabel">$CLK</div></div>
@@ -310,6 +314,19 @@ function playIntroVideo(onDone){
 }
 window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__skipInvasionIntroVideo(); };
 
+// Botón de silenciar del topbar — mismo icono/comportamiento que
+// #muteBtn en el índice padre (toggleMute() ahí), pero delegando el
+// estado a core.toggleInvasionMute() porque aquí la única fuente de
+// sonido es la música de fondo de Invasión (no hay motor SFX propio en
+// este modo). Se expone en window por el mismo motivo que
+// skipIntroVideo: este es un <script type="module">.
+window.toggleMute=function(){
+  const isMuted=core.toggleInvasionMute();
+  const btn=document.getElementById('muteBtn');
+  btn.textContent=isMuted?'🔇':'🔊';
+  btn.classList.toggle('off',isMuted);
+};
+
 // ── Imagen de carga (preloadinvasion.jpeg) — se muestra SIEMPRE que se
 // entra al modo desde el juego padre (index.html raíz), a diferencia
 // del video de intro, que solo la primera vez. Si la imagen carga
@@ -359,6 +376,8 @@ async function boot(){
   // garantiza que window.InvasionCore existe antes de que llegue este punto.
   core = window.InvasionCore;
   core.initInvasionBgm(); // música de fondo del modo Invasión (sounds/invasion.mp3, loop)
+  const mb=document.getElementById('muteBtn');
+  if(mb){mb.textContent=core.invasionMuted?'🔇':'🔊';mb.classList.toggle('off',core.invasionMuted);}
   const user = await core.authReady;
   if(!user){
     toast('⚠️ Debes iniciar sesión en el juego principal primero');
