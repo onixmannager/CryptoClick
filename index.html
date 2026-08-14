@@ -2880,12 +2880,12 @@ function renderEscudoIcon(){
   const active = shieldState.shieldUntil > Date.now();
   // Dorado para 7 días, plateado para 3 días — mismo criterio de imagen
   // que invasion/index.html usa en su propio panel de escudo. Sin
-  // escudo activo se muestra el icono normal (images/escudo.png), sin
-  // ningún efecto visual de "apagado" (opacidad/velo probados antes y
-  // descartados a petición expresa).
+  // escudo activo se muestra images/sinescudo.png, sin ningún efecto
+  // visual de "apagado" (opacidad/velo probados antes y descartados a
+  // petición expresa).
   img.src = active
     ? (shieldState.shieldType==='7d' ? 'images/escudodorado.png' : 'images/escudoplateado.png')
-    : 'images/escudo.png';
+    : 'images/sinescudo.png';
 }
 
 function openShieldModal(){
@@ -2903,7 +2903,7 @@ function renderShieldModalContent(){
 
   icon.src = active
     ? (shieldState.shieldType==='7d' ? 'images/escudodorado.png' : 'images/escudoplateado.png')
-    : 'images/escudo.png';
+    : 'images/sinescudo.png';
 
   if(!core || !shieldSynced){
     // O bien invasion-core.js todavía no ha terminado de cargar, o bien
