@@ -611,6 +611,25 @@ function resumeInvasionBgm() {
   _invasionBgmEl.play().catch(() => {}); // si el navegador lo bloquea aquí, initInvasionBgm ya dejó un reintento armado en el primer gesto
 }
 
+// Invierte el mute (mismo patrón que SFX.toggleMute() + BGM.onMuteChanged()
+// en el índice padre): guarda en la misma clave 'cck4_muted' y ajusta en
+// vivo el volumen de la música de fondo de Invasión. Devuelve el nuevo
+// estado (true = silenciado) para que el botón que llama sepa qué icono
+// mostrar.
+function toggleInvasionMute() {
+  _invasionMuted = !_invasionMuted;
+  try { localStorage.setItem('cck4_muted', _invasionMuted ? '1' : '0'); } catch (e) {}
+  if (_invasionBgmEl) {
+    if (_invasionMuted) {
+      _invasionBgmEl.pause();
+    } else {
+      _invasionBgmEl.volume = INVASION_BGM_VOL;
+      _invasionBgmEl.play().catch(() => {});
+    }
+  }
+  return _invasionMuted;
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // EXPORT — window.InvasionCore, mismo patrón que window.__fb en el padre.
 // ─────────────────────────────────────────────────────────────────────
@@ -622,4 +641,6 @@ window.InvasionCore = {
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
   initInvasionBgm, // arranca la música de fondo del modo Invasión (loop, respeta cck4_muted)
   pauseInvasionBgm, resumeInvasionBgm, // para no solapar con el audio propio del video de intro
+  toggleInvasionMute, // botón de silenciar del topbar de invasion/index.html
+  get invasionMuted() { return _invasionMuted; }, // estado actual, para pintar el icono del botón al cargar
 };
