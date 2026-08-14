@@ -325,6 +325,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .sh{font-family:var(--fh);font-size:24px;background:linear-gradient(135deg,var(--yellow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px}
 .ss{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:14px}
 
+/* CLAIM ALL / BUY ALL */
+.claimall{width:100%;background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:12px;padding:11px 14px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:13px;color:#001a0a;margin-bottom:12px;transition:opacity .2s,transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.claimall:disabled{opacity:.35;cursor:not-allowed;background:var(--card2);color:var(--muted);box-shadow:none}
+.claimall:not(:disabled):active{transform:scale(.97)}
+#upslist .claimall{background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a0a00}
+
 /* UPGRADES */
 .uc{background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:16px;padding:12px 13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;transition:border-color .25s,transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.25),0 1px 0 rgba(255,255,255,.1) inset}
 .uc:active{transform:scale(.98)}
@@ -990,6 +996,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="screen-upgrades" class="screen">
     <div class="sh">⚡ Mejoras</div>
     <div class="ss">Invierte $CLK para generar más tokens</div>
+    <button id="buyallbtn" class="claimall" onclick="buyAllUps()">🪙 Comprar todo lo disponible</button>
     <div id="upslist"></div>
     <div id="skinsec">
       <div class="skintitle">🎨 SKINS DE MONEDA</div>
@@ -1001,6 +1008,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="screen-missions" class="screen">
     <div class="sh">🎯 Misiones</div>
     <div class="ss">Completa retos para ganar $CLK extra</div>
+    <button id="claimallbtn" class="claimall" onclick="claimAllMiss()">🎁 Reclamar todo lo disponible</button>
     <div id="misslist"></div>
   </div>
 
@@ -2542,9 +2550,40 @@ function renderUps(){
       list.appendChild(card);
     }
   }
+  const bab=document.getElementById('buyallbtn');
+  bab.disabled=!UPS.some(u=>upgradeSortValue(u).can);
+  bab.style.opacity=bab.disabled?'.4':'1';
   renderSkins();
 }
 function buyUp(id){const u=UPS.find(x=>x.id===id);if(!u)return;const l=S.ups[id]||0;if(l>=u.max)return;const cost=upCost(u);if(!spendClk(cost)){toast('❌ Sin suficiente $CLK');SFX.buyFail();return}S.ups[id]=(l+1);S.upsCount++;if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;recalc();upd();renderUps();checkMiss();toast('✅ '+u.n+' → Nivel '+S.ups[id]);SFX.coinBuy();forceSave();}
+function buyAllUps(){
+  // Compra en cascada: en cada pasada busca, entre TODAS las mejoras no
+  // maxeadas, la de menor costo actual que sea asequible con el $CLK que
+  // quede, la compra, y repite. Como comprar un nivel sube el costo del
+  // siguiente nivel de esa misma mejora (upCost crece con S.ups[u.id]),
+  // esto reparte el gasto de más barato a más caro en todo el árbol de
+  // mejoras hasta que ninguna disponible entra ya en el saldo restante.
+  let count=0,spent=0;
+  while(true){
+    let cheapest=null,cheapestCost=Infinity;
+    for(const u of UPS){
+      const l=S.ups[u.id]||0;
+      if(l>=u.max)continue;
+      const cost=upCost(u);
+      if(cost<=S.clk&&cost<cheapestCost){cheapest=u;cheapestCost=cost;}
+    }
+    if(!cheapest)break;
+    spendClk(cheapestCost);
+    const l=S.ups[cheapest.id]||0;
+    S.ups[cheapest.id]=l+1;S.upsCount++;
+    if(cheapest.bMin)S.boostEnd=Date.now()+cheapest.bMin*(l+1)*60000;
+    count++;spent+=cheapestCost;
+  }
+  if(count===0){toast('❌ Sin suficiente $CLK para ninguna mejora');SFX.buyFail();return}
+  recalc();upd();renderUps();checkMiss();
+  toast('✅ '+count+' mejora'+(count>1?'s':'')+' compradas · -'+fmt(spent)+' $CLK');
+  SFX.coinBuy();forceSave();
+}
 function renderSkins(){const g=document.getElementById('skingrid');g.innerHTML='';for(const sk of SKINS){const ok=S.lvl>=sk.lvl;const d=document.createElement('div');d.className='skinitem'+(sk.id===S.skin?' active':'')+(ok?'':' locked');d.innerHTML=sk.ico+'<span class="skinlbl">'+(ok?sk.name:'Lvl '+sk.lvl)+'</span>';if(ok)d.onclick=()=>{S.skin=sk.id;forceSave();renderSkins();upd();toast('🎨 Skin "'+sk.name+'" activada')};g.appendChild(d);}}
 
 /* ===== MISIONES POR NIVELES: igual que las mejoras (UPS), una misión nunca
@@ -2609,6 +2648,9 @@ function renderMiss(){
       list.appendChild(card);
     }
   }
+  const cab=document.getElementById('claimallbtn');
+  cab.disabled=!MISS.some(m=>misProgress(m,misState(m))>=misGoal(m,misState(m).lvl));
+  cab.style.opacity=cab.disabled?'.4':'1';
 }
 function claimM(id){
   const m=MISS.find(x=>x.id===id);if(!m)return;
@@ -2619,6 +2661,28 @@ function claimM(id){
   ms.lvl++;
   addClk(reward,'reward');upd();renderMiss();
   toast('🎉 Misión Nv.'+(ms.lvl-1)+': +'+fmt(reward)+' $CLK');
+  SFX.missionClaim();rankBurst();forceSave();
+}
+function claimAllMiss(){
+  // Reclama, de una sola vez, todas las misiones que YA estaban listas en
+  // el instante de pulsar el botón. Primero se detectan todas (fase 1,
+  // sobre el estado congelado antes de tocar nada) y luego se aplican las
+  // recompensas (fase 2). Así, si reclamar una misión de 'taps' otorga
+  // $CLK y eso destapa una misión de tipo 'clk' que un momento antes NO
+  // estaba lista, esa nueva misión NO se reclama en este mismo click —
+  // quedará lista para el siguiente click, igual que si el jugador
+  // hubiera reclamado esa primera misión a mano con claimM().
+  const ready=MISS.filter(m=>{const ms=misState(m);return misProgress(m,ms)>=misGoal(m,ms.lvl);});
+  if(!ready.length){toast('❌ No hay misiones listas para reclamar');SFX.buyFail();return}
+  let count=0,total=0;
+  for(const m of ready){
+    const ms=misState(m),reward=misReward(m,ms.lvl);
+    ms.base=misRaw(m);ms.lvl++;
+    addClk(reward,'reward');
+    count++;total+=reward;
+  }
+  upd();renderMiss();
+  toast('🎉 '+count+' misión'+(count>1?'es':'')+' reclamada'+(count>1?'s':'')+': +'+fmt(total)+' $CLK');
   SFX.missionClaim();rankBurst();forceSave();
 }
 
