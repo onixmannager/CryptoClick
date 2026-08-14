@@ -504,6 +504,11 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .shieldBuyBtnMain{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 6px;font-family:var(--fb);font-weight:800;font-size:12.5px;color:var(--text);cursor:pointer;text-align:center;line-height:1.5}
 .shieldBuyBtnMain:active{transform:scale(.96)}
 .shieldBuyBtnMain:disabled{opacity:.4;cursor:not-allowed}
+/* Icono del tipo de escudo (plateado/dorado) dentro de cada botón de
+   compra, encima del texto de duración/coste que ya había — display:block
+   + margin auto para centrarlo sobre el texto, ya que el botón es
+   text-align:center pero una <img> por defecto es inline. */
+.shieldBuyBtnImg{display:block;width:30px;height:30px;object-fit:contain;margin:0 auto 4px}
 #shieldClose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:4px}
 
 /* ── Video de INTRO/presentación — se muestra una sola vez, la primera vez
@@ -2930,8 +2935,15 @@ function renderShieldModalContent(){
   // con 24h daría '1d' por el corte hours>=24 de más abajo, redundante
   // aquí solo por claridad y ya no usado para el texto del botón-.
   const SHIELD_LABELS_FIJAS = { '3d': '12H.', '7d': '24H.' };
+  // Imagen del escudo correspondiente a cada tipo, mismo criterio que
+  // icon.src más arriba y que invasion/index.html (dorado='7d', plateado
+  // resto) — se añade DENTRO de cada botón de compra, a petición expresa,
+  // sin quitar el icono grande de #shieldBoxIcon que ya muestra el escudo
+  // ACTIVO por separado; este es el icono de cada OPCIÓN de compra.
+  const SHIELD_IMG_POR_TIPO = { '3d': 'images/escudoplateado.png', '7d': 'images/escudodorado.png' };
   core.CFG.SHIELDS_ENABLED.forEach(type=>{
     const label = SHIELD_LABELS_FIJAS[type] || `${core.CFG.SHIELD_HOURS[type]}h`;
+    const imgSrc = SHIELD_IMG_POR_TIPO[type];
     const cost = core.shieldCost(type, shieldState.lvl || 1);
     // Misma regla que activateShield() en invasion-core.js: con un
     // escudo activo no se puede volver a comprar el MISMO tipo, y
@@ -2945,11 +2957,13 @@ function renderShieldModalContent(){
     // coste, que no aplica porque no se puede comprar en ese estado), y
     // sigue deshabilitado (btn.disabled más abajo) para impedir la
     // compra mientras el otro escudo esté activo.
+    const imgTag = `<img src="${imgSrc}" alt="" class="shieldBuyBtnImg">`;
     btn.innerHTML = blocked
-      ? `Escudo ${label}`
-      : `Escudo ${label}<br>🪙 ${fmt(cost)}`;
+      ? `${imgTag}Escudo ${label}`
+      : `${imgTag}Escudo ${label}<br>🪙 ${fmt(cost)}`;
     // shieldState.clk es un snapshot de $CLK tomado UNA vez al arrancar
     // la sesión (ver syncShieldState() / startGameForUser) y no se
+
     // vuelve a refrescar mientras el jugador sigue jugando y acumulando
     // saldo. Para decidir si el botón se puede pulsar hay que comparar
     // contra S.clk, que es el mismo saldo en vivo que ve el jugador en
