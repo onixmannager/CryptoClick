@@ -10,80 +10,135 @@
 :root{
   --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;
   --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
-  --green:#10B981;--red:#EF4444;--text:#fff;--muted:#6B68A0;--border:rgba(255,255,255,0.07);
+  --green:#10B981;--red:#EF4444;--text:#fff;--muted:#a9a6d6;--border:rgba(255,255,255,0.07);
   --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
-  --glass:rgba(10,12,22,.42);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
+  --glass:rgba(10,12,22,.5);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);display:flex;justify-content:center}
-#app{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative}
+html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow:hidden}
 
-.radar{width:220px;height:220px;border-radius:50%;border:2px solid rgba(139,92,246,.3);position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:28px}
-.radar::before,.radar::after{content:'';position:absolute;border-radius:50%;border:2px solid rgba(139,92,246,.15)}
-.radar::before{width:160px;height:160px}
-.radar::after{width:100px;height:100px}
-.sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(139,92,246,.5),transparent 60deg);animation:spin 1.4s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.radarIcon{font-size:44px;z-index:1;animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+/* ── Video de RESULTADO a pantalla completa — sustituye al antiguo radar
+   animado. Se usa el MISMO criterio responsive que el resto del juego
+   (ver #introvideo en index.html raíz e invasion/index.html): en MOVIL
+   object-fit:cover llena el viewport; en ESCRITORIO (min-width:901px)
+   object-fit:contain mantiene la proporción del video sin recortarlo,
+   centrado sobre fondo negro con barras a los lados. Hay dos <video>
+   superpuestos (uno por resultado) y solo se muestra el que toque vía
+   .show, para poder cambiar de uno a otro sin recrear el elemento. ── */
+#videoStage{position:fixed;inset:0;background:#000;z-index:1}
+#videoStage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+#videoStage video.show{display:block}
+@media (min-width:901px){
+  #videoStage video{object-fit:contain}
+}
 
-h1{font-family:var(--fh);font-size:20px;margin-bottom:8px}
-#statusText{color:var(--muted);font-weight:700;font-size:13px;min-height:18px}
+/* ── Overlay de información, SIEMPRE por encima del video. Franja
+   superior e inferior con degradado oscuro para que el texto/botones
+   se lean con cualquier fondo de video, dejando el CENTRO de la
+   pantalla despejado a propósito -es donde ocurre la parte más visual
+   del video- tal y como se pidió explícitamente. ── */
+#overlay{position:fixed;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;padding:calc(14px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
+#overlay>*{pointer-events:auto}
+#topBar{background:linear-gradient(to bottom,rgba(6,5,14,.82),rgba(6,5,14,.55) 65%,transparent);margin:calc(-14px - env(safe-area-inset-top)) -16px 0;padding:calc(14px + env(safe-area-inset-top)) 16px 26px;display:flex;align-items:center;gap:10px}
+#backLink{color:var(--text);text-decoration:none;font-weight:800;font-size:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#topTitle{font-family:var(--fh);font-size:15px;letter-spacing:.3px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+#topSub{font-size:11px;font-weight:800;color:var(--muted);margin-top:1px}
 
-#result{display:none;width:100%}
+#bottomPanel{width:100%;max-width:430px;margin:0 auto}
+
+/* Estado "buscando": chip pequeño, no ocupa espacio del centro */
+#searchingChip{display:none;align-items:center;gap:10px;background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:16px;padding:12px 16px;width:100%;max-width:430px;margin:0 auto}
+#searchingChip.show{display:flex}
+.pulseDot{width:10px;height:10px;border-radius:50%;background:var(--purple);flex-shrink:0;animation:pulseDot 1s ease-in-out infinite}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+#searchingText{font-weight:800;font-size:13px}
+#searchingSub{font-size:11px;color:var(--muted);font-weight:700;margin-top:1px}
+
+/* Resultado: rival encontrado */
+#result{display:none}
 #result.show{display:block}
-.rivalCard{background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:20px;padding:24px;margin-top:12px}
-.rivalAvatar{font-size:56px;margin-bottom:8px}
-.rivalName{font-family:var(--fh);font-size:20px;color:var(--text)}
-.rivalLvl{font-size:12px;color:var(--muted);font-weight:800;margin-top:2px}
-.diffBadge{display:inline-block;margin-top:12px;padding:6px 16px;border-radius:20px;font-family:var(--fh);font-size:13px}
-.diffBadge.muy_facil{background:rgba(16,185,129,.2);color:var(--green)}
-.diffBadge.facil{background:rgba(16,185,129,.15);color:#6ee7b7}
-.diffBadge.normal{background:rgba(255,215,0,.15);color:var(--yellow)}
-.diffBadge.dificil{background:rgba(255,107,53,.15);color:var(--orange)}
-.diffBadge.muy_dificil{background:rgba(239,68,68,.15);color:var(--red)}
-.rivalClk{font-family:var(--fh);font-size:24px;color:var(--yellow);margin-top:12px}
+.rivalCard{background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:20px;padding:18px 20px}
+.rivalTop{display:flex;align-items:center;gap:12px}
+.rivalAvatar{font-size:40px;line-height:1;flex-shrink:0}
+.rivalInfo{flex:1;min-width:0;text-align:left}
+.rivalName{font-family:var(--fh);font-size:18px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rivalLvl{font-size:12px;color:var(--muted);font-weight:800;margin-top:1px}
+.diffBadge{flex-shrink:0;padding:6px 14px;border-radius:20px;font-family:var(--fh);font-size:12px;white-space:nowrap}
+.diffBadge.muy_facil{background:rgba(16,185,129,.22);color:var(--green)}
+.diffBadge.facil{background:rgba(16,185,129,.18);color:#6ee7b7}
+.diffBadge.normal{background:rgba(255,215,0,.18);color:var(--yellow)}
+.diffBadge.dificil{background:rgba(255,107,53,.18);color:var(--orange)}
+.diffBadge.muy_dificil{background:rgba(239,68,68,.18);color:var(--red)}
+.rivalClkRow{display:flex;align-items:baseline;justify-content:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.rivalClk{font-family:var(--fh);font-size:24px;color:var(--yellow)}
 .rivalClkLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px}
 
-#attackBtn{width:100%;margin-top:18px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer}
+#attackBtn{width:100%;margin-top:14px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 20px rgba(139,92,246,.35)}
 #attackBtn:active{transform:scale(.97)}
-#retryBtn{width:100%;margin-top:10px;padding:12px;border:none;border-radius:12px;background:var(--card2);color:var(--text);font-weight:800;font-size:13px;cursor:pointer}
+#retryBtn{width:100%;margin-top:10px;padding:12px;border:none;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--text);font-weight:800;font-size:13px;cursor:pointer}
 
+/* Resultado: sin objetivos */
 #noneFound{display:none;text-align:center}
 #noneFound.show{display:block}
-.noneIcon{font-size:48px;margin-bottom:12px}
-
-#backLink{position:absolute;top:16px;left:16px;color:var(--muted);text-decoration:none;font-weight:800;font-size:20px}
+.noneCard{background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:20px;padding:20px}
+.noneIcon{font-size:38px;margin-bottom:6px}
+#noneTitle{font-family:var(--fh);font-size:17px}
+#noneText{font-size:12px;color:var(--muted);font-weight:700;margin-top:6px;line-height:1.5}
+#retryBtn2{width:100%;margin-top:14px;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-weight:800;font-size:14px;cursor:pointer}
 </style>
 </head>
 <body>
-<div id="app">
-  <a href="./" id="backLink">←</a>
 
-  <div id="scanning">
-    <div class="radar"><div class="sweep"></div><div class="radarIcon">📡</div></div>
-    <h1>ESCANEANDO SECTOR</h1>
-    <div id="statusText">Buscando objetivos disponibles…</div>
-  </div>
+<div id="videoStage">
+  <video id="videoSinExito" src="videos/radarsinexito.mp4" playsinline loop></video>
+  <video id="videoExito" src="videos/radarexito.mp4" playsinline loop></video>
+</div>
 
-  <div id="result">
-    <div class="rivalCard">
-      <div class="rivalAvatar">👽</div>
-      <div class="rivalName" id="rivalName">–</div>
-      <div class="rivalLvl" id="rivalLvl">–</div>
-      <div class="diffBadge" id="diffBadge">–</div>
-      <div class="rivalClk" id="rivalClk">–</div>
-      <div class="rivalClkLabel">$CLK EN JUEGO</div>
+<div id="overlay">
+  <div id="topBar">
+    <a href="./" id="backLink" aria-label="Volver">←</a>
+    <div>
+      <div id="topTitle">SECTOR DE INVASIÓN</div>
+      <div id="topSub">Radar de objetivos</div>
     </div>
-    <button id="attackBtn">⚔️ ATACAR</button>
-    <button id="retryBtn">🔄 Buscar otro rival</button>
   </div>
 
-  <div id="noneFound">
-    <div class="noneIcon">🛸</div>
-    <h1 id="noneTitle">Sin objetivos ahora</h1>
-    <div id="statusText" style="margin:8px 0 20px">No hay rivales disponibles en este momento. Todos protegidos o sin $CLK suficiente.</div>
-    <button id="retryBtn2" class="shieldBuyBtn" style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--card2);color:var(--text);font-weight:800;cursor:pointer">🔄 Reintentar</button>
+  <div id="bottomPanel">
+    <div id="searchingChip">
+      <div class="pulseDot"></div>
+      <div>
+        <div id="searchingText">Escaneando sector…</div>
+        <div id="searchingSub">Buscando objetivos disponibles</div>
+      </div>
+    </div>
+
+    <div id="result">
+      <div class="rivalCard">
+        <div class="rivalTop">
+          <div class="rivalAvatar">👽</div>
+          <div class="rivalInfo">
+            <div class="rivalName" id="rivalName">–</div>
+            <div class="rivalLvl" id="rivalLvl">–</div>
+          </div>
+          <div class="diffBadge" id="diffBadge">–</div>
+        </div>
+        <div class="rivalClkRow">
+          <div class="rivalClk" id="rivalClk">–</div>
+          <div class="rivalClkLabel">$CLK EN JUEGO</div>
+        </div>
+      </div>
+      <button id="attackBtn">⚔️ ATACAR</button>
+      <button id="retryBtn">🔄 Buscar otro rival</button>
+    </div>
+
+    <div id="noneFound">
+      <div class="noneCard">
+        <div class="noneIcon">🛸</div>
+        <h1 id="noneTitle">Sin objetivos ahora</h1>
+        <div id="noneText">No hay rivales disponibles en este momento. Todos protegidos o sin $CLK suficiente.</div>
+        <button id="retryBtn2">🔄 Reintentar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -100,17 +155,46 @@ function fmtClk(n){
 }
 const DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal',dificil:'Difícil',muy_dificil:'Casi imposible'};
 
+const vidSinExito = document.getElementById('videoSinExito');
+const vidExito = document.getElementById('videoExito');
+
+// Arranca (o mantiene) el video de "buscando/sin éxito" como fondo, con
+// su audio propio -mismo criterio que #introvideo/#ruvideo en el resto
+// del proyecto: vid.muted=false explícito antes de reproducir, sin
+// consultar el mute global de SFX/BGM, porque estos videos traen su
+// propia narración/sonido y se tratan como un elemento aparte-.
+function playSinExitoVideo(){
+  vidExito.pause();
+  vidExito.classList.remove('show');
+  vidSinExito.classList.add('show');
+  vidSinExito.muted=false;
+  if(vidSinExito.paused) vidSinExito.play().catch(()=>{});
+}
+function playExitoVideo(){
+  vidSinExito.pause();
+  vidSinExito.classList.remove('show');
+  vidExito.classList.add('show');
+  vidExito.muted=false;
+  vidExito.currentTime=0;
+  vidExito.play().catch(()=>{});
+}
+
+// Muestra el chip de "escaneando" o el panel de resultado (rival /
+// sin objetivos) SOBRE el video, sin tapar el centro de la pantalla.
 function showView(id){
-  ['scanning','result','noneFound'].forEach(v=>{
-    document.getElementById(v).style.display = v===id ? 'block' : 'none';
-  });
+  document.getElementById('searchingChip').classList.toggle('show', id==='scanning');
+  document.getElementById('result').classList.toggle('show', id==='result');
+  document.getElementById('noneFound').classList.toggle('show', id==='noneFound');
 }
 
 async function boot(){
   core = window.InvasionCore;
   const user = await core.authReady;
   if(!user){
-    document.getElementById('statusText').textContent='Inicia sesión en el juego principal primero.';
+    playSinExitoVideo();
+    document.getElementById('searchingText').textContent='Inicia sesión en el juego principal primero.';
+    document.getElementById('searchingSub').textContent='';
+    showView('scanning');
     return;
   }
 
@@ -159,14 +243,18 @@ let directTargetFailed=false; // true si el fallo viene de un intento de VENGANZ
 // poder reintentar la búsqueda al azar, no mandar al jugador de vuelta
 // al menú con un mensaje que no le corresponde.
 function markSearchFailed(msg, isRevenge){
-  document.getElementById('statusText').textContent = msg;
+  playSinExitoVideo();
   document.getElementById('noneTitle').textContent = isRevenge ? 'No se pudo completar la venganza' : 'No se pudo lanzar el ataque';
+  document.getElementById('noneText').textContent = msg;
   document.getElementById('retryBtn2').textContent = isRevenge ? '← Volver' : '🔄 Reintentar';
   directTargetFailed = isRevenge;
   showView('noneFound');
 }
 
 async function searchDirectTarget(uid){
+  // La búsqueda corre en segundo plano: el video de "escaneando" se
+  // muestra a pantalla completa de inmediato y no bloquea la petición.
+  playSinExitoVideo();
   showView('scanning');
   try{
     const snap = await core.getDoc(core.doc(core.db,'invasion_players',uid));
@@ -190,12 +278,17 @@ async function searchDirectTarget(uid){
 }
 
 async function searchRandom(){
+  // Igual que searchDirectTarget: el video de resultado (éxito/sin
+  // éxito) es lo único que ve el usuario mientras dura la búsqueda real;
+  // no hay pantalla de radar/spinner por separado.
+  playSinExitoVideo();
   showView('scanning');
   try{
     foundTarget = await core.findRandomTarget(myProfile.uid, myProfile.recentTargets);
     if(!foundTarget){
+      playSinExitoVideo();
       document.getElementById('noneTitle').textContent = 'Sin objetivos ahora';
-      document.getElementById('statusText').textContent = 'No hay rivales disponibles en este momento. Revisa la consola (F12) para ver el motivo exacto — puede ser que ya invadiste a todos los candidatos disponibles hace menos de 4h.';
+      document.getElementById('noneText').textContent = 'No hay rivales disponibles en este momento. Revisa la consola (F12) para ver el motivo exacto — puede ser que ya invadiste a todos los candidatos disponibles hace menos de 4h.';
       document.getElementById('retryBtn2').textContent = '🔄 Reintentar';
       directTargetFailed = false;
       showView('noneFound');
@@ -209,6 +302,7 @@ async function searchRandom(){
 }
 
 function showResult(){
+  playExitoVideo();
   const tier = core.difficultyFor(myProfile.lvl, foundTarget.lvl);
   document.getElementById('rivalName').textContent = foundTarget.alias || 'Jugador';
   document.getElementById('rivalLvl').textContent = `Nivel ${foundTarget.lvl}`;
