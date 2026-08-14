@@ -81,18 +81,30 @@ const CFG = {
     '7d': { base: 10000, exp: 1.14 },
   },
 
-  // Probabilidad de victoria fija para CUALQUIER atacante contra
-  // CUALQUIER defensor, decidida a propósito por el usuario del
-  // proyecto: el minijuego se sigue jugando igual (mantiene la tensión y
-  // el enganche), pero el resultado final que cuenta para el robo NO
-  // depende de si el jugador encontró los 3 depósitos a tiempo — se
-  // decide con esta probabilidad, igual para todos, sin favorecer a
-  // ningún jugador concreto. Se aplica en minigame.html/endGame().
-  WIN_PROBABILITY: 0.8,
+  // NOTA: existía aquí una probabilidad de victoria fija (WIN_PROBABILITY)
+  // que decidía ganar/perder con una moneda ajena al minijuego, ignorando
+  // si el jugador encontró los 3 depósitos a tiempo. Se elimina a
+  // petición expresa: el resultado ahora depende de verdad de lo que pasa
+  // en el tablero (minigame.html ya no llama a una tirada aparte, usa
+  // directamente si encontró los 3 depósitos). Ver difficultyFor() más
+  // abajo para el equilibrio de intentos/tiempo por tier, que es ahora el
+  // único lugar donde vive la dificultad real del modo.
 
   // Anti-abuso
-  INVASION_COOLDOWN_MS: 60 * 1000,           // 60s entre invasiones lanzadas
-  MAX_INVASIONS_PER_DAY: 20,
+  // Bajado de 60s a 5s a petición expresa: el cooldown largo se sentía
+  // como fricción sin aportar nada al anti-abuso real (esa barrera es el
+  // límite diario de abajo + las Firestore Rules, no este número). 5s
+  // basta para absorber un doble-clic accidental sin frenar el ritmo de
+  // juego entre invasiones consecutivas.
+  INVASION_COOLDOWN_MS: 5 * 1000,
+  // Subido de 20 a 30 junto con el cooldown más corto: con 5s de espera
+  // entre invasiones, 20/día se agotaba en menos de 2 minutos de juego
+  // seguido, lo que convertía el límite diario en la única fricción real
+  // del modo. 30/día mueve esa fricción a "vuelve mañana" en vez de
+  // "espera un minuto", que es el patrón de retención (sesión diaria) en
+  // vez de sesión maratoniana. Debe ir sincronizado con el tope
+  // invasionsToday <= 30 en firestore/invasion.rules.
+  MAX_INVASIONS_PER_DAY: 30,
   SAME_TARGET_COOLDOWN_MS: 4 * 60 * 60 * 1000, // 4h sin repetir objetivo
   NEW_ACCOUNT_PROTECTION_MS: 0, // protección a cuentas nuevas desactivada a petición: cualquier cuenta puede invadir desde el minuto 1
   REVENGE_WINDOW_MS: 24 * 60 * 60 * 1000,    // 24h para vengarse
@@ -108,12 +120,26 @@ const CFG = {
 
   // Tabla de dificultad por diferencia de nivel (invasor - defensor).
   // tiempoMs / intentos alimentan el minijuego; robMax es el % techo.
+  //
+  // Reajustada a petición expresa ("que se gane más, más fácil, al 50%,
+  // y que dependa de la suerte real del jugador"): ahora que el resultado
+  // del minijuego SÍ decide ganar/perder (ver minigame.html/endGame(),
+  // ya no hay tirada aparte), los `intentos` de esta tabla son la
+  // dificultad real, no decorativa. Se suben en todos los tiers para que
+  // ganar sea alcanzable con juego normal — con 9 casillas (3 depósitos·
+  // 3 trampas·3 vacíos) y coste trampa=2/vacío=1/depósito=0, el tier
+  // 'normal' antes solo perdonaba UNA trampa con 3 intentos; con 5
+  // intentos perdona dos trampas y dos vacíos antes de fallar, lo que
+  // deja la victoria mayormente en manos de encontrar rápido los
+  // depósitos (la "suerte" de qué casillas tocas primero) en vez de
+  // depender de acertar sin ningún margen de error. robMax también sube
+  // en todos los tiers manteniendo el mismo orden relativo de dificultad.
   DIFFICULTY_TIERS: [
-    { min: 10,  max: Infinity, key: 'muy_facil',   label: 'Muy fácil',    tiempoMs: 20000, intentos: 4, robMax: 0.18 },
-    { min: 4,   max: 9,        key: 'facil',       label: 'Fácil',        tiempoMs: 17000, intentos: 3, robMax: 0.15 },
-    { min: -3,  max: 3,        key: 'normal',      label: 'Normal',       tiempoMs: 14000, intentos: 3, robMax: 0.12 },
-    { min: -9,  max: -4,       key: 'dificil',     label: 'Difícil',      tiempoMs: 11000, intentos: 2, robMax: 0.08 },
-    { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 10000, intentos: 2, robMax: 0.05 },
+    { min: 10,  max: Infinity, key: 'muy_facil',   label: 'Muy fácil',    tiempoMs: 20000, intentos: 6, robMax: 0.30 },
+    { min: 4,   max: 9,        key: 'facil',       label: 'Fácil',        tiempoMs: 18000, intentos: 5, robMax: 0.25 },
+    { min: -3,  max: 3,        key: 'normal',      label: 'Normal',       tiempoMs: 16000, intentos: 5, robMax: 0.20 },
+    { min: -9,  max: -4,       key: 'dificil',     label: 'Difícil',      tiempoMs: 13000, intentos: 4, robMax: 0.14 },
+    { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 12000, intentos: 3, robMax: 0.10 },
   ],
 };
 
@@ -124,12 +150,6 @@ function shieldCost(shieldType, lvl) {
   const c = CFG.SHIELD_COST[shieldType];
   if (!c) return 0;
   return Math.ceil(c.base * Math.pow(c.exp, Math.max(1, lvl) - 1));
-}
-
-// Decide el resultado final de una invasión según CFG.WIN_PROBABILITY,
-// igual para cualquier jugador — no distingue atacante ni defensor.
-function rollWin() {
-  return Math.random() < CFG.WIN_PROBABILITY;
 }
 
 function difficultyFor(attackerLvl, defenderLvl) {
@@ -535,7 +555,7 @@ async function activateShield(uid, shieldType) {
 // original, esta query seguía devolviendo el mismo ataque como
 // "pendiente de vengar" indefinidamente mientras siguiera dentro de las
 // 24h — el aviso nunca desaparecía, el historial nunca reflejaba que ya
-// me había vengado, y en cuanto pasaba el cooldown normal de 60s
+// me había vengado, y en cuanto pasaba el cooldown normal
 // (CFG.INVASION_COOLDOWN_MS) se podía volver a "vengar" el mismo ataque
 // una y otra vez.
 //
@@ -788,7 +808,7 @@ function toggleInvasionMute() {
 // ─────────────────────────────────────────────────────────────────────
 window.InvasionCore = {
   CFG, db, auth, authReady,
-  difficultyFor, todayKeyUTC, shieldCost, rollWin,
+  difficultyFor, todayKeyUTC, shieldCost,
   syncProfileFromMainSave, findRandomTarget, checkCanInvade,
   resolveInvasion, activateShield, getActiveRevengeTarget, hasRevengedAttack, isLegitimateRevenge, getAttackHistory, getAttackHistoryPage,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
