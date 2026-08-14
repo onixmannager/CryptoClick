@@ -179,6 +179,44 @@ function playExitoVideo(){
   vidExito.play().catch(()=>{});
 }
 
+// Efecto de sonido para los avisos de resultado (rival encontrado / sin
+// objetivos), generado con Web Audio API -sin archivos de audio propios,
+// solo osciladores-. No interfiere con el audio de los videos.
+let _sfxCtx;
+function _getSfxCtx(){
+  if(!_sfxCtx) _sfxCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(_sfxCtx.state==='suspended') _sfxCtx.resume().catch(()=>{});
+  return _sfxCtx;
+}
+function _beep(freq, startTime, duration, ctx, type='sine', peakGain=0.22){
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startTime);
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(peakGain, startTime+0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime+duration);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime+duration+0.02);
+}
+// Aviso de ÉXITO (rival encontrado): dos notas ascendentes, tono alegre.
+function playSuccessBeep(){
+  try{
+    const ctx=_getSfxCtx(), t=ctx.currentTime;
+    _beep(660, t, 0.14, ctx);
+    _beep(880, t+0.13, 0.18, ctx);
+  }catch(e){}
+}
+// Aviso de FRACASO (sin objetivos): una nota descendente, tono apagado.
+function playFailBeep(){
+  try{
+    const ctx=_getSfxCtx(), t=ctx.currentTime;
+    _beep(330, t, 0.22, ctx, 'sawtooth', 0.14);
+    _beep(220, t+0.12, 0.28, ctx, 'sawtooth', 0.14);
+  }catch(e){}
+}
+
 // Muestra el chip de "escaneando" o el panel de resultado (rival /
 // sin objetivos) SOBRE el video, sin tapar el centro de la pantalla.
 // El resultado (rival encontrado o sin objetivos) tarda 2s en aparecer
@@ -260,6 +298,7 @@ let directTargetFailed=false; // true si el fallo viene de un intento de VENGANZ
 // al menú con un mensaje que no le corresponde.
 function markSearchFailed(msg, isRevenge){
   playSinExitoVideo();
+  playFailBeep();
   document.getElementById('noneTitle').textContent = isRevenge ? 'No se pudo completar la venganza' : 'No se pudo lanzar el ataque';
   document.getElementById('noneText').textContent = msg;
   document.getElementById('retryBtn2').textContent = isRevenge ? '← Volver' : '🔄 Reintentar';
@@ -303,6 +342,7 @@ async function searchRandom(){
     foundTarget = await core.findRandomTarget(myProfile.uid, myProfile.recentTargets);
     if(!foundTarget){
       playSinExitoVideo();
+      playFailBeep();
       document.getElementById('noneTitle').textContent = 'Sin objetivos ahora';
       document.getElementById('noneText').textContent = 'No hay rivales disponibles en este momento. Revisa la consola (F12) para ver el motivo exacto — puede ser que ya invadiste a todos los candidatos disponibles hace menos de 4h.';
       document.getElementById('retryBtn2').textContent = '🔄 Reintentar';
@@ -319,6 +359,7 @@ async function searchRandom(){
 
 function showResult(){
   playExitoVideo();
+  playSuccessBeep();
   const tier = core.difficultyFor(myProfile.lvl, foundTarget.lvl);
   document.getElementById('rivalName').textContent = foundTarget.alias || 'Jugador';
   document.getElementById('rivalLvl').textContent = `Nivel ${foundTarget.lvl}`;
