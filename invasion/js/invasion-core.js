@@ -404,6 +404,26 @@ async function resolveInvasion({ attackerUid, defenderUid, won, isRevenge }) {
   if (!invadeCheck.ok) throw new Error('No se puede invadir ahora mismo: ' + invadeCheck.reason);
   if ((defender.shieldUntil || 0) > now) throw new Error('El objetivo activó un escudo justo ahora');
 
+  // isRevenge llega del cliente (search.html -> sessionStorage ->
+  // minigame.html) sin que nada lo haya verificado hasta aquí de forma
+  // obligatoria: search.html SÍ revalida antes de dejar avanzar al
+  // minijuego (ver searchDirectTarget()), pero eso es una comodidad de
+  // UI, no una barrera — nada impide llegar a minigame.html saltándose
+  // search.html por completo, con invasion_battle_is_revenge='1'
+  // escrito a mano en sessionStorage (DevTools) contra un objetivo que
+  // nunca atacó a este jugador. isRevenge no afecta al robo en sí
+  // (mismo tier/stolenAmount, mismo cooldown, mismo límite diario que un
+  // ataque normal — es puramente informativo, ver el campo isRevenge más
+  // abajo), pero si se guardara falso en invasion_attacks corrompería la
+  // contabilidad que getActiveRevengeTarget()/hasRevengedAttack() usan
+  // para decidir avisos y botones "Vengarse" futuros (ver esas
+  // funciones). Por eso se revalida aquí, en el único paso por el que
+  // OBLIGATORIAMENTE pasa cualquier resultado, sea cual sea la pantalla
+  // de origen. Si no es legítimo, se degrada a false en vez de
+  // rechazar la invasión entera: el ataque jugado sigue siendo válido,
+  // lo único falso era la etiqueta de "venganza".
+  const revengeIsLegit = !!isRevenge && await isLegitimateRevenge(attackerUid, defenderUid);
+
   const tier = difficultyFor(attacker.lvl, defender.lvl);
   let stolenAmount = 0;
   if (won) {
@@ -448,7 +468,7 @@ async function resolveInvasion({ attackerUid, defenderUid, won, isRevenge }) {
     defenderUid, defenderAlias: defender.alias || 'Jugador',
     attackerLvl: attacker.lvl || 1, defenderLvl: defender.lvl || 1,
     difficulty: tier.key, won: !!won, stolenAmount,
-    isRevenge: !!isRevenge,
+    isRevenge: revengeIsLegit,
     createdAt: serverTimestamp(),
   });
 
@@ -504,7 +524,28 @@ async function activateShield(uid, shieldType) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// VENGANZA — último ataque sufrido dentro de la ventana de 24h.
+// VENGANZA — último ataque sufrido dentro de la ventana de 24h, siempre
+// que TODAVÍA no me haya vengado de ese ataque concreto.
+//
+// BUG corregido aquí: esta función buscaba solo "el último ataque que
+// sufrí y que ganó mi atacante", sin comprobar si yo ya había lanzado
+// esa venganza. Como vengarse crea un invasion_attacks NUEVO (con roles
+// invertidos: yo como attackerUid, mi agresor original como
+// defenderUid) que no modifica ni marca el documento del ataque
+// original, esta query seguía devolviendo el mismo ataque como
+// "pendiente de vengar" indefinidamente mientras siguiera dentro de las
+// 24h — el aviso nunca desaparecía, el historial nunca reflejaba que ya
+// me había vengado, y en cuanto pasaba el cooldown normal de 60s
+// (CFG.INVASION_COOLDOWN_MS) se podía volver a "vengar" el mismo ataque
+// una y otra vez.
+//
+// El arreglo: tras localizar el último ataque sufrido y ganado (igual
+// que antes), se comprueba si ya existe un ataque MÍO posterior contra
+// ese mismo agresor (mi venganza). Se reutiliza la query de
+// "attackerUid == uid" que ya usa getAttackHistory() -mismo índice
+// compuesto attackerUid+createdAt, sin necesitar uno nuevo- y se filtra
+// en cliente por defenderUid/fecha, mismo patrón que ya usa
+// findRandomTarget() para recentTargets.
 // ─────────────────────────────────────────────────────────────────────
 async function getActiveRevengeTarget(uid) {
   const q = query(
@@ -519,12 +560,84 @@ async function getActiveRevengeTarget(uid) {
   const last = snap.docs[0].data();
   const createdMs = last.createdAt && last.createdAt.toMillis ? last.createdAt.toMillis() : 0;
   if (Date.now() - createdMs > CFG.REVENGE_WINDOW_MS) return null;
+
+  const alreadyRevenged = await hasRevengedAttack(uid, last.attackerUid, createdMs);
+  if (alreadyRevenged) return null;
+
   return {
     attackerUid: last.attackerUid,
     attackerAlias: last.attackerAlias,
     stolenAmount: last.stolenAmount,
     msLeft: CFG.REVENGE_WINDOW_MS - (Date.now() - createdMs),
   };
+}
+
+// Comprueba si `uid` ya lanzó, después de `sinceMs`, algún ataque contra
+// `revengeTargetUid` — es decir, si ya se vengó de ese ataque concreto.
+// Se usa desde getActiveRevengeTarget() (arriba) y desde las pantallas
+// que pintan el botón "Vengarse" por fila de historial (mismo criterio
+// para ambos sitios, ver index.html/loadHistory()).
+async function hasRevengedAttack(uid, revengeTargetUid, sinceMs) {
+  const q = query(
+    collection(db, 'invasion_attacks'),
+    where('attackerUid', '==', uid),
+    orderBy('createdAt', 'desc'),
+    limit(20)
+  );
+  const snap = await getDocs(q);
+  for (const docSnap of snap.docs) {
+    const d = docSnap.data();
+    const createdMs = d.createdAt && d.createdAt.toMillis ? d.createdAt.toMillis() : 0;
+    if (createdMs <= sinceMs) break; // ya llegamos a ataques anteriores al que se quiere vengar
+    if (d.defenderUid === revengeTargetUid) return true;
+  }
+  return false;
+}
+
+// Comprueba si `avengerUid` tiene, AHORA MISMO, una venganza legítima
+// pendiente contra `originalAttackerUid` — es decir: `originalAttackerUid`
+// le robó dentro de las últimas 24h Y `avengerUid` todavía no se ha
+// vengado de ESE ataque concreto.
+//
+// Se usa dentro de resolveInvasion() (más abajo) para no confiar
+// ciegamente en el isRevenge:true/false que declara el cliente — ver el
+// comentario en resolveInvasion() sobre por qué esto hace falta pese a
+// que search.html también valida.
+//
+// Nota de diseño: NO se reutiliza getActiveRevengeTarget() tal cual
+// porque esa función solo mira "el ataque MÁS RECIENTE que sufrí", y
+// aquí el atacante a comprobar ya viene fijado por parámetro — si
+// avengerUid sufrió un ataque de otro jugador MÁS RECIENTE después de
+// este, getActiveRevengeTarget() apuntaría a ese otro ataque y daría un
+// falso negativo aquí aunque la venganza contra originalAttackerUid
+// siga siendo legítima.
+//
+// Se reutiliza el índice compuesto defenderUid+won+createdAt que ya usa
+// getActiveRevengeTarget() (sin el limit(1) fijado al más reciente) y se
+// filtra attackerUid en cliente, en vez de añadir un where('attackerUid',...)
+// a la query -eso exigiría un índice compuesto de 4 campos que hoy no
+// existe-. limit(20) es suficiente margen para encontrar el ataque de
+// ese agresor concreto entre los sufridos recientes sin tener que leer
+// el historial completo.
+async function isLegitimateRevenge(avengerUid, originalAttackerUid) {
+  const q = query(
+    collection(db, 'invasion_attacks'),
+    where('defenderUid', '==', avengerUid),
+    where('won', '==', true),
+    orderBy('createdAt', 'desc'),
+    limit(20)
+  );
+  const snap = await getDocs(q);
+  const now = Date.now();
+  for (const docSnap of snap.docs) {
+    const d = docSnap.data();
+    if (d.attackerUid !== originalAttackerUid) continue;
+    const createdMs = d.createdAt && d.createdAt.toMillis ? d.createdAt.toMillis() : 0;
+    if (now - createdMs > CFG.REVENGE_WINDOW_MS) return false; // el más reciente de ESE agresor ya caducó
+    const alreadyRevenged = await hasRevengedAttack(avengerUid, originalAttackerUid, createdMs);
+    return !alreadyRevenged;
+  }
+  return false; // ese agresor nunca robó a avengerUid (o fue hace más de 20 ataques sufridos)
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -677,7 +790,7 @@ window.InvasionCore = {
   CFG, db, auth, authReady,
   difficultyFor, todayKeyUTC, shieldCost, rollWin,
   syncProfileFromMainSave, findRandomTarget, checkCanInvade,
-  resolveInvasion, activateShield, getActiveRevengeTarget, getAttackHistory, getAttackHistoryPage,
+  resolveInvasion, activateShield, getActiveRevengeTarget, hasRevengedAttack, isLegitimateRevenge, getAttackHistory, getAttackHistoryPage,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
   initInvasionBgm, // arranca la música de fondo del modo Invasión (loop, respeta cck4_muted)
   pauseInvasionBgm, resumeInvasionBgm, // para no solapar con el audio propio del video de intro
