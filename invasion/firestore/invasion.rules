@@ -69,7 +69,7 @@ service cloud.firestore {
           && d.accountCreatedAt is int && d.accountCreatedAt > 0
           && d.lastAttackedAt is int && d.lastAttackedAt >= 0
           && d.lastInvasionAt is int && d.lastInvasionAt >= 0
-          && d.invasionsToday is int && d.invasionsToday >= 0 && d.invasionsToday <= 20
+          && d.invasionsToday is int && d.invasionsToday >= 0 && d.invasionsToday <= 30
           && d.invasionsDayKey is string
           && d.recentTargets is map
           && d.updatedAt == request.time;
