@@ -2019,7 +2019,16 @@ async function loadInitialBalance(user){
     const snap = await getDoc(doc(db, 'saves', user.uid));
     if (snap.exists()){
       const cloudData = JSON.parse(snap.data().data);
-      if (typeof cloudData.clk === 'number') bumpBalUI(cloudData.clk);
+      const cloudUpdatedAt = snap.data().updatedAt;
+      const cloudUpdatedMs = cloudUpdatedAt && cloudUpdatedAt.toMillis ? cloudUpdatedAt.toMillis() : 0;
+      const localSavedMs = (localData && localData.lastSave) || 0;
+      // Solo se aplica el saldo de Firestore si es MÁS RECIENTE que el
+      // localStorage ya mostrado arriba. cloudSaveNow() en index.html sube
+      // a Firestore como mucho cada 20s (CLOUD_MIN_INTERVAL), así que si el
+      // jugador acaba de tapear en el padre y entra aquí antes de esos 20s,
+      // Firestore todavía tiene un clk viejo: sin esta comparación, ese
+      // valor viejo pisaba el saldo correcto que localStorage ya mostraba.
+      if (typeof cloudData.clk === 'number' && cloudUpdatedMs >= localSavedMs) bumpBalUI(cloudData.clk);
       // El mayor de los dos lados manda (mismo criterio "solo sube" que
       // mergeStates() usa en index.html): si el jugador giró en otro
       // dispositivo/pestaña y ese dato aún no llegó a este localStorage,
