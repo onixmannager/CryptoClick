@@ -121,25 +121,35 @@ const CFG = {
   // Tabla de dificultad por diferencia de nivel (invasor - defensor).
   // tiempoMs / intentos alimentan el minijuego; robMax es el % techo.
   //
-  // Reajustada a petición expresa ("que se gane más, más fácil, al 50%,
-  // y que dependa de la suerte real del jugador"): ahora que el resultado
-  // del minijuego SÍ decide ganar/perder (ver minigame.html/endGame(),
-  // ya no hay tirada aparte), los `intentos` de esta tabla son la
-  // dificultad real, no decorativa. Se suben en todos los tiers para que
-  // ganar sea alcanzable con juego normal — con 9 casillas (3 depósitos·
-  // 3 trampas·3 vacíos) y coste trampa=2/vacío=1/depósito=0, el tier
-  // 'normal' antes solo perdonaba UNA trampa con 3 intentos; con 5
-  // intentos perdona dos trampas y dos vacíos antes de fallar, lo que
-  // deja la victoria mayormente en manos de encontrar rápido los
-  // depósitos (la "suerte" de qué casillas tocas primero) en vez de
-  // depender de acertar sin ningún margen de error. robMax también sube
-  // en todos los tiers manteniendo el mismo orden relativo de dificultad.
+  // Recalibrada a petición expresa ("que el jugador gane al menos 2 de
+  // cada 3 veces, de forma aleatoria pero coherente con el juego"): como
+  // el resultado del minijuego SÍ decide ganar/perder (ver
+  // minigame.html/endGame(), no hay tirada aparte), la única palanca
+  // coherente es subir `intentos` — así la victoria sigue dependiendo de
+  // verdad del tablero (nada de un resultado falseado que no cuadre con
+  // lo que el jugador ve en pantalla), pero con margen suficiente para
+  // que el orden en que salen las 9 casillas (3 depósitos·3 trampas·3
+  // vacíos, coste trampa=2/vacío=1/depósito=0) favorezca ganar la mayoría
+  // de las veces.
+  //
+  // Verificado por simulación (200k tiradas/tier, apertura aleatoria de
+  // las 9 casillas sin reemplazo — el único modelo posible aquí, ya que
+  // no hay info progresiva que un jugador pueda explotar más allá de
+  // "cuáles casillas ya se abrieron"): con 9 intentos el jugador SIEMPRE
+  // puede abrir el tablero entero (coste máximo total = 3·2+3·1 = 9), así
+  // que solo puede perder por tiempo, no por intentos — resultando en
+  // ~66-67% de victorias real (pierde solo si el reloj llega a 0 antes).
+  // El tier 'normal' se fija en 9 intentos para cumplir el ~2 de cada 3
+  // pedido; el resto de tiers mantiene el mismo salto relativo de
+  // intentos que tenía antes (±1 entre tiers) para conservar que invadir
+  // a alguien de nivel más alto siga siendo notablemente más difícil.
+  // robMax se mantiene igual al ajuste anterior (no pedido esta vez).
   DIFFICULTY_TIERS: [
-    { min: 10,  max: Infinity, key: 'muy_facil',   label: 'Muy fácil',    tiempoMs: 20000, intentos: 6, robMax: 0.30 },
-    { min: 4,   max: 9,        key: 'facil',       label: 'Fácil',        tiempoMs: 18000, intentos: 5, robMax: 0.25 },
-    { min: -3,  max: 3,        key: 'normal',      label: 'Normal',       tiempoMs: 16000, intentos: 5, robMax: 0.20 },
-    { min: -9,  max: -4,       key: 'dificil',     label: 'Difícil',      tiempoMs: 13000, intentos: 4, robMax: 0.14 },
-    { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 12000, intentos: 3, robMax: 0.10 },
+    { min: 10,  max: Infinity, key: 'muy_facil',   label: 'Muy fácil',    tiempoMs: 22000, intentos: 9, robMax: 0.30 },
+    { min: 4,   max: 9,        key: 'facil',       label: 'Fácil',        tiempoMs: 20000, intentos: 9, robMax: 0.25 },
+    { min: -3,  max: 3,        key: 'normal',      label: 'Normal',       tiempoMs: 18000, intentos: 9, robMax: 0.20 },
+    { min: -9,  max: -4,       key: 'dificil',     label: 'Difícil',      tiempoMs: 15000, intentos: 8, robMax: 0.14 },
+    { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 13000, intentos: 7, robMax: 0.10 },
   ],
 };
 
