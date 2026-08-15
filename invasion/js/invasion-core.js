@@ -121,35 +121,25 @@ const CFG = {
   // Tabla de dificultad por diferencia de nivel (invasor - defensor).
   // tiempoMs / intentos alimentan el minijuego; robMax es el % techo.
   //
-  // Recalibrada a petición expresa ("que el jugador gane al menos 2 de
-  // cada 3 veces, de forma aleatoria pero coherente con el juego"): como
-  // el resultado del minijuego SÍ decide ganar/perder (ver
-  // minigame.html/endGame(), no hay tirada aparte), la única palanca
-  // coherente es subir `intentos` — así la victoria sigue dependiendo de
-  // verdad del tablero (nada de un resultado falseado que no cuadre con
-  // lo que el jugador ve en pantalla), pero con margen suficiente para
-  // que el orden en que salen las 9 casillas (3 depósitos·3 trampas·3
-  // vacíos, coste trampa=2/vacío=1/depósito=0) favorezca ganar la mayoría
-  // de las veces.
-  //
-  // Verificado por simulación (200k tiradas/tier, apertura aleatoria de
-  // las 9 casillas sin reemplazo — el único modelo posible aquí, ya que
-  // no hay info progresiva que un jugador pueda explotar más allá de
-  // "cuáles casillas ya se abrieron"): con 9 intentos el jugador SIEMPRE
-  // puede abrir el tablero entero (coste máximo total = 3·2+3·1 = 9), así
-  // que solo puede perder por tiempo, no por intentos — resultando en
-  // ~66-67% de victorias real (pierde solo si el reloj llega a 0 antes).
-  // El tier 'normal' se fija en 9 intentos para cumplir el ~2 de cada 3
-  // pedido; el resto de tiers mantiene el mismo salto relativo de
-  // intentos que tenía antes (±1 entre tiers) para conservar que invadir
-  // a alguien de nivel más alto siga siendo notablemente más difícil.
-  // robMax se mantiene igual al ajuste anterior (no pedido esta vez).
+  // Reajustada a petición expresa ("que se gane más, más fácil, al 50%,
+  // y que dependa de la suerte real del jugador"): ahora que el resultado
+  // del minijuego SÍ decide ganar/perder (ver minigame.html/endGame(),
+  // ya no hay tirada aparte), los `intentos` de esta tabla son la
+  // dificultad real, no decorativa. Se suben en todos los tiers para que
+  // ganar sea alcanzable con juego normal — con 9 casillas (3 depósitos·
+  // 3 trampas·3 vacíos) y coste trampa=2/vacío=1/depósito=0, el tier
+  // 'normal' antes solo perdonaba UNA trampa con 3 intentos; con 5
+  // intentos perdona dos trampas y dos vacíos antes de fallar, lo que
+  // deja la victoria mayormente en manos de encontrar rápido los
+  // depósitos (la "suerte" de qué casillas tocas primero) en vez de
+  // depender de acertar sin ningún margen de error. robMax también sube
+  // en todos los tiers manteniendo el mismo orden relativo de dificultad.
   DIFFICULTY_TIERS: [
-    { min: 10,  max: Infinity, key: 'muy_facil',   label: 'Muy fácil',    tiempoMs: 22000, intentos: 9, robMax: 0.30 },
-    { min: 4,   max: 9,        key: 'facil',       label: 'Fácil',        tiempoMs: 20000, intentos: 9, robMax: 0.25 },
-    { min: -3,  max: 3,        key: 'normal',      label: 'Normal',       tiempoMs: 18000, intentos: 9, robMax: 0.20 },
-    { min: -9,  max: -4,       key: 'dificil',     label: 'Difícil',      tiempoMs: 15000, intentos: 8, robMax: 0.14 },
-    { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 13000, intentos: 7, robMax: 0.10 },
+    { min: 10,  max: Infinity, key: 'muy_facil',   label: 'Muy fácil',    tiempoMs: 20000, intentos: 6, robMax: 0.30 },
+    { min: 4,   max: 9,        key: 'facil',       label: 'Fácil',        tiempoMs: 18000, intentos: 5, robMax: 0.25 },
+    { min: -3,  max: 3,        key: 'normal',      label: 'Normal',       tiempoMs: 16000, intentos: 5, robMax: 0.20 },
+    { min: -9,  max: -4,       key: 'dificil',     label: 'Difícil',      tiempoMs: 13000, intentos: 4, robMax: 0.14 },
+    { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 12000, intentos: 3, robMax: 0.10 },
   ],
 };
 
@@ -212,89 +202,6 @@ onAuthStateChanged(auth, async (user) => {
 const SAVE_KEY = 'cck4';
 const SAVE_KEY_PREFIX = 'cck4_user_';
 function saveKeyForUid(uid) { return uid ? SAVE_KEY_PREFIX + uid : SAVE_KEY; }
-
-// ─────────────────────────────────────────────────────────────────────
-// UNIFICAR SALDO: escribe el clk resultante de Invasión de vuelta en
-// saves/{uid} (el guardado real del juego padre) Y en localStorage, con
-// el mismo patrón que ya usa _awardRuletaPrizeNow() en ruleta.html para
-// el mismo problema (premio ganado fuera del juego principal). saves/
-// guarda el estado completo como JSON en el campo 'data' (ver
-// isValidSaveDoc() en firestore.rules), así que se lee el documento
-// entero, se le pisa solo 'clk' y se vuelve a escribir completo — nunca
-// se sobreescribe con un objeto parcial. No lanza si falla: un fallo de
-// red aquí no debe deshacer el robo/escudo que invasion_players ya tiene
-// como fuente de verdad para el propio modo Invasión (ver
-// syncProfileFromMainSave()); simplemente el juego padre tardará en
-// reflejar el cambio hasta el próximo intento de sincronía.
-//
-// THROTTLE DE saves/ (ver firestore.rules): la propia regla exige que
-// pasen 15s desde el updatedAt aceptado antes de aceptar otra escritura
-// — la misma barrera que ya respeta el guardado normal del padre, para
-// evitar reescritura en ráfaga. Si el jugador guardó en el padre segundos
-// antes de ganar un robo o comprar un escudo, este primer intento puede
-// caer dentro de esa ventana y Firestore lo rechaza con
-// 'permission-denied'. En ese caso (y solo en ese caso) se espera lo que
-// falte para cumplir los 15s y se reintenta UNA vez — no se reintenta
-// ante otros errores (red, permisos reales, etc.), donde insistir no
-// serviría de nada.
-// ─────────────────────────────────────────────────────────────────────
-async function syncClkToMainSave(uid, newClk) {
-  const key = saveKeyForUid(uid);
-  let localData;
-  try {
-    const raw = localStorage.getItem(key);
-    localData = raw ? JSON.parse(raw) : null;
-  } catch (e) { localData = null; }
-
-  const ref = doc(db, 'saves', uid);
-  let snap;
-  try {
-    snap = await getDoc(ref);
-  } catch (e) {
-    console.error('[DIAG] No se pudo leer saves/' + uid + ' para sincronizar clk:', e.code || e.message);
-    return;
-  }
-  const cloudData = snap.exists() ? JSON.parse(snap.data().data) : null;
-
-  // Sin guardado previo en ningún lado, no hay estado (lvl/ups/misiones…)
-  // que preservar ni nada que unificar todavía: el jugador aún no jugó el
-  // juego principal, así que no se crea un save nuevo desde aquí.
-  if (!localData && !cloudData) return;
-
-  const base = cloudData || localData;
-  const merged = { ...base, uid, clk: newClk, lastSave: Date.now() };
-
-  try { localStorage.setItem(key, JSON.stringify(merged)); } catch (e) { /* localStorage no disponible: seguimos con la nube */ }
-
-  try {
-    await setDoc(ref, { data: JSON.stringify(merged), updatedAt: serverTimestamp() });
-    return;
-  } catch (e) {
-    if (e.code !== 'permission-denied') {
-      // No relanzamos: invasion_players ya es la fuente de verdad para el
-      // propio modo Invasión (ver syncProfileFromMainSave()), así que un
-      // fallo al reflejar el cambio en saves/ no debe deshacer el robo o
-      // el escudo ya confirmados.
-      console.error('[DIAG] No se pudo sincronizar clk con saves/' + uid + ':', e.code || e.message);
-      return;
-    }
-  }
-
-  // Aquí solo llegamos si el primer intento cayó en la ventana del
-  // throttle de 15s. snap es el documento leído ANTES de nuestro intento
-  // fallido, así que su updatedAt sigue siendo el que las reglas usaron
-  // para rechazarnos.
-  const lastUpdatedAt = snap.exists() ? snap.data().updatedAt : null;
-  const lastUpdatedMs = lastUpdatedAt && lastUpdatedAt.toMillis ? lastUpdatedAt.toMillis() : 0;
-  const msToWait = Math.max(0, (lastUpdatedMs + 15000) - Date.now()) + 250; // +250ms de margen por desfase de reloj cliente/servidor
-  await new Promise(resolve => setTimeout(resolve, msToWait));
-
-  try {
-    await setDoc(ref, { data: JSON.stringify({ ...merged, lastSave: Date.now() }), updatedAt: serverTimestamp() });
-  } catch (e) {
-    console.error('[DIAG] Reintento de sincronizar clk con saves/' + uid + ' también falló:', e.code || e.message);
-  }
-}
 
 // ─────────────────────────────────────────────────────────────────────
 // SINCRONIZAR PERFIL DE INVASIÓN desde saves/{uid} (el saldo/nivel real
@@ -508,6 +415,7 @@ function checkCanInvade(playerDoc) {
 // vuelve a leer el escudo del defensor en tiempo real por si se activó
 // justo entre la búsqueda y ahora.
 // ─────────────────────────────────────────────────────────────────────
+// ⚠️ LIMITACIÓN CONOCIDA DE ESTA FASE (aislada, sin tocar el juego padre):
 // invasion_players/{uid}.clk parte de saves/{uid}.clk como fuente inicial,
 // pero syncProfileFromMainSave() compara updatedAt entre ambos documentos
 // y NO deja que un saves/ desactualizado pise un robo más reciente (ver
@@ -515,13 +423,21 @@ function checkCanInvade(playerDoc) {
 // refleja robos ganados/sufridos de inmediato, sin importar cuántas veces
 // se resincronice.
 //
-// El saldo se unifica con el guardado principal: cuando hay stolenAmount,
-// el clk resultante de atacante y defensor se escribe también en
-// saves/{uid} (ver syncClkToMainSave() más arriba) además de en
-// invasion_players/{uid}. Así, si el jugador vuelve al juego principal
-// después de una invasión, su próximo autoguardado (CLOUD_MIN_INTERVAL en
-// index.html del padre) ya parte del saldo correcto en vez de pisarlo con
-// el de antes del robo.
+// Lo que sigue sin resolverse aquí a propósito: ese cambio de saldo NUNCA
+// se escribe de vuelta en saves/{uid} — el juego principal seguirá
+// mostrando el saldo de antes del robo. Y hay un caso a vigilar: el padre
+// autoguarda solo cada ~20s si hay actividad (ver CLOUD_MIN_INTERVAL en
+// index.html del padre) — si el jugador simplemente vuelve a jugar el
+// juego principal después de una invasión, ese autoguardado ESCRIBE
+// saves/{uid} con el clk de antes del robo y un updatedAt nuevo, sin que
+// el jugador haga nada explícito para ello. La próxima vez que abra el
+// modo Invasión, saves/ "ganará" por ser más reciente y la ganancia o
+// pérdida de Invasión desaparecerá del saldo mostrado — el registro en
+// invasion_attacks (historial) sigue intacto, pero el saldo visible ya
+// no la refleja. Esto es la consecuencia directa de no tener una única
+// fuente de verdad para clk, y es exactamente el problema que resolver
+// en integración: decidir si invasion_players pasa a ser la fuente de
+// verdad de clk, o si cada robo escribe también en saves/{uid}.
 async function resolveInvasion({ attackerUid, defenderUid, won, isRevenge }) {
   const [attackerSnap, defenderSnap] = await Promise.all([
     getDoc(doc(db, 'invasion_players', attackerUid)),
@@ -608,17 +524,6 @@ async function resolveInvasion({ attackerUid, defenderUid, won, isRevenge }) {
 
   await batch.commit();
 
-  // Unificar saldo: el clk resultante de este robo también se escribe en
-  // saves/{uid} de atacante y defensor, para que el juego principal no
-  // siga mostrando el saldo de antes del robo (ver limitación documentada
-  // arriba, ahora resuelta).
-  if (stolenAmount > 0) {
-    await Promise.all([
-      syncClkToMainSave(attackerUid, attackerUpdate.clk),
-      syncClkToMainSave(defenderUid, Math.max(0, (defender.clk || 0) - stolenAmount)),
-    ]);
-  }
-
   return { won: !!won, stolenAmount, difficulty: tier, attackId };
 }
 
@@ -665,11 +570,6 @@ async function activateShield(uid, shieldType) {
   batch.update(playerRef, { shieldUntil, shieldType, clk: newClk, updatedAt: serverTimestamp() });
   batch.set(doc(db, 'invasion_targets', uid), { shieldUntil, clk: newClk }, { merge: true });
   await batch.commit();
-
-  // Unificar saldo: el gasto del escudo también se refleja en saves/{uid}
-  // (ver syncClkToMainSave arriba).
-  await syncClkToMainSave(uid, newClk);
-
   return { shieldUntil, cost, newClk };
 }
 
