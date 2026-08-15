@@ -116,7 +116,7 @@ service cloud.firestore {
           && isValidPlayerDoc()
           && d.accountCreatedAt == before.accountCreatedAt // inmutable una vez fijado
           && clkIncrease <= 200000000 // techo dado, no verificación exacta — ver comentario arriba
-          && (clkIncrease <= 0 || request.time > before.updatedAt + duration.value(300, 'ms'));
+          && (clkIncrease <= 0 || request.time > before.updatedAt + duration.value(100, 'ms'));
       }
 
       // Caso (b): otro jugador (el atacante) escribe el resultado de un
