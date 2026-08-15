@@ -1830,6 +1830,19 @@ async function cloudSaveNow(force){
     }else{
       setSyncPill('err');
     }
+    // Caso concreto: el documento saves/{uid} también lo puede escribir el arcade (CLK Arcade
+    // Hub, en /arcade/), y las reglas de Firestore exigen un mínimo de 15s entre escrituras
+    // aceptadas al mismo documento. Si el jugador acaba de volver del arcade, este cloudSaveNow
+    // puede caer dentro de esa ventana y Firestore lo rechaza con 'permission-denied' aunque el
+    // usuario SÍ tenga permisos reales — no es un problema de configuración, es el throttle del
+    // servidor. _lastCloudSave de este index.html no sabe que el arcade ya escribió, así que sin
+    // este reintento el guardado se queda esperando al próximo trigger espontáneo (siguiente
+    // compra, siguiente tap-guardado) en vez de reintentar solo. Se reintenta una vez pasado el
+    // mismo margen que ya usa el resto del throttle del cliente (CLOUD_MIN_INTERVAL), forzado
+    // para saltarse el _dirtySinceCloud/_lastCloudSave locales (que aquí darían falso negativo).
+    if(e && e.code==='permission-denied'){
+      setTimeout(()=>{ if(window.__fbUser) cloudSaveNow(true); }, CLOUD_MIN_INTERVAL);
+    }
   }finally{
     _cloudSaving=false;
   }
