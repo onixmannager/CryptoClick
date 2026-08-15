@@ -2967,7 +2967,20 @@ function playIntroVideo(onDone){
 }
 function skipIntroVideo(){ if(window.__skipIntroVideo)window.__skipIntroVideo(); }
 
-let _gameStarted=false;
+// ANTES: booleano simple (_gameStarted) que solo evitaba una doble inicialización de
+// la MISMA sesión si onAuthStateChanged disparaba dos veces seguidas. Pero si por
+// cualquier motivo (conexión lenta, reload() que tarda en completarse, doble tap en
+// el botón de login) onAuthStateChanged llegaba a disparar para una cuenta DISTINTA
+// antes de que la recarga de página terminara de reiniciar el estado en memoria, este
+// guardia bloqueaba por completo la carga de la cuenta nueva: el objeto de estado S se
+// quedaba congelado con los datos de la cuenta anterior y el juego seguía guardando
+// esos datos viejos bajo la clave de la cuenta nueva, dejándolos grabados de forma
+// persistente (esto es lo que se percibía como "entro con otra cuenta y ya tiene
+// datos precargados de la cuenta anterior, empieza en un nivel que no es el 1").
+// Ahora se recuerda PARA QUÉ uid ya se inició: si vuelve a disparar para ese mismo
+// uid (caso legítimo que el guardia original protegía) sigue sin hacer nada; si
+// dispara para un uid distinto, sí se procesa como el login nuevo que es.
+let _gameStartedUid=null;
 // ─────────────────────────────────────────────────────────────────────
 // ESCUDO DE INVASIÓN — comprado y consultado desde el index padre.
 // Toda la regla de negocio real (coste por nivel, duración, qué tipo se
@@ -3194,8 +3207,18 @@ function fmtShieldCountdown(ms){
 }
 
 window.startGameForUser=async function(user){
-  if(_gameStarted)return; // evita doble init si onAuthStateChanged dispara más de una vez
-  _gameStarted=true;
+  if(_gameStartedUid===user.uid)return; // ya se inició para este mismo uid, evita doble init
+  _gameStartedUid=user.uid;
+  // Reinicia el estado en memoria a los valores por defecto ANTES de cargar: así, si esta
+  // llamada corresponde a una cuenta distinta a la que estuviera activa hasta ahora en esta
+  // misma página (ver comentario en la declaración de _gameStartedUid más arriba), S nunca
+  // arrastra campos de la cuenta anterior mientras loadCloud() decide qué cargar para la nueva.
+  // ups/missions se clonan aparte (en vez de heredarlos tal cual de DEFAULTS): el resto del
+  // juego los muta en sitio sobre S.ups/S.missions (p.ej. buyUp hace S.ups[id]=...), y como
+  // DEFAULTS.ups/DEFAULTS.missions son el mismo objeto literal definido una sola vez arriba,
+  // un Object.assign superficial dejaría a S apuntando a ese objeto ya mutado por la cuenta
+  // anterior en vez de a uno realmente vacío.
+  Object.assign(S,DEFAULTS,{ups:{},missions:{},lastSave:Date.now(),lastPassive:Date.now()});
   await loadCloud(user.uid);
   window.__fbUser=user;
   // Estado del escudo de Invasión (icono semitransparente/oscuro cuando no
