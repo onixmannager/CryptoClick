@@ -30,10 +30,18 @@ service cloud.firestore {
       allow update: if request.auth != null
                     && request.auth.uid == uid
                     && isValidSaveDoc()
-                    // Mínimo 15s desde la última escritura aceptada (algo por
-                    // debajo del throttle de 20s del cliente, para no rechazar
-                    // por pequeños desfases de reloj/red legítimos).
-                    && request.time > resource.data.updatedAt + duration.value(15, 's');
+                    // Bajado de 15s a 1s a petición expresa: además del
+                    // autoguardado del padre (CLOUD_MIN_INTERVAL = 20s) y de
+                    // ruleta.html, ahora invasion-core.js también escribe
+                    // aquí (ver syncClkToMainSave() en invasion/js/) justo
+                    // después de un robo o de comprar un escudo, momento que
+                    // puede caer dentro de los 15s siguientes a un
+                    // autoguardado reciente del padre. 1s sigue impidiendo
+                    // machacar el documento en ráfaga desde la consola
+                    // (window.forceSaveCloud() en bucle), solo deja de
+                    // bloquear escrituras legítimas y espaciadas por más de
+                    // 1s entre sí.
+                    && request.time > resource.data.updatedAt + duration.value(1, 's');
 
       allow delete: if false;
 
@@ -75,8 +83,12 @@ service cloud.firestore {
       allow update: if request.auth != null
                     && request.auth.uid == uid
                     && isValidLeaderboardDoc()
-                    // Throttle igual que saves/: no se puede reescribir en ráfaga.
-                    && request.time > resource.data.updatedAt + duration.value(15, 's')
+                    // Bajado de 15s a 1s a petición expresa, para uniformar
+                    // con el throttle de saves/{uid} (ver ese bloque más
+                    // arriba). No hay ninguna escritura de Invasión aquí —
+                    // este cambio es solo por consistencia entre colecciones,
+                    // no por necesidad del bug de saves/.
+                    && request.time > resource.data.updatedAt + duration.value(1, 's')
                     // 'total' es un contador que solo crece con el juego
                     // normal: nunca debe bajar de golpe en el ranking público
                     // (evita "resetear" para limpiar sospechas) ni subir más
