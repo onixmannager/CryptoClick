@@ -1057,27 +1057,33 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     </div>
 
     <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,107,53,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center;margin-bottom:14px">
-      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:6px">📌 MANTENTE INFORMADO</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5">Suscríbete al canal oficial de Telegram para no perderte los anuncios sobre el futuro de $CLK</div>
+      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:6px">🎁 +50.000 $CLK POR ENLACE</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5">Síguenos en cada red y reclama tu recompensa — solo tienes que pulsar el botón, una vez por enlace</div>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
-      <a href="https://t.me/cryptoclikoficial" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#0088cc,#006aaa);border-radius:16px;padding:16px;text-decoration:none;box-shadow:0 4px 20px rgba(0,136,204,.3)">
-        <div style="font-size:32px;flex-shrink:0">📢</div>
-        <div style="flex:1">
-          <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Canal de Noticias</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Anuncios oficiales · Fecha del airdrop · Actualizaciones</div>
-        </div>
-        <div style="font-size:20px;color:white">›</div>
-      </a>
-      <a href="https://t.me/cryptoclikgrupo" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border-radius:16px;padding:16px;text-decoration:none;box-shadow:0 4px 20px rgba(139,92,246,.3)">
-        <div style="font-size:32px;flex-shrink:0">👥</div>
-        <div style="flex:1">
-          <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Grupo de la Comunidad</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Habla con otros mineros · Estrategias · Soporte</div>
-        </div>
-        <div style="font-size:20px;color:white">›</div>
-      </a>
+      <div style="background:linear-gradient(135deg,#0088cc,#006aaa);border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,136,204,.3)">
+        <a href="https://t.me/cryptoclikoficial" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
+          <div style="font-size:32px;flex-shrink:0">📢</div>
+          <div style="flex:1">
+            <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Canal de Noticias</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Anuncios oficiales · Fecha del airdrop · Actualizaciones</div>
+          </div>
+          <div style="font-size:20px;color:white">›</div>
+        </a>
+        <button id="socialClaimTelegram" class="rdbtn" style="width:100%" onclick="claimSocial('telegram')">🎁 Reclamar +50.000 $CLK</button>
+      </div>
+      <div style="background:linear-gradient(135deg,#1a1a1a,#000);border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,.3)">
+        <a href="https://x.com/TU_USUARIO_AQUI" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
+          <div style="font-size:32px;flex-shrink:0">🐦</div>
+          <div style="flex:1">
+            <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Síguenos en X (Twitter)</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Novedades · Sorteos · Comunidad</div>
+          </div>
+          <div style="font-size:20px;color:white">›</div>
+        </a>
+        <button id="socialClaimTwitter" class="rdbtn" style="width:100%" onclick="claimSocial('twitter')">🎁 Reclamar +50.000 $CLK</button>
+      </div>
     </div>
 
     <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
@@ -2738,6 +2744,34 @@ function copyCode(){
 }
 function subRef(){const v=document.getElementById('refinp').value.trim().toUpperCase();if(!v)return;if(v===S.refCode){toast('❌ No puedes usar tu propio código');SFX.buyFail();return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');SFX.buyFail();return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');SFX.refJoin();document.getElementById('refinp').value='';forceSave();}
 
+// Recompensa única (+50.000 $CLK) por seguir cada red social — una sola vez por
+// red, igual que el patrón anti-doble-cobro de subRef() (flag en localStorage,
+// no en S, así no hace falta tocar sanitize()/mergeStates()). No verifica que el
+// jugador realmente siga la cuenta (el enlace ya abrió en una pestaña nueva al
+// pulsar) — es un honor-system deliberado, igual que el resto de la sección.
+const SOCIAL_CLAIM_KEY='cck4_social_claimed';
+function claimSocial(network){
+  const claimed=JSON.parse(localStorage.getItem(SOCIAL_CLAIM_KEY)||'{}');
+  if(claimed[network])return;
+  claimed[network]=true;
+  localStorage.setItem(SOCIAL_CLAIM_KEY,JSON.stringify(claimed));
+  addClk(50000,'social');
+  upd();
+  toast('🎉 ¡Gracias por seguirnos! +50000 $CLK');
+  SFX.refJoin();
+  renderSocialClaims();
+  forceSave();
+}
+function renderSocialClaims(){
+  const claimed=JSON.parse(localStorage.getItem(SOCIAL_CLAIM_KEY)||'{}');
+  const map={telegram:'socialClaimTelegram',twitter:'socialClaimTwitter'};
+  for(const network in map){
+    const btn=document.getElementById(map[network]);
+    if(!btn)continue;
+    if(claimed[network]){btn.disabled=true;btn.style.opacity='.4';btn.textContent='✅ Recompensa reclamada';}
+  }
+}
+
 /* ===== CANJEAR ============================================================
    IMPORTANTE — por qué esta sección funciona así y no de otra forma:
    Google Play prohíbe expresamente que una app "promueva o glamurice
@@ -2872,7 +2906,7 @@ async function renderLB(){
   renderLBList();
 }
 
-function goTo(n){SFX.navClick();document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');document.getElementById('app').classList.toggle('no-bounce',n==='mine');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='community')renderRef();if(n==='leaderboard')renderLB();if(n==='redeem')renderRedeem();if(n==='mine')fitMineScreen();}
+function goTo(n){SFX.navClick();document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');document.getElementById('app').classList.toggle('no-bounce',n==='mine');if(n==='upgrades')renderUps();if(n==='missions')renderMiss();if(n==='community'){renderRef();renderSocialClaims();}if(n==='leaderboard')renderLB();if(n==='redeem')renderRedeem();if(n==='mine')fitMineScreen();}
 
 /* ── Ajuste automático de la pantalla MINAR: mide el alto real disponible
    y, si el contenido (moneda + stats + energía + bonus diario) no entra
