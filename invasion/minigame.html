@@ -47,6 +47,7 @@ h1{font-family:var(--fh);font-size:17px;text-align:center;margin-bottom:4px}
 .slot.deposit{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.5)}
 .slot.trap{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.5)}
 .slot.empty{background:rgba(107,104,160,.15);border-color:rgba(107,104,160,.3)}
+.slot.wildcard{background:rgba(139,92,246,.2);border-color:rgba(139,92,246,.5)}
 
 #endOverlay{position:fixed;inset:0;background:rgba(11,10,20,.92);backdrop-filter:blur(8px);z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
 #endOverlay.show{display:flex}
@@ -79,6 +80,7 @@ h1{font-family:var(--fh);font-size:17px;text-align:center;margin-bottom:4px}
   <div id="rulesCard">
     <h2>Cómo infiltrarte</h2>
     <div class="ruleRow"><span class="ruleIcon">💰</span><span class="ruleText">Depósito: lo cuenta como encontrado. <b>No gasta intentos.</b></span></div>
+    <div class="ruleRow"><span class="ruleIcon">🃏</span><span class="ruleText">Comodín: cuenta igual que un depósito. <b>No gasta intentos.</b></span></div>
     <div class="ruleRow"><span class="ruleIcon">💥</span><span class="ruleText">Trampa: penalización dura. <b>Cuesta 2 intentos.</b></span></div>
     <div class="ruleRow"><span class="ruleIcon">·</span><span class="ruleText">Vacío: no aporta nada. <b>Cuesta 1 intento.</b></span></div>
     <div id="rulesGoal">Encuentra los 3 depósitos antes de que se agote el tiempo o los intentos para ganar la infiltración.</div>
@@ -122,7 +124,7 @@ import './js/invasion-core.js';
 
 let core, myProfile, defenderUid, isRevenge=false, tier;
 let attemptsLeft, timeLeftMs, depositsFound=0, gameEnded=false, timerRAF;
-let slotTypes=[]; // array de 9: 'deposit'|'trap'|'empty'
+let slotTypes=[]; // array de 9: 'deposit'|'wildcard'|'trap'|'empty' ('empty' ya no se usa en buildGrid() pero onSlotClick()/endGame() lo siguen soportando)
 let lastFrameTs=0;
 
 /* ── Pantalla de reglas del minijuego, solo la primera vez que el
@@ -217,7 +219,7 @@ function runCountdown(){
 }
 
 function buildGrid(){
-  slotTypes = ['deposit','deposit','deposit','trap','trap','trap','empty','empty','empty'];
+  slotTypes = ['deposit','deposit','deposit','deposit','deposit','wildcard','wildcard','trap','trap'];
   // Fisher-Yates
   for(let i=slotTypes.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -244,11 +246,12 @@ function onSlotClick(idx, el){
   // Coste en intentos por tipo de compartimento — cada tipo se resta UNA
   // sola vez, aquí mismo, para no arrastrar dos restas del mismo clic:
   //   depósito → 0 (encontrarlo no gasta intento, solo cuenta para ganar)
+  //   comodín  → 0 (cuenta igual que un depósito, mismo criterio que arriba)
   //   trampa   → 2 (penalización: cuesta el doble que abrir uno vacío)
   //   vacío    → 1 (coste normal de "gastar" un intento sin acertar)
   let cost = 0;
-  if(type==='deposit'){
-    el.textContent='💰';
+  if(type==='deposit' || type==='wildcard'){
+    el.textContent = type==='deposit' ? '💰' : '🃏';
     depositsFound++;
     if(depositsFound>=3){ endGame(true); return; }
   }else if(type==='trap'){
@@ -312,7 +315,7 @@ async function endGame(playerFoundAllDeposits){
     const idx=parseInt(el.dataset.idx);
     const type=slotTypes[idx];
     el.classList.add('revealed',type,'dim');
-    el.textContent = type==='deposit'?'💰':type==='trap'?'💥':'·';
+    el.textContent = type==='deposit'?'💰':type==='wildcard'?'🃏':type==='trap'?'💥':'·';
     el.style.opacity='.35';
   });
 
