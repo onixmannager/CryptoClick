@@ -872,7 +872,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 /* ═══════════════════ CANJEAR (airdrops de terceros) ═══════════════════
    Sección puramente informativa: ningún canje ni conexión de wallet
    ocurre dentro de la app — solo se explica y se redirige fuera. */
-.rdintro{background:var(--glass2);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:16px;padding:14px 15px;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,.75);line-height:1.55}
+.rdintro{background:var(--glass2);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:16px;padding:14px 15px;margin-bottom:14px;font-size:13px;color:rgba(255,255,255,.88);line-height:1.6}
 .rdintro b{color:var(--yellow)}
 .rdcard{background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:16px;padding:14px 13px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 14px rgba(0,0,0,.25),0 1px 0 rgba(255,255,255,.1) inset}
 .rdico{font-size:28px;flex-shrink:0;width:44px;height:44px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center}
@@ -883,7 +883,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .rdstatus.soon{background:rgba(255,215,0,.16);color:var(--yellow)}
 .rddesc{font-size:11px;color:var(--muted);line-height:1.4}
 .rdbtn{background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:10px;padding:9px 13px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;color:white;flex-shrink:0;white-space:nowrap}
-.rdfoot{text-align:center;font-size:10px;color:var(--muted);margin-top:6px;padding:0 6px;line-height:1.5}
+.rdfoot{text-align:center;font-size:11px;color:rgba(255,255,255,.55);margin-top:6px;padding:0 6px;line-height:1.55}
 
 /* overlay de aviso, mismo esqueleto visual que #noeov/#noebox */
 #redeemov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center}
@@ -1131,11 +1131,11 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     <div class="rdintro">
       Aquí encontrarás <b>proyectos de terceros</b>, no afiliados a CRYPTO ALIEN, que ofrecen airdrops o programas de canje propios. Cada proyecto tiene sus propias condiciones, requisitos y token — este juego no gestiona, garantiza ni interviene en ningún canje.
     </div>
+    <div id="redeemlist"></div>
     <div class="rdintro" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
       <div>📖 ¿Quieres conocer mejor el proyecto? Consulta nuestra documentación oficial.</div>
       <a href="landing.html" target="_blank" rel="noopener" class="rdbtn" style="text-decoration:none;display:inline-block">Ver docs ↗</a>
     </div>
-    <div id="redeemlist"></div>
     <div class="rdfoot">Toda operación de canje se realiza fuera de esta app, en el sitio oficial de cada proyecto. Infórmate bien antes de conectar ninguna wallet.</div>
   </div>
 
