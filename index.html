@@ -755,8 +755,8 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   .skinitem:not(.locked):hover{transform:translateY(-2px);border-color:rgba(255,215,0,.4)}
   #dailybtn:hover{border-color:rgba(255,215,0,.4)}
   #copybtn:hover,#refgo:hover{filter:brightness(1.08);transform:translateY(-1px)}
-  a.cbtn-big.cbtn-juego,a[href^="https://t.me"]{transition:transform .2s,box-shadow .2s,filter .2s}
-  a[href^="https://t.me"]:hover{transform:translateY(-2px);filter:brightness(1.06)}
+  a.cbtn-big.cbtn-juego,a.socialLink{transition:transform .2s,box-shadow .2s,filter .2s}
+  a.socialLink:hover{transform:translateY(-2px);filter:brightness(1.06)}
 
   /* ── COMMAND RAIL: the mobile bottom nav re-cast as a vertical
      sidebar. Same six buttons, same onclick handlers, same #nav-*
@@ -1053,7 +1053,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div style="background:linear-gradient(135deg,#0088cc,#006aaa);border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,136,204,.3)">
-        <a href="https://t.me/cryptoclikoficial" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
+        <a href="https://t.me/cryptoclikoficial" target="_blank" rel="noopener" class="socialLink" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
           <div style="font-size:32px;flex-shrink:0">📢</div>
           <div style="flex:1">
             <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Canal de Noticias</div>
@@ -1064,7 +1064,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
         <button id="socialClaimTelegram" class="rdbtn" style="width:100%" onclick="claimSocial('telegram')">🎁 Reclamar +50.000 $CLK</button>
       </div>
       <div style="background:linear-gradient(135deg,#1a1a1a,#000);border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,.3)">
-        <a href="https://x.com/TU_USUARIO_AQUI" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
+        <a href="https://x.com/TU_USUARIO_AQUI" target="_blank" rel="noopener" class="socialLink" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
           <div style="font-size:32px;flex-shrink:0">🐦</div>
           <div style="flex:1">
             <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Síguenos en X (Twitter)</div>
