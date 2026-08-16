@@ -1097,7 +1097,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green),#059669);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#001a0a;flex-shrink:0">4</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Consulta la pantalla Canjear para más información 📋</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)">Consulta la pantalla Socios para más información 📋</div>
         </div>
       </div>
     </div>
@@ -1131,9 +1131,9 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
        style="width:190px; height:190px; animation:pulse 1s infinite; object-fit:contain;"></center>
   </div>
 
-  <!-- CANJEAR: catálogo informativo de proyectos externos, redirige fuera de la app -->
+  <!-- SOCIOS (antes "Canjear"): catálogo informativo de proyectos externos, redirige fuera de la app -->
   <div id="screen-redeem" class="screen">
-    <div class="sh">🔁 Canjear</div>
+    <div class="sh">🔁 Socios</div>
     <div class="ss">Airdrops de proyectos externos</div>
     <div class="rdintro">
       Aquí encontrarás <b>proyectos de terceros</b>, no afiliados a CRYPTO ALIEN, que ofrecen airdrops o programas de canje propios. Cada proyecto tiene sus propias condiciones, requisitos y token — este juego no gestiona, garantiza ni interviene en ningún canje.
@@ -1150,7 +1150,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span>MEJORAS</button>
   <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
   <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span>RANKING</button>
-  <button class="nbtn" id="nav-redeem" onclick="goTo('redeem')"><span class="nicon">🔁</span>CANJEAR</button>
+  <button class="nbtn" id="nav-redeem" onclick="goTo('redeem')"><span class="nicon">🔁</span>SOCIOS</button>
   <button class="nbtn" id="nav-community" onclick="goTo('community')"><span class="nicon">📡</span>COMUNIDAD</button>
 </nav>
 
@@ -2753,13 +2753,18 @@ function subRef(){const v=document.getElementById('refinp').value.trim().toUpper
    aviso explícito, únicamente abre el sitio oficial de cada proyecto en el
    navegador — fuera de la superficie que esas políticas regulan. Todo el
    texto usa lenguaje neutro (nunca "gana dinero real" ni cifras de valor). */
+// Sin proyectos por ahora — se añadirán más adelante. Estructura de
+// ejemplo (descomentar y rellenar por proyecto cuando haya alguno):
+// {id:'demo1',n:'Nombre del proyecto',i:'🪐',status:'live'|'soon', d:'Descripción breve.', url:'https://...'},
 const RDPROJ=[
-  {id:'demo1',n:'Proyecto Demo A',i:'🪐',status:'live', d:'Airdrop propio ya activo. Requiere completar tareas en su sitio oficial.', url:'https://example.com'},
-  {id:'demo2',n:'Proyecto Demo B',i:'🌊',status:'soon', d:'Programa de canje anunciado, pendiente de apertura oficial.',           url:'https://example.com'},
 ];
 let _redeemPending=null;
 function renderRedeem(){
   const list=document.getElementById('redeemlist');list.innerHTML='';
+  if(RDPROJ.length===0){
+    list.innerHTML='<div class="rdintro" style="text-align:center">🔁 Próximamente<br><span style="font-size:11px;opacity:.8">Todavía no hay proyectos disponibles. ¡Vuelve pronto!</span></div>';
+    return;
+  }
   for(const p of RDPROJ){
     const card=document.createElement('div');card.className='rdcard';
     const statusLabel=p.status==='live'?'Activo':'Próximamente';
