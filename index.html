@@ -1687,8 +1687,9 @@ const MISS=[
 // Recompensa por día de racha semanal (índice 0 = día 1 ... índice 6 = día 7,
 // ver claimDaily()/renderDG(): el ciclo es DRWD[S.dailyDay%7] y se repite cada
 // 7 días). Base subida x5 a petición expresa (día 1: 200->1000), mismo patrón
-// de progresión relativa entre días que ya existía.
-const DRWD=[1000,2000,3000,4000,6000,8000,12500];
+// de progresión relativa entre días que ya existía. Vuelta a subir x5 (día 1:
+// 1000->5000), mismo patrón de progresión relativa entre días.
+const DRWD=[5000,10000,15000,20000,30000,40000,62500];
 const PCOLS=['#FFD700','#FF6B35','#FF3CAC','#06B6D4','#10B981','#8B5CF6','#84CC16'];
 const SAVE_KEY='cck4';
 const SAVE_KEY_PREFIX='cck4_user_';
