@@ -20,48 +20,142 @@
    invasion/index.html) por si se añade alguno en el futuro. */
 input,textarea{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
 img{-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:auto;user-drag:none}
-html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);display:flex;justify-content:center;overflow:hidden}
+
+/* Mismo fondo atmosférico (imagen + degradado) que invasion/index.html
+   (images/fondoinvasion.jpg, ver ese archivo) — el minijuego pasaba de
+   ese fondo a un negro plano de golpe; con esto se siente la misma base
+   alien en vez de una pantalla aparte sin relación visual. */
+html{width:100%;min-height:100vh;background-color:var(--bg);background-image:linear-gradient(180deg,rgba(6,6,14,.55) 0%,rgba(8,7,18,.72) 55%,rgba(9,8,20,.88) 100%),url('images/fondoinvasion.jpg');background-position:center top;background-size:cover;background-repeat:no-repeat;background-attachment:fixed}
+html,body{width:100%;min-height:100vh;background:transparent;color:var(--text);font-family:var(--fb);display:flex;justify-content:center;overflow:hidden}
 #app{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;padding:20px 16px;position:relative}
 
-#hud{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+/* Vista de campo de estrellas sutil detrás de todo — capa fija de puntos,
+   independiente del fondo con imagen, aporta profundidad sin distraer
+   del tablero (opacidad baja, sin animación: "vida" va en las casillas,
+   no en el fondo, para no competir con el elemento que el jugador debe
+   mirar). */
+#starfield{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(1.5px 1.5px at 20% 30%,rgba(255,255,255,.9) 50%,transparent 52%),
+    radial-gradient(1px 1px at 65% 12%,rgba(255,255,255,.7) 50%,transparent 52%),
+    radial-gradient(1.5px 1.5px at 82% 45%,rgba(255,255,255,.8) 50%,transparent 52%),
+    radial-gradient(1px 1px at 35% 70%,rgba(255,255,255,.6) 50%,transparent 52%),
+    radial-gradient(1.5px 1.5px at 10% 85%,rgba(255,255,255,.7) 50%,transparent 52%),
+    radial-gradient(1px 1px at 92% 78%,rgba(255,255,255,.6) 50%,transparent 52%),
+    radial-gradient(1.5px 1.5px at 55% 55%,rgba(255,255,255,.5) 50%,transparent 52%);
+  background-repeat:no-repeat}
+
+#hud{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:14px;padding:10px 16px}
 .hudLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px}
-#timerVal{font-family:var(--fh);font-size:22px;color:var(--yellow)}
+#timerVal{font-family:var(--fh);font-size:22px;color:var(--yellow);transition:color .15s}
 #timerVal.low{color:var(--red);animation:pulse .5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-#attemptsVal{font-family:var(--fh);font-size:22px;color:var(--purple)}
+#attemptsVal{font-family:var(--fh);font-size:22px;color:var(--purple);transition:transform .15s}
+/* Sacude el número de intentos al perder uno — mismo lenguaje visual
+   que shakeScreen() usa en index.html padre para los golpes fuertes,
+   aquí en miniatura y solo sobre el propio número. */
+#attemptsVal.hit{animation:attemptsHit .32s ease}
+@keyframes attemptsHit{0%{transform:translateX(0)}25%{transform:translateX(-4px) scale(1.08);color:var(--red)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}100%{transform:translateX(0)}}
 
-.timerBarWrap{width:100%;height:6px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden;margin-bottom:20px}
-#timerBar{height:100%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:6px;transition:width .1s linear}
+.timerBarWrap{position:relative;z-index:1;width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden;margin-bottom:20px;box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
+#timerBar{height:100%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:8px;transition:width .1s linear;box-shadow:0 0 10px rgba(255,215,0,.6)}
 
-h1{font-family:var(--fh);font-size:17px;text-align:center;margin-bottom:4px}
-#subtitle{text-align:center;color:var(--muted);font-size:12px;font-weight:700;margin-bottom:12px}
+h1{position:relative;z-index:1;font-family:var(--fh);font-size:17px;text-align:center;margin-bottom:4px;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+#subtitle{position:relative;z-index:1;text-align:center;color:var(--muted);font-size:12px;font-weight:700;margin-bottom:12px}
 
-#legend{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 10px;margin-bottom:20px}
+#legend{position:relative;z-index:1;display:flex;justify-content:center;flex-wrap:wrap;gap:6px 10px;margin-bottom:20px}
 .legendItem{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:20px;padding:4px 10px}
 .legendIcon{font-size:13px;line-height:1}
 
-#grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:auto}
-.slot{aspect-ratio:1;border-radius:16px;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;transition:transform .15s,background .2s}
-.slot:active{transform:scale(.92)}
+/* ── TABLERO 3D ──────────────────────────────────────────────────────
+   perspective en el contenedor + rotateY por casilla: cada compartimento
+   es una carta real de dos caras (reverso = panel sellado de la base,
+   frente = resultado), no un simple cambio de emoji/color como antes.
+   La profundidad (perspective) vive en #grid para que las 9 casillas
+   compartan un mismo punto de fuga y el conjunto se lea como un panel
+   físico, no como 9 tarjetas sueltas cada una con su propia cámara. */
+#grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:auto;perspective:900px}
+.slot{position:relative;aspect-ratio:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.slot:active .slotInner:not(.flipped){transform:scale(.94)}
 .slot.revealed{cursor:default;pointer-events:none}
-.slot.deposit{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.5)}
-.slot.trap{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.5)}
-.slot.empty{background:rgba(107,104,160,.15);border-color:rgba(107,104,160,.3)}
-.slot.wildcard{background:rgba(139,92,246,.2);border-color:rgba(139,92,246,.5)}
+
+.slotInner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.34,1.56,.64,1),scale .12s}
+.slotInner.flipped{transform:rotateY(180deg)}
+
+.slotFace{position:absolute;inset:0;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:34px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--border)}
+/* Reverso: panel sellado de la base — remaches en las esquinas y un
+   signo de interrogación grabado, para que "sin revelar" se sienta como
+   una superficie física cerrada y no como una casilla vacía de UI. */
+.slotBack{background:linear-gradient(145deg,var(--card2),var(--card));box-shadow:0 6px 14px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06);color:var(--muted)}
+.slotBack::before,.slotBack::after{content:'';position:absolute;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.12);box-shadow:inset 0 1px 1px rgba(0,0,0,.5)}
+.slotBack::before{top:8px;left:8px}
+.slotBack::after{bottom:8px;right:8px}
+.slot:hover .slotBack{background:linear-gradient(145deg,#221f3d,var(--card2))}
+
+/* Frente: rotado 180° de fábrica para que, tras el flip del padre, quede
+   mirando a cámara en vez de invertido. */
+.slotFront{transform:rotateY(180deg);box-shadow:0 8px 20px rgba(0,0,0,.45)}
+.slotFront.deposit{background:linear-gradient(145deg,rgba(16,185,129,.35),rgba(16,185,129,.12));border-color:rgba(16,185,129,.6)}
+.slotFront.wildcard{background:linear-gradient(145deg,rgba(139,92,246,.4),rgba(139,92,246,.14));border-color:rgba(139,92,246,.65)}
+.slotFront.trap{background:linear-gradient(145deg,rgba(239,68,68,.4),rgba(239,68,68,.14));border-color:rgba(239,68,68,.65)}
+.slotFront.empty{background:linear-gradient(145deg,rgba(107,104,160,.28),rgba(107,104,160,.1));border-color:rgba(107,104,160,.4)}
+
+/* Aro de energía: se enciende SOLO en depósitos/comodines que suman al
+   contador de victoria — refuerzo visual de "esto cuenta", separado del
+   color de fondo para que se note incluso en capturas/pantallas
+   pequeñas. Trampa y vacío no lo llevan (no hay nada que celebrar ahí). */
+.slotFront.deposit::after,.slotFront.wildcard::after{content:'';position:absolute;inset:-2px;border-radius:18px;border:2px solid currentColor;opacity:0;animation:ringPulse .6s ease-out}
+.slotFront.deposit::after{color:var(--green)}
+.slotFront.wildcard::after{color:var(--purple)}
+@keyframes ringPulse{0%{opacity:.9;inset:-2px}100%{opacity:0;inset:-10px}}
+
+/* Sacudida de casilla al destapar una trampa — el propio compartimento
+   "explota" en vez de solo cambiar de color, mismo espíritu que
+   shakeScreen() en el index padre pero acotado a la casilla en vez de
+   sacudir toda la pantalla (una trampa es un revés local, no debe
+   marear todo el tablero). */
+.slotFront.trap{animation:trapShake .4s ease}
+@keyframes trapShake{0%,100%{transform:rotateY(180deg) translateX(0)}20%{transform:rotateY(180deg) translateX(-6px)}40%{transform:rotateY(180deg) translateX(5px)}60%{transform:rotateY(180deg) translateX(-3px)}80%{transform:rotateY(180deg) translateX(2px)}}
+
+/* Casillas reveladas "de relleno" al terminar la partida (endGame): se
+   atenúan igual que antes (dim) pero SIN el aro de energía ni el shake
+   de trampa, que son celebración/impacto de un clic real del jugador,
+   no de un cierre automático. */
+.slotFront.dim{opacity:.35}
+.slotFront.dim::after{display:none}
+.slotFront.dim.trap{animation:none}
+
+/* Sacudida de PANTALLA COMPLETA reservada para el cierre de partida
+   (perder por tiempo/intentos) — la única vez que el juego entero, no
+   solo una casilla, debe "doler". Clase efímera vía JS (ver shakeApp()). */
+#app.shakeApp{animation:appShake .4s ease}
+@keyframes appShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+
+/* Partículas de monedas al ganar (spawneadas por JS, ver spawnCoinBurst()).
+   position:fixed porque deben verse por encima del endOverlay, que ya
+   está mostrándose para ese momento (mismo z-index que #endOverlay,
+   apiladas después en el DOM así quedan por delante). */
+.coinParticle{position:fixed;z-index:55;font-size:20px;pointer-events:none;will-change:transform,opacity}
 
 #endOverlay{position:fixed;inset:0;background:rgba(11,10,20,.92);backdrop-filter:blur(8px);z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
 #endOverlay.show{display:flex}
 .endIcon{font-size:64px;margin-bottom:12px}
+.endIcon.win{animation:endIconWin .7s cubic-bezier(.34,1.56,.64,1)}
+.endIcon.lose{animation:endIconLose .5s ease}
+@keyframes endIconWin{0%{transform:scale(0) rotate(-20deg)}60%{transform:scale(1.2) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes endIconLose{0%{transform:scale(0)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 .endTitle{font-family:var(--fh);font-size:24px;margin-bottom:8px}
-.endTitle.win{color:var(--green)}
-.endTitle.lose{color:var(--red)}
+.endTitle.win{color:var(--green);text-shadow:0 0 20px rgba(16,185,129,.5)}
+.endTitle.lose{color:var(--red);text-shadow:0 0 20px rgba(239,68,68,.4)}
 #endDetail{color:var(--muted);font-weight:700;font-size:13px;margin-bottom:24px;max-width:300px}
-.endAmount{font-family:var(--fh);font-size:32px;color:var(--yellow);margin-bottom:24px}
-#continueBtn{width:100%;max-width:280px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer}
+.endAmount{font-family:var(--fh);font-size:32px;color:var(--yellow);margin-bottom:24px;text-shadow:0 0 16px rgba(255,215,0,.5)}
+#continueBtn{width:100%;max-width:280px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 22px rgba(255,60,172,.35);transition:transform .12s,box-shadow .12s}
+#continueBtn:active{transform:scale(.96);box-shadow:0 4px 14px rgba(255,60,172,.3)}
 
 #countIn{position:fixed;inset:0;background:var(--bg);z-index:60;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
 #countIn.hide{display:none}
-#countNum{font-family:var(--fh);font-size:80px;color:var(--yellow)}
+#countNum{font-family:var(--fh);font-size:80px;color:var(--yellow);text-shadow:0 0 30px rgba(255,215,0,.5)}
+#countNum.tick{animation:countTick .7s cubic-bezier(.34,1.56,.64,1)}
+@keyframes countTick{0%{transform:scale(1.6);opacity:0}60%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}
 
 #rulesOverlay{position:fixed;inset:0;background:rgba(11,10,20,.96);backdrop-filter:blur(8px);z-index:70;display:none;align-items:center;justify-content:center;padding:24px}
 #rulesOverlay.show{display:flex}
@@ -72,10 +166,23 @@ h1{font-family:var(--fh);font-size:17px;text-align:center;margin-bottom:4px}
 .ruleText{font-size:12.5px;font-weight:700;color:var(--text);line-height:1.35}
 .ruleText b{color:var(--yellow)}
 #rulesGoal{text-align:center;color:var(--muted);font-size:11.5px;font-weight:700;margin:14px 0 18px;line-height:1.5}
-#rulesOkBtn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:15px;cursor:pointer}
+#rulesOkBtn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:15px;cursor:pointer;transition:transform .12s}
+#rulesOkBtn:active{transform:scale(.96)}
+
+/* Respeta prefers-reduced-motion: apaga las animaciones decorativas
+   (flip sigue existiendo porque comunica estado del juego, no es
+   decorativo, pero se acelera a un cambio casi instantáneo) y las
+   sacudidas/partículas, que sí son puramente decorativas. */
+@media (prefers-reduced-motion:reduce){
+  .slotInner{transition:transform .01s linear}
+  .slotFront.trap,#app.shakeApp,#attemptsVal.hit,.endIcon.win,.endIcon.lose,#countNum.tick{animation:none!important}
+  .slotFront.deposit::after,.slotFront.wildcard::after{display:none}
+  .coinParticle{display:none}
+}
 </style>
 </head>
 <body>
+<div id="starfield" aria-hidden="true"></div>
 <div id="rulesOverlay">
   <div id="rulesCard">
     <h2>Cómo infiltrarte</h2>
@@ -127,6 +234,82 @@ let attemptsLeft, timeLeftMs, depositsFound=0, gameEnded=false, timerRAF;
 let slotTypes=[]; // array de 9: 'deposit'|'wildcard'|'trap'|'empty' ('empty' ya no se usa en buildGrid() pero onSlotClick()/endGame() lo siguen soportando)
 let lastFrameTs=0;
 
+/* ── MOTOR DE SONIDO DEL MINIJUEGO ────────────────────────────────────
+   invasion/index.html ya deja documentado que "no hay motor SFX propio"
+   en Invasión, solo música de fondo (initInvasionBgm(), ver
+   invasion-core.js) — y esa música, a propósito, no suena en
+   minigame.html (ver el comentario grande sobre INVASION_BGM_SRC ahí).
+   Se sigue exactamente ese mismo criterio: nada de música de fondo
+   nueva aquí. Lo que faltaba eran los efectos cortos de la partida en
+   sí (flip, acierto, trampa, fin de partida), que no tienen equivalente
+   en ningún otro archivo para reutilizar.
+
+   Mismo enfoque que SFX en index.html (el padre): sintetizar con
+   WebAudio (osciladores + ruido filtrado) en vez de cargar .mp3 nuevos,
+   así no hace falta ningún asset de audio adicional. Comparte la MISMA
+   clave de localStorage 'cck4_muted' que usa el resto de la app (padre,
+   ruleta, invasión) para que el botón de silenciar global también
+   silencie este minijuego — un jugador que ya mutó el juego no debería
+   volver a escuchar sonido acá sin haberlo pedido. ────────────────── */
+const MSFX=(()=>{
+  let ctx=null,master=null,muted=false;
+  try{ muted = localStorage.getItem('cck4_muted')==='1'; }catch(e){}
+  function ensure(){
+    if(ctx)return ctx;
+    try{
+      ctx=new (window.AudioContext||window.webkitAudioContext)();
+      master=ctx.createGain();
+      master.gain.value=muted?0:0.5;
+      master.connect(ctx.destination);
+    }catch(e){ ctx=null; }
+    return ctx;
+  }
+  function unlock(){ const c=ensure(); if(c&&c.state==='suspended')c.resume(); }
+  unlock();
+  ['touchstart','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{once:true,passive:true}));
+  function tone(freq,dur,type,gainPeak,when,glideTo){
+    const c=ensure(); if(!c)return;
+    const t0=c.currentTime+(when||0);
+    const osc=c.createOscillator(),g=c.createGain();
+    osc.type=type||'sine'; osc.frequency.setValueAtTime(freq,t0);
+    if(glideTo)osc.frequency.exponentialRampToValueAtTime(Math.max(1,glideTo),t0+dur);
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0001,gainPeak||0.3),t0+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    osc.connect(g); g.connect(master);
+    osc.start(t0); osc.stop(t0+dur+0.02);
+  }
+  function noiseBurst(dur,gainPeak,when,filterFreq,filterType){
+    const c=ensure(); if(!c)return;
+    const t0=c.currentTime+(when||0);
+    const n=Math.floor(c.sampleRate*dur);
+    const buf=c.createBuffer(1,n,c.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+    const src=c.createBufferSource(); src.buffer=buf;
+    const g=c.createGain();
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0001,gainPeak||0.2),t0+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    const f=c.createBiquadFilter(); f.type=filterType||'bandpass'; f.frequency.value=filterFreq||3000;
+    src.connect(f); f.connect(g); g.connect(master);
+    src.start(t0);
+  }
+  const PENTA=[523.25,587.33,659.25,783.99,880.00,1046.50,1174.66,1318.51];
+  return {
+    flip(){ tone(320,0.05,'square',0.1); tone(480,0.04,'square',0.06,0.03); },
+    deposit(){ tone(880,0.07,'triangle',0.22); tone(1318.51,0.11,'triangle',0.2,0.05); },
+    wildcard(){ [0,2,4,7].forEach((n,i)=>tone(PENTA[Math.min(n,PENTA.length-1)],0.09,'triangle',0.18,i*0.045)); },
+    trap(){ tone(140,0.22,'sawtooth',0.22,0,55); noiseBurst(0.18,0.22,0,900,'lowpass'); },
+    empty(){ tone(260,0.06,'sine',0.08); },
+    tick(low){ tone(low?1400:900,0.045,'square',low?0.12:0.07); },
+    win(){ [0,2,4,7,9].forEach((n,i)=>tone(PENTA[Math.min(n,PENTA.length-1)],0.2,'triangle',0.24,i*0.09)); noiseBurst(0.4,0.14,0.25,7000); },
+    lose(){ tone(220,0.18,'sawtooth',0.18,0,90); tone(160,0.28,'sawtooth',0.16,0.14,60); noiseBurst(0.3,0.18,0,700,'lowpass'); },
+    countBeep(){ tone(660,0.09,'sine',0.16); },
+    go(){ tone(523.25,0.06,'triangle',0.2); tone(1046.5,0.14,'triangle',0.22,0.06); },
+  };
+})();
+
 /* ── Pantalla de reglas del minijuego, solo la primera vez que el
    jugador entra aquí. Mismo criterio y misma convención de localStorage
    (prefijo cck4_) que el video de intro de invasion/index.html — ver el
@@ -147,6 +330,46 @@ function fmtClk(n){
   if(n>=1e6)return(n/1e6).toFixed(2)+'M';
   if(n>=1e3)return(n/1e3).toFixed(1)+'K';
   return n+'';
+}
+
+// Sacudida de #app completo — reservada para impactos que afectan a TODA
+// la partida (trampa destapada, derrota por tiempo/intentos), separada
+// del shake local de una sola casilla (.slotFront.trap, ver <style>) que
+// ya se dispara solo con la clase 'trap' del CSS. Clase efímera: se
+// quita y se vuelve a poner (con reflow forzado) para que dos impactos
+// seguidos sacudan cada vez, no solo la primera.
+function shakeApp(){
+  const app=document.getElementById('app');
+  app.classList.remove('shakeApp'); void app.offsetWidth; app.classList.add('shakeApp');
+}
+
+// Ráfaga de monedas al ganar: partículas de texto (position:fixed, ver
+// .coinParticle en el <style>) que nacen en el centro de la pantalla y
+// se dispersan en abanico. Puramente decorativo — se limpian solas tras
+// la animación (remove() en el listener de 'animationend') para no
+// dejar nodos huérfanos si el jugador reinicia varias partidas seguidas.
+function spawnCoinBurst(){
+  const cx=window.innerWidth/2, cy=window.innerHeight/2;
+  const n=14;
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');
+    p.className='coinParticle';
+    p.textContent = Math.random()<0.35 ? '✨' : '🪙';
+    const angle = (Math.PI*2*i/n) + (Math.random()*0.5-0.25);
+    const dist = 90 + Math.random()*140;
+    const dx = Math.cos(angle)*dist, dy = Math.sin(angle)*dist - 40;
+    p.style.left = cx+'px';
+    p.style.top = cy+'px';
+    p.style.transform = 'translate(-50%,-50%)';
+    p.style.opacity = '1';
+    document.body.appendChild(p);
+    const anim = p.animate([
+      { transform:'translate(-50%,-50%) scale(.6)', opacity:1 },
+      { transform:`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1.15)`, opacity:1, offset:.6 },
+      { transform:`translate(calc(-50% + ${dx*1.15}px), calc(-50% + ${dy*1.15 + 60}px)) scale(.8)`, opacity:0 }
+    ], { duration: 900+Math.random()*400, easing:'cubic-bezier(.2,.7,.3,1)' });
+    anim.onfinish = () => p.remove();
+  }
 }
 
 async function boot(){
@@ -206,14 +429,19 @@ function runCountdown(){
   const el=document.getElementById('countNum');
   let n=3;
   el.textContent=n;
+  el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick');
+  MSFX.countBeep();
   const iv=setInterval(()=>{
     n--;
     if(n<=0){
       clearInterval(iv);
       document.getElementById('countIn').classList.add('hide');
+      MSFX.go();
       startTimer();
     }else{
       el.textContent = n;
+      el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick');
+      MSFX.countBeep();
     }
   },700);
 }
@@ -228,10 +456,21 @@ function buildGrid(){
   const grid=document.getElementById('grid');
   grid.innerHTML='';
   for(let i=0;i<9;i++){
+    // Estructura de dos caras (panel 3D real, ver .slotInner/.slotFace en
+    // el <style>): slotBack es el compartimento sellado que ve el
+    // jugador antes de tocarlo, slotFront es la cara con el resultado,
+    // que solo queda mirando a cámara tras rotar 180° el padre
+    // (.slotInner.flipped). El contenido de slotFront (icono, clase de
+    // tipo) lo rellena onSlotClick()/endGame() en el momento de revelar,
+    // no aquí — aquí solo se arma el esqueleto vacío de la carta.
     const slot=document.createElement('div');
     slot.className='slot';
-    slot.textContent='❓';
     slot.dataset.idx=i;
+    slot.innerHTML=
+      '<div class="slotInner">'+
+        '<div class="slotFace slotBack">❓</div>'+
+        '<div class="slotFace slotFront"></div>'+
+      '</div>';
     slot.onclick=()=>onSlotClick(i,slot);
     grid.appendChild(slot);
   }
@@ -242,6 +481,11 @@ function onSlotClick(idx, el){
   if(gameEnded || el.classList.contains('revealed')) return;
   const type = slotTypes[idx];
   el.classList.add('revealed', type);
+  const inner=el.querySelector('.slotInner');
+  const front=el.querySelector('.slotFront');
+  front.classList.add(type);
+  inner.classList.add('flipped');
+  MSFX.flip();
 
   // Coste en intentos por tipo de compartimento — cada tipo se resta UNA
   // sola vez, aquí mismo, para no arrastrar dos restas del mismo clic:
@@ -251,19 +495,33 @@ function onSlotClick(idx, el){
   //   vacío    → 1 (coste normal de "gastar" un intento sin acertar)
   let cost = 0;
   if(type==='deposit' || type==='wildcard'){
-    el.textContent = type==='deposit' ? '💰' : '🃏';
+    front.textContent = type==='deposit' ? '💰' : '🃏';
     depositsFound++;
+    // El sonido de flip ya sonó arriba (mismo "clic" físico que abre CUALQUIER
+    // compartimento); esto es el acierto que se superpone a mitad del flip,
+    // como el "ding" de una máquina real justo al ver el premio.
+    (type==='deposit' ? MSFX.deposit : MSFX.wildcard)();
     if(depositsFound>=3){ endGame(true); return; }
   }else if(type==='trap'){
-    el.textContent='💥';
+    front.textContent='💥';
     cost = 2;
+    MSFX.trap();
+    shakeApp();
   }else{
-    el.textContent='·';
+    front.textContent='·';
     cost = 1;
+    MSFX.empty();
   }
 
   attemptsLeft -= cost;
-  document.getElementById('attemptsVal').textContent = Math.max(0,attemptsLeft);
+  const attemptsEl=document.getElementById('attemptsVal');
+  attemptsEl.textContent = Math.max(0,attemptsLeft);
+  if(cost>0){
+    // Sacude el número de intentos SOLO cuando de verdad bajó (trampa o
+    // vacío) — un depósito/comodín no gasta intento, así que agitar el
+    // número ahí sería una señal falsa de "perdiste algo".
+    attemptsEl.classList.remove('hit'); void attemptsEl.offsetWidth; attemptsEl.classList.add('hit');
+  }
   if(attemptsLeft<=0){ endGame(false); return; }
 }
 
@@ -287,12 +545,26 @@ function startTimer(){
   timerRAF = requestAnimationFrame(tick);
 }
 
+let _lastTickSecond=-1; // último entero de segundo en el que ya sonó el tick de tiempo bajo, para no repetir el beep en cada frame (ver updateTimerUI)
+
 function updateTimerUI(totalMs){
   const secs = (timeLeftMs/1000).toFixed(1);
   const val=document.getElementById('timerVal');
   val.textContent = secs+'s';
-  val.classList.toggle('low', timeLeftMs < 3000);
+  const isLow = timeLeftMs < 3000;
+  val.classList.toggle('low', isLow);
   document.getElementById('timerBar').style.width = Math.max(0,(timeLeftMs/totalMs*100))+'%';
+  // Beep de tensión: uno por cada segundo entero que pasa dentro de la
+  // ventana "low" (< 3000ms), no un sonido por frame — updateTimerUI()
+  // corre a ritmo de requestAnimationFrame, así que sin este control se
+  // oiría como un zumbido continuo en vez de un tictac.
+  if(isLow && timeLeftMs>0){
+    const currentSecond = Math.ceil(timeLeftMs/1000);
+    if(currentSecond!==_lastTickSecond){
+      _lastTickSecond = currentSecond;
+      MSFX.tick(true);
+    }
+  }
 }
 
 async function endGame(playerFoundAllDeposits){
@@ -310,17 +582,30 @@ async function endGame(playerFoundAllDeposits){
   const won = !!playerFoundAllDeposits;
 
   // Revela el resto de compartimentos sin marcar (feedback visual de
-  // cierre de partida).
+  // cierre de partida). Con la estructura de dos caras (slotInner/
+  // slotFace, ver buildGrid()) hay que flipear cada una igual que un
+  // clic real (clase 'flipped' en slotInner) y pintar el resultado en
+  // slotFront en vez de en el elemento .slot raíz como antes — pero SIN
+  // el aro de energía ni el shake de trampa (ver .slotFront.dim en el
+  // <style>), que son celebración/impacto de un clic real del jugador,
+  // no de este cierre automático.
   document.querySelectorAll('.slot:not(.revealed)').forEach((el,i)=>{
     const idx=parseInt(el.dataset.idx);
     const type=slotTypes[idx];
-    el.classList.add('revealed',type,'dim');
-    el.textContent = type==='deposit'?'💰':type==='wildcard'?'🃏':type==='trap'?'💥':'·';
-    el.style.opacity='.35';
+    el.classList.add('revealed',type);
+    const inner=el.querySelector('.slotInner');
+    const front=el.querySelector('.slotFront');
+    front.classList.add(type,'dim');
+    front.textContent = type==='deposit'?'💰':type==='wildcard'?'🃏':type==='trap'?'💥':'·';
+    inner.classList.add('flipped');
   });
 
+  if(!won) shakeApp();
+
   const overlay=document.getElementById('endOverlay');
-  document.getElementById('endIcon').textContent = won?'💰':'💥';
+  const iconEl=document.getElementById('endIcon');
+  iconEl.textContent = won?'💰':'💥';
+  iconEl.className = 'endIcon ' + (won?'win':'lose');
   const titleEl=document.getElementById('endTitle');
   titleEl.textContent = won?'¡INFILTRACIÓN EXITOSA!':'INFILTRACIÓN FALLIDA';
   titleEl.className='endTitle ' + (won?'win':'lose');
@@ -328,6 +613,7 @@ async function endGame(playerFoundAllDeposits){
     ? 'Lograste completar la infiltración.'
     : 'La infiltración fue detectada a tiempo.';
   overlay.classList.add('show');
+  if(won){ MSFX.win(); spawnCoinBurst(); } else { MSFX.lose(); }
 
   try{
     const result = await core.resolveInvasion({
