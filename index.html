@@ -3244,19 +3244,27 @@ window.startGameForUser=async function(user){
   _gameStarted=true;
   await loadCloud(user.uid);
   window.__fbUser=user;
-  // Estado del escudo de Invasión (icono semitransparente/oscuro cuando no
-  // hay ninguno activo). Deliberadamente SIN await: no debe retrasar el
-  // arranque del juego principal por una llamada a un módulo secundario;
-  // el icono simplemente se actualiza en cuanto la lectura termine.
-  syncShieldState();
-  recalc();upd();checkMiss();
+  // BUGFIX: antes esta llamada era "fire-and-forget" (sin await) para no retrasar
+  // el arranque visual del juego. Pero syncShieldState() es lo único que concilia
+  // un robo/ganancia reciente de invasion_players/{uid} con S.clk (ver comentario
+  // "LIMITACIÓN CONOCIDA" en resolveInvasion(), invasion/js/invasion-core.js) y,
+  // sin esperarla, el cloudSaveNow(true) de abajo se disparaba con el S.clk VIEJO
+  // (previo al robo) y lo subía a saves/{uid} con un updatedAt nuevo — esa
+  // escritura ganaba la próxima conciliación por updatedAt y el saldo de Invasión
+  // desaparecía para siempre del juego principal. _appReadyForSave también se
+  // adelanta (antes se fijaba después de esta llamada): syncShieldState() solo
+  // aplica su ajuste de S.clk si _appReadyForSave ya es true (ver esa función), así
+  // que fijarlo antes es necesario para que el await de abajo tenga efecto real.
   _appReadyForSave=true;
+  await syncShieldState();
+  recalc();upd();checkMiss();
   localSaveNow();
   _dirtySinceCloud=true;
   // Forzado (true), no cloudSaveNow(false): justo después de cargar es cuando loadCloud ya
   // decidió qué copia gana (local o nube). Publicar esa decisión en Firestore de inmediato,
   // sin esperar CLOUD_MIN_INTERVAL, es lo que evita que un segundo dispositivo que se conecte
   // segundos después descargue una versión vieja y arranque una línea de progreso paralela.
+  // (Ahora también incluye, si aplica, el ajuste de syncShieldState() ya esperado arriba.)
   cloudSaveNow(true);
   document.addEventListener('dblclick',e=>e.preventDefault());
   setupCoinPress();
