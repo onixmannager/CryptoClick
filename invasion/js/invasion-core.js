@@ -76,9 +76,13 @@ const CFG = {
   // ritmo de escalado agresivo que ya tenía el sistema, confirmado
   // explícitamente en vez de suavizarlo pese a que la base es mucho
   // mayor que antes). A nivel 50 esto da ~1,29M (3d) / ~6,14M (7d).
+  // Base subida x3 a petición expresa (mismo coste x3 en TODOS los
+  // niveles, no solo nivel 1): como el coste es base*exp^(lvl-1),
+  // multiplicar la base x3 multiplica x3 el resultado para cualquier
+  // lvl sin tocar exp ni el ritmo de escalado relativo entre niveles.
   SHIELD_COST: {
-    '3d': { base: 5000,  exp: 1.12 },
-    '7d': { base: 10000, exp: 1.14 },
+    '3d': { base: 15000, exp: 1.12 },
+    '7d': { base: 30000, exp: 1.14 },
   },
 
   // NOTA: existía aquí una probabilidad de victoria fija (WIN_PROBABILITY)
