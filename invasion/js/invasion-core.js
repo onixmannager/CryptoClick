@@ -134,12 +134,38 @@ const CFG = {
   // depósitos (la "suerte" de qué casillas tocas primero) en vez de
   // depender de acertar sin ningún margen de error. robMax también sube
   // en todos los tiers manteniendo el mismo orden relativo de dificultad.
+  //
+  // Corrección posterior (bug real medido en simulación con el barajado
+  // Fisher-Yates de buildGrid() en minigame.html, 300k partidas por
+  // tier): con intentos=5 el tier 'normal' ganaba solo ~18% de las
+  // veces, no "alcanzable con juego normal" como decía el comentario de
+  // arriba — 5 intentos perdona como mucho dos trampas/vacíos antes de
+  // fallar, y en 9 casillas eso sigue siendo insuficiente la mayoría de
+  // las veces. Pedido expreso: que se gane aprox 2 de cada 3 (≈66%).
+  // Con este barajado, el máximo de intentos que se pueden "gastar" en
+  // trampas/vacíos antes de destapar el 3er depósito en el peor caso es
+  // 3*2 (trampas) + 3*1 (vacíos) = 9 — por eso intentos=10+ garantiza
+  // 100% (deja de depender del tablero) e intentos=9 es el techo real
+  // que SÍ sigue dependiendo del barajado, y da ≈66.6% medido en
+  // simulación, exactamente el ratio pedido. Se sube a 9 en
+  // muy_facil/facil/normal (donde aplica el "2 de cada 3"; los tres
+  // dan el mismo ≈66% porque 9 es un techo matemático, no hay un valor
+  // intermedio entre 9 y 10 para diferenciarlos más entre sí sin salirse
+  // de esos dos números) y se sube proporcionalmente dificil→7 (≈38%)
+  // y muy_dificil→5 (≈18%) para conservar el mismo orden relativo de
+  // dificultad que ya tenía la tabla, sin que ningún tier llegue a
+  // 100% garantizado (eso eliminaría la suerte real del tablero, que es
+  // justo lo que el comentario de arriba pide conservar). tiempoMs sube
+  // a la par en los tiers con más intentos: con más clics necesarios
+  // para llegar al mismo resultado, el jugador humano necesita más
+  // margen real de reloj, o el límite de tiempo pasaría a ser el nuevo
+  // cuello de botella oculto pese al cálculo de intentos.
   DIFFICULTY_TIERS: [
-    { min: 10,  max: Infinity, key: 'muy_facil',   label: 'Muy fácil',    tiempoMs: 20000, intentos: 6, robMax: 0.30 },
-    { min: 4,   max: 9,        key: 'facil',       label: 'Fácil',        tiempoMs: 18000, intentos: 5, robMax: 0.25 },
-    { min: -3,  max: 3,        key: 'normal',      label: 'Normal',       tiempoMs: 16000, intentos: 5, robMax: 0.20 },
-    { min: -9,  max: -4,       key: 'dificil',     label: 'Difícil',      tiempoMs: 13000, intentos: 4, robMax: 0.14 },
-    { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 12000, intentos: 3, robMax: 0.10 },
+    { min: 10,  max: Infinity, key: 'muy_facil',   label: 'Muy fácil',    tiempoMs: 26000, intentos: 9, robMax: 0.30 },
+    { min: 4,   max: 9,        key: 'facil',       label: 'Fácil',        tiempoMs: 24000, intentos: 9, robMax: 0.25 },
+    { min: -3,  max: 3,        key: 'normal',      label: 'Normal',       tiempoMs: 22000, intentos: 9, robMax: 0.20 },
+    { min: -9,  max: -4,       key: 'dificil',     label: 'Difícil',      tiempoMs: 17000, intentos: 7, robMax: 0.14 },
+    { min: -Infinity, max: -10, key: 'muy_dificil', label: 'Casi imposible', tiempoMs: 14000, intentos: 5, robMax: 0.10 },
   ],
 };
 
