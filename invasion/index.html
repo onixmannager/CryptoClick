@@ -84,6 +84,24 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 #revengeBtn{margin-top:10px;width:100%;padding:12px;border:none;border-radius:12px;background:var(--orange);color:#fff;font-family:var(--fh);font-size:14px;cursor:pointer}
 #revengeBtn:active{transform:scale(.97)}
 
+/* ATAQUES PENDIENTES — notificación real ("Fulano te ha atacado") con
+   una fila por ataque sin resolver. Mismo lenguaje visual que
+   #revengePanel (borde/fondo de color de alerta) pero en rojo, para
+   distinguirlo de un aviso de venganza (naranja) — esto es "tienes que
+   defenderte", más urgente que "puedes vengarte si quieres". */
+.pendingPanel{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.08);margin-bottom:14px}
+.pendingRow{display:flex;align-items:center;gap:12px}
+.pendingRow+.pendingRow{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.pendingIcon{font-size:26px;flex-shrink:0}
+.pendingInfo{flex:1;min-width:0}
+.pendingTitle{font-family:var(--fh);font-size:14px;color:var(--text)}
+.pendingSub{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:2px}
+.pendingDefendBtn{flex-shrink:0;padding:10px 16px;border:none;border-radius:10px;background:var(--red);color:#fff;font-family:var(--fh);font-size:12.5px;cursor:pointer}
+.pendingDefendBtn:active{transform:scale(.95)}
+
+/* BLOQUEO POR NIVEL (spec 11) */
+#lockedHint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;font-weight:700}
+
 /* HISTORIAL */
 .sectionTitle{font-family:var(--fh);font-size:14px;color:var(--muted);letter-spacing:.5px;margin-bottom:8px;padding-left:4px}
 .histRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
@@ -208,6 +226,12 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
       <div class="shieldBuyBtns" id="shieldBuyBtns"></div>
     </div>
 
+    <!-- ATAQUES PENDIENTES DE DEFENDER (spec 4/6): notificación real de
+         que alguien te atacó, incluso si estabas offline cuando pasó —
+         se rellena en checkPendingAttacks(), una fila por ataque
+         pendiente (puede haber más de uno, de atacantes distintos). -->
+    <div id="pendingAttacksPanel" style="display:none"></div>
+
     <!-- VENGANZA -->
     <div class="panel" id="revengePanel">
       <div class="revengeRow">
@@ -224,6 +248,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
     <div class="panel">
       <button id="invadeBtn">🚀 BUSCAR RIVAL</button>
       <div id="invadeHint"></div>
+      <div id="lockedHint" style="display:none"></div>
     </div>
 
     <!-- HISTORIAL -->
@@ -269,6 +294,7 @@ function fmtCountdown(ms){
 }
 
 let core, myProfile, countdownInterval, invadeHintInterval;
+const DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal',dificil:'Difícil',muy_dificil:'Casi imposible'};
 
 /* ── Video de presentación de Invasión, mismo criterio que el video de
    intro del juego padre (index.html): se reproduce una sola vez, la
@@ -421,6 +447,7 @@ async function boot(){
       countdownInterval = setInterval(updateShieldUI, 1000);
       loadHistory();
       checkRevenge();
+      checkPendingAttacks();
     };
     // El video de presentación (si aplica) arranca SOLO cuando el
     // loading ya terminó de ocultarse, nunca en paralelo con él —mismo
@@ -548,11 +575,27 @@ async function buyShield(type, expectedCost){
   }
 }
 
+// Spec 11: Invasión bloqueada en nivel 1 y 2, se desbloquea en
+// CFG.MIN_LEVEL_TO_UNLOCK (3). Se comprueba ANTES que cooldown/límite
+// diario/cuenta nueva — un jugador bloqueado por nivel no necesita saber
+// que además tiene cooldown, necesita saber que tiene que subir de
+// nivel primero.
 function updateInvadeButton(){
   const btn=document.getElementById('invadeBtn');
   const hint=document.getElementById('invadeHint');
-  const check = core.checkCanInvade(myProfile);
+  const lockedHint=document.getElementById('lockedHint');
   clearInterval(invadeHintInterval);
+
+  if(!core.isInvasionUnlocked(myProfile.lvl)){
+    btn.disabled=true;
+    hint.textContent='';
+    lockedHint.style.display='block';
+    lockedHint.textContent = `🔒 Disponible a partir de nivel ${core.CFG.MIN_LEVEL_TO_UNLOCK} (tu nivel: ${myProfile.lvl})`;
+    return;
+  }
+  lockedHint.style.display='none';
+
+  const check = core.checkCanInvade(myProfile);
   if(check.ok){
     btn.disabled=false;
     hint.textContent='';
@@ -615,6 +658,52 @@ async function checkRevenge(){
   }catch(e){ console.error('checkRevenge failed:',e); }
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// NOTIFICACIÓN DE ATAQUE PENDIENTE (spec 4/6): "Dani te ha atacado".
+// A diferencia del panel de venganza (que avisa de un robo YA resuelto
+// y ofrece revancha), este panel avisa de un misil TODAVÍA sin
+// resolver — el jugador tiene que jugar el minijuego de defensa para
+// que el ataque se cierre. Se comprueba al abrir el hub, igual que
+// checkRevenge(), así que aunque el jugador estuviera offline cuando le
+// lanzaron el misil, lo ve en cuanto vuelve a entrar (spec 4: "si está
+// offline, no pasa nada… cuando vuelva a entrar debe recibir una
+// notificación").
+// ─────────────────────────────────────────────────────────────────────
+async function checkPendingAttacks(){
+  try{
+    const pending = await core.getPendingAttacksFor(myProfile.uid);
+    const panel=document.getElementById('pendingAttacksPanel');
+    if(!pending.length){
+      panel.style.display='none';
+      panel.innerHTML='';
+      return;
+    }
+    panel.innerHTML =
+      '<div class="panel pendingPanel">' +
+      pending.map(a => `
+        <div class="pendingRow" data-attack-id="${a.id}">
+          <div class="pendingIcon">🚀</div>
+          <div class="pendingInfo">
+            <div class="pendingTitle">${escapeHtml(a.attackerAlias||'Jugador')} te ha atacado</div>
+            <div class="pendingSub">Nivel ${a.attackerLvl||1} · Dificultad ${DIFF_LABELS[a.difficulty]||a.difficulty}</div>
+          </div>
+          <button class="pendingDefendBtn" data-attack-id="${a.id}">DEFENDER</button>
+        </div>
+      `).join('') +
+      '</div>';
+    panel.style.display='block';
+    panel.querySelectorAll('.pendingDefendBtn').forEach(btn=>{
+      btn.onclick=()=>goDefend(btn.dataset.attackId);
+    });
+  }catch(e){ console.error('checkPendingAttacks failed:',e); }
+}
+
+function goDefend(attackId){
+  sessionStorage.setItem('invasion_defense_attack_id', attackId);
+  sessionStorage.setItem('invasion_came_from_search','1'); // evita reaparición de la imagen de carga al volver
+  window.location.href='defense.html';
+}
+
 let histCurrentPage = 1;
 const HIST_PAGE_SIZE = 15;
 
@@ -668,20 +757,48 @@ async function loadHistory(page){
 
     result.rows.forEach((r,i)=>{
       const isMeAttacker = r.role==='attacker';
-      const won = r.won;
-      const icon = isMeAttacker ? (won?'💰':'💥') : (won?'😱':'🛡️');
       const otherAlias = isMeAttacker ? r.defenderAlias : r.attackerAlias;
-      let text;
-      if(isMeAttacker){
-        text = won ? `Robaste a <b>${escapeHtml(otherAlias)}</b>` : `Fallaste contra <b>${escapeHtml(otherAlias)}</b>`;
-      }else{
-        text = won ? `<b>${escapeHtml(otherAlias)}</b> te robó` : `<b>${escapeHtml(otherAlias)}</b> intentó robarte y falló`;
-      }
-      const amountClass = (isMeAttacker && won) ? 'win' : ((!isMeAttacker && won) ? 'lose' : '');
-      const amountText = r.stolenAmount>0 ? `${isMeAttacker?'+':'-'}${fmtClk(r.stolenAmount)}` : '—';
       const createdMs = r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : Date.now();
       const row=document.createElement('div');
       row.className='histRow';
+
+      // Ataque todavía sin resolver (status:'pending'): won/stolenAmount
+      // son solo placeholders hasta que el defensor juegue su minijuego
+      // (ver createPendingAttack() en invasion-core.js) — mostrarlos como
+      // "fallaste"/"te robó" sería engañoso, así que esta fila tiene su
+      // propio texto neutro de "en curso" en vez de reusar la lógica de
+      // ganado/perdido de abajo.
+      if(r.status==='pending'){
+        const icon = isMeAttacker ? '🚀' : '🛰️';
+        const text = isMeAttacker
+          ? `Misil en camino hacia <b>${escapeHtml(otherAlias)}</b>`
+          : `<b>${escapeHtml(otherAlias)}</b> te atacó — pendiente de defender`;
+        row.innerHTML=`
+          <div class="histIcon">${icon}</div>
+          <div class="histText">${text}<div class="histTime">${timeAgo(createdMs)}</div></div>
+          <div class="histAmount">…</div>
+        `;
+        if(!isMeAttacker){
+          const dBtn=document.createElement('button');
+          dBtn.className='histRevengeBtn';
+          dBtn.textContent='Defender';
+          dBtn.onclick=()=>goDefend(r.id);
+          row.appendChild(dBtn);
+        }
+        panel.appendChild(row);
+        return;
+      }
+
+      const won = r.won;
+      const icon = isMeAttacker ? (won?'💰':'💥') : (won?'😱':'🛡️');
+      let text;
+      if(isMeAttacker){
+        text = won ? `Impactaste a <b>${escapeHtml(otherAlias)}</b>` : `<b>${escapeHtml(otherAlias)}</b> interceptó tu misil`;
+      }else{
+        text = won ? `<b>${escapeHtml(otherAlias)}</b> te robó` : `Interceptaste el misil de <b>${escapeHtml(otherAlias)}</b>`;
+      }
+      const amountClass = (isMeAttacker && won) ? 'win' : ((!isMeAttacker && won) ? 'lose' : '');
+      const amountText = r.stolenAmount>0 ? `${isMeAttacker?'+':'-'}${fmtClk(r.stolenAmount)}` : '—';
       row.innerHTML=`
         <div class="histIcon">${icon}</div>
         <div class="histText">${text}<div class="histTime">${timeAgo(createdMs)}</div></div>
