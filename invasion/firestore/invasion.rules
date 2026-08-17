@@ -40,16 +40,27 @@ service cloud.firestore {
                     && isValidPlayerDoc()
                     && request.resource.data.clk <= 1000000000;
 
-      // Un update puede venir de dos casos:
+      // Un update puede venir de tres casos:
       //  (a) el propio jugador sincronizando su perfil / activando escudo
-      //      / actualizando su propio cooldown tras invadir
-      //  (b) otro jugador autenticado escribiendo el resultado de un robo
-      //      sobre TU documento (baja tu clk, sube tu lastAttackedAt)
-      // No se puede distinguir (a) de (b) por request.auth.uid == uid,
-      // así que se acota por CAMPOS TOCADOS + rango de cambio permitido.
+      //      / actualizando su propio cooldown tras invadir o lanzar un
+      //      misil (createPendingAttack)
+      //  (b) el DEFENSOR de un duelo ya resuelto escribiendo el resultado
+      //      sobre TU documento cuando TÚ eras el defensor y perdiste
+      //      (baja tu clk, sube tu lastAttackedAt) — mismo caso que en el
+      //      diseño de una sola fase, solo que ahora ocurre en
+      //      resolveDuel() en vez de en el antiguo resolveInvasion()
+      //  (c) el DEFENSOR de un duelo ya resuelto escribiendo el resultado
+      //      sobre TU documento cuando TÚ eras el atacante y ganaste (sube
+      //      tu clk) — caso NUEVO del flujo de dos fases: antes el propio
+      //      atacante subía su clk en el mismo paso en que decidía el
+      //      resultado (caso (a) de isSelfProfileUpdate); ahora quien
+      //      decide el resultado es el defensor (resolveDuel se ejecuta
+      //      con request.auth.uid == defenderUid), así que es el defensor
+      //      quien tiene que escribir el alza de clk del atacante.
       allow update: if request.auth != null && (
                       isSelfProfileUpdate()
                       || isIncomingRobberyUpdate()
+                      || isOutgoingRewardUpdate()
                     );
 
       allow delete: if false;
@@ -135,6 +146,39 @@ service cloud.firestore {
           && d.lastAttackedAt is int && d.lastAttackedAt >= before.lastAttackedAt
           && d.updatedAt == request.time;
       }
+
+      // Caso (c), NUEVO del flujo de dos fases: el DEFENSOR de un duelo
+      // (request.auth.uid == defenderUid del ataque, no el uid de este
+      // documento) sube el `clk` del ATACANTE tras perder — este doc es
+      // el del atacante (uid == attackerUid), así que aquí
+      // request.auth.uid NUNCA es igual a uid, exactamente igual que en
+      // isIncomingRobberyUpdate(); ambos casos son indistinguibles entre
+      // sí por esa sola condición (los dos son "otro jugador autenticado
+      // toca tu clk"), así que se distinguen por la DIRECCIÓN del cambio:
+      // aquí solo se permite que clk SUBA, en isIncomingRobberyUpdate()
+      // solo se permite que BAJE — un mismo batch.commit() de
+      // resolveDuel() dispara una escritura de cada tipo, una por cada
+      // documento afectado, nunca las dos sobre el mismo doc a la vez.
+      //
+      // Misma honestidad que el resto del archivo (ver docs/DISEÑO.md
+      // sección 0): no se puede verificar aquí que exista de verdad un
+      // invasion_attacks/{attackId} con status:'pending' que respalde
+      // este alza -Rules no puede hacer queries, y el id del ataque no es
+      // conocido en esta regla-, así que se acota por un techo absoluto
+      // duro, MISMA cifra que el resto de topes de "auto-robo fabricado a
+      // mano" del archivo (isSelfProfileUpdate, isTargetClkOnlyUpdate).
+      // No impide un update aislado y fabricado a mano por completo, pero
+      // limita el daño máximo de uno solo y el cooldown de invasión
+      // (aplicado en isSelfProfileUpdate/checkCanInvade del lado cliente)
+      // impide repetirlo en ráfaga desde la MISMA cuenta atacante.
+      function isOutgoingRewardUpdate() {
+        let d = request.resource.data;
+        let before = resource.data;
+        return request.auth.uid != uid
+          && d.diff(before).affectedKeys().hasOnly(['clk','updatedAt'])
+          && d.clk is int && d.clk >= before.clk && d.clk - before.clk <= 200000000
+          && d.updatedAt == request.time;
+      }
     }
 
     // ===== invasion_targets/{uid} =====
@@ -189,29 +233,43 @@ service cloud.firestore {
     }
 
     // ===== invasion_attacks/{attackId} =====
-    // Historial de robos. Se crea una vez por invasión resuelta, nunca
-    // se actualiza ni se borra. El atacante autenticado es quien escribe
-    // (es quien resuelve el batch completo), así que no se exige que
-    // request.auth.uid coincida con attackerUid como único caso — se
-    // exige que SEA uno de los dos participantes reales según lo que el
-    // propio documento declara, y que la forma/rango sea válida.
+    // Historial de ataques, ahora en DOS FASES (spec: minijuego de
+    // ataque + minijuego de defensa independiente):
+    //   1. create: el ATACANTE registra el lanzamiento del misil con su
+    //      attackScore, status:'pending'. won/stolenAmount se escriben
+    //      como placeholders (false/0) — el resultado real todavía no se
+    //      conoce, depende de que el defensor juegue su minijuego.
+    //   2. update: el DEFENSOR (y solo el defensor) cierra el duelo una
+    //      única vez, escribiendo defenseScore + el resultado real
+    //      (won/stolenAmount) + status:'resolved'. Ninguna otra
+    //      transición de update está permitida — ni el atacante puede
+    //      tocar su propio ataque tras crearlo, ni nadie puede volver a
+    //      escribir sobre un ataque ya resuelto.
     match /invasion_attacks/{attackId} {
       allow read: if request.auth != null;
 
       allow create: if request.auth != null
-                    && (request.auth.uid == request.resource.data.attackerUid
-                        || request.auth.uid == request.resource.data.defenderUid)
-                    && isValidAttackDoc();
+                    && request.auth.uid == request.resource.data.attackerUid
+                    && isValidPendingAttackDoc();
 
-      allow update: if false;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.defenderUid
+                    && isValidDuelResolution();
+
       allow delete: if false;
 
-      function isValidAttackDoc() {
+      // Fase 1: solo el ATACANTE puede crear un ataque (antes se
+      // aceptaba también que lo creara el defensor porque en el diseño
+      // de una sola fase el resultado ya se conocía al momento de
+      // escribir; ahora el defensor no interviene hasta la fase 2, así
+      // que ya no tiene sentido -ni sería seguro- dejarle crear el doc).
+      function isValidPendingAttackDoc() {
         let d = request.resource.data;
         return d.keys().hasOnly([
           'attackerUid','attackerAlias','defenderUid','defenderAlias',
-          'attackerLvl','defenderLvl','difficulty','won','stolenAmount',
-          'isRevenge','createdAt'
+          'attackerLvl','defenderLvl','difficulty',
+          'attackScore','defenseScore','status',
+          'won','stolenAmount','isRevenge','createdAt'
         ])
           && d.attackerUid is string && d.attackerUid.size() > 0
           && d.defenderUid is string && d.defenderUid.size() > 0
@@ -221,11 +279,40 @@ service cloud.firestore {
           && d.attackerLvl is int && d.attackerLvl >= 1
           && d.defenderLvl is int && d.defenderLvl >= 1
           && d.difficulty in ['muy_facil','facil','normal','dificil','muy_dificil']
-          && d.won is bool
-          && d.stolenAmount is int && d.stolenAmount >= 0
-          && (d.won == false ? d.stolenAmount == 0 : true) // perder nunca roba nada
+          && d.attackScore is int && d.attackScore >= 0 && d.attackScore <= 100
+          && d.defenseScore == null
+          && d.status == 'pending'
+          && d.won == false            // placeholder obligatorio mientras está pendiente
+          && d.stolenAmount == 0       // placeholder obligatorio mientras está pendiente
           && d.isRevenge is bool
           && d.createdAt == request.time;
+      }
+
+      // Fase 2: la ÚNICA transición de update permitida es
+      // pending -> resolved, ejecutada por el defensor, tocando
+      // exactamente defenseScore/status/won/stolenAmount/resolvedAt y
+      // nada más -ni siquiera campos que ya tenían el mismo valor pueden
+      // "reafirmarse" fuera de esta lista, affectedKeys() ya lo impide-.
+      // Recalcular aquí el stolenAmount exacto a partir de tier.robMax
+      // requeriría leer invasion_players/{defenderUid}.clk dentro de la
+      // regla (Rules SÍ permite un get() por path conocido, a diferencia
+      // de una query) — se opta por NO hacerlo para no encadenar una
+      // lectura adicional a cada escritura de duelo, y en su lugar se
+      // acota por el mismo techo absoluto duro que ya usa el resto del
+      // archivo (ver isOutgoingRewardUpdate en invasion_players) más la
+      // coherencia interna won<->stolenAmount, que si son consistentes
+      // entre sí es la parte con más superficie de abuso real.
+      function isValidDuelResolution() {
+        let d = request.resource.data;
+        let before = resource.data;
+        return before.status == 'pending'
+          && d.diff(before).affectedKeys().hasOnly(['defenseScore','status','won','stolenAmount','resolvedAt'])
+          && d.defenseScore is int && d.defenseScore >= 0 && d.defenseScore <= 100
+          && d.status == 'resolved'
+          && d.won is bool
+          && d.stolenAmount is int && d.stolenAmount >= 0 && d.stolenAmount <= 200000000
+          && (d.won == false ? d.stolenAmount == 0 : true) // perder (el atacante) nunca roba nada
+          && d.resolvedAt == request.time;
       }
     }
 
