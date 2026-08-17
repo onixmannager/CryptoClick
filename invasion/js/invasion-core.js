@@ -522,22 +522,89 @@ function firstValidCandidate(docs, myUid, myRecentTargets, now, skipped) {
 // detiene en cuanto encuentra el primer nivel con población real, no
 // recorre los 17 siempre.
 // ─────────────────────────────────────────────────────────────────────
+// Diagnóstico de la última búsqueda sin resultado — se rellena SOLO
+// cuando findTargetByLevel() devuelve null, y se limpia (a null) al
+// empezar cada búsqueda nueva, para que un valor viejo no sobreviva
+// entre dos llamadas y confunda a quien lo consulte después de una
+// búsqueda que SÍ encontró rival. search.html lo lee justo después de
+// llamar a findTargetByLevel() para construir un mensaje legible de
+// "por qué no hay rival" en vez de mandar al jugador a la consola (F12)
+// — antes este detalle solo se veía en console.log, nunca en pantalla.
+let _lastSearchDiagnostic = null;
+
 async function findTargetByLevel(myUid, myLvl, myRecentTargets) {
+  _lastSearchDiagnostic = null;
   const now = Date.now();
   const r = Math.random();
   const startLvl = Math.max(1, Math.floor(myLvl || 1));
   const skipped = { self: 0, lowClk: 0, shielded: 0, newAccount: 0, cooldown: 0 };
   let levelsChecked = 0;
+  let totalCandidatesSeen = 0;
 
   for (let lvl = startLvl; lvl >= 1; lvl--) {
     levelsChecked++;
     const docs = await findCandidatesAtLevel(lvl, r);
+    totalCandidatesSeen += docs.length;
     const found = firstValidCandidate(docs, myUid, myRecentTargets, now, skipped);
     if (found) return found;
   }
 
-  console.log('[DIAG] findTargetByLevel: sin candidato válido. Niveles probados:', levelsChecked, '(desde', startLvl, 'hasta 1). Descartados por:', JSON.stringify(skipped));
+  // totalCandidatesSeen === 0 es el caso que reporta el jugador con más
+  // frecuencia como confuso ("no dice por qué no hay nadie"): no es que
+  // todos los candidatos se descartaran por escudo/cooldown/saldo, es
+  // que directamente no hay NINGÚN documento en invasion_targets con
+  // lvl <= myLvl — es decir, ningún otro jugador de nivel igual o menor
+  // ha entrado nunca al modo Invasión (o los que hay están todos en
+  // niveles superiores al del atacante, fuera del rango que se prueba
+  // aquí a propósito, ver comentario de findTargetByLevel más arriba).
+  _lastSearchDiagnostic = {
+    levelsChecked, startLvl, totalCandidatesSeen, skipped,
+    noPopulationAtAll: totalCandidatesSeen === 0,
+  };
+  console.log('[DIAG] findTargetByLevel: sin candidato válido. Niveles probados:', levelsChecked, '(desde', startLvl, 'hasta 1). Candidatos vistos en total:', totalCandidatesSeen, '. Descartados por:', JSON.stringify(skipped));
   return null; // no se encontró rival válido en ningún nivel de 1 a myLvl
+}
+
+// Traduce el diagnóstico de la última búsqueda sin resultado a un texto
+// legible para mostrar directamente en la pantalla de search.html, sin
+// que el jugador necesite abrir la consola (F12) para saber el motivo.
+// Devuelve un mensaje genérico si se llama sin que haya diagnóstico
+// disponible (p.ej. tras una búsqueda que sí encontró rival).
+function explainNoTargetFound() {
+  const d = _lastSearchDiagnostic;
+  if (!d) return 'No hay rivales disponibles en este momento.';
+
+  if (d.noPopulationAtAll) {
+    return d.startLvl <= 1
+      ? 'Todavía no hay ningún otro jugador registrado en el modo Invasión. Vuelve a intentarlo cuando más gente haya entrado.'
+      : `No hay ningún jugador de nivel ${d.startLvl} o inferior registrado en el modo Invasión todavía. Vuelve a intentarlo más tarde, cuando haya más gente de tu nivel o menor.`;
+  }
+
+  // Caso frecuente al probar en desarrollo con una sola cuenta: el único
+  // documento visto en invasion_targets es el propio jugador (nadie más
+  // ha entrado nunca al modo con nivel <= el suyo). Merece un mensaje
+  // propio en vez de mezclarse con la lista de motivos de abajo, porque
+  // la solución (entrar con otra cuenta) es distinta a esperar/reintentar.
+  if (d.totalCandidatesSeen === d.skipped.self && d.skipped.self > 0) {
+    return 'El único jugador encontrado en tu rango de nivel eres tú mismo — necesitas que otra cuenta entre al modo Invasión (nivel 3 o más) para poder atacarla. Prueba con otra cuenta o espera a que otro jugador entre.';
+  }
+
+  const s = d.skipped;
+  const motivos = [];
+  if (s.shielded > 0) motivos.push(`${s.shielded} con escudo activo`);
+  if (s.lowClk > 0) motivos.push(`${s.lowClk} sin $CLK suficiente para robar`);
+  if (s.cooldown > 0) motivos.push(`${s.cooldown} ya invadidos por ti hace menos de 4h`);
+  if (s.newAccount > 0) motivos.push(`${s.newAccount} con cuenta demasiado nueva`);
+  if (s.self > 0) motivos.push(`${s.self} eras tú mismo`);
+
+  if (motivos.length === 0) {
+    // Se vieron candidatos (totalCandidatesSeen > 0) pero ninguno cayó
+    // en ninguna de las categorías de descarte contadas arriba — caso
+    // residual poco probable, mensaje genérico en vez de una lista vacía.
+    return `Se encontraron ${d.totalCandidatesSeen} jugador(es) de nivel ${d.startLvl} o inferior, pero ninguno es un objetivo válido ahora mismo. Vuelve a intentarlo en unos minutos.`;
+  }
+
+  return `Se encontraron ${d.totalCandidatesSeen} jugador(es) de nivel ${d.startLvl} o inferior, pero ninguno es un objetivo válido ahora mismo: ${motivos.join(', ')}.`;
 }
 
 // Alias retrocompatible: código o pantallas que todavía llamen a la
@@ -1101,7 +1168,7 @@ function toggleInvasionMute() {
 window.InvasionCore = {
   CFG, db, auth, authReady,
   difficultyFor, todayKeyUTC, shieldCost, isInvasionUnlocked, computeAimScore,
-  syncProfileFromMainSave, findRandomTarget, findTargetByLevel, checkCanInvade,
+  syncProfileFromMainSave, findRandomTarget, findTargetByLevel, explainNoTargetFound, checkCanInvade,
   createPendingAttack, resolveDuel, getPendingAttacksFor,
   activateShield, getActiveRevengeTarget, hasRevengedAttack, isLegitimateRevenge, getAttackHistory, getAttackHistoryPage,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
