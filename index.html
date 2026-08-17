@@ -593,6 +593,36 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #updateBanner .ubBtn:disabled{opacity:.6;cursor:not-allowed}
 #updateBanner .ubClose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
 
+/* AVISO DE ATAQUE PENDIENTE DE INVASIÓN — misma tarjeta-hoja-desde-abajo
+   que #updateOv (ver comentario ahí arriba), pero para avisar de que
+   otro jugador lanzó un misil contra ti en el modo Invasión y sigue sin
+   resolverse. Antes esto SOLO se comprobaba dentro de invasion/index.html
+   (ver checkPendingAttacks() ahí); aquí se repite la misma consulta
+   (core.getPendingAttacksFor) para que el aviso llegue también al jugador
+   que nunca entra manualmente al modo, apenas abre el juego principal.
+   z-index un punto por encima de #updateOv a propósito: un ataque sin
+   defender es más urgente/accionable que un aviso de nueva versión, así
+   que si ambos se dispararan a la vez (raro, pero posible: los dos
+   corren en boot()), este debe quedar por encima visualmente. Puede haber
+   más de un ataque pendiente (de atacantes distintos) — pendingAttackRows
+   permite varias filas dentro de la misma tarjeta, cada una con su propio
+   botón, igual que .pendingRow en invasion/index.html. */
+#pendingAttackOv{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:10001;align-items:flex-end;justify-content:center}
+#pendingAttackOv.show{display:flex}
+#pendingAttackBanner{background:var(--card);border:1px solid rgba(239,68,68,.4);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease;max-height:80vh;overflow-y:auto}
+#pendingAttackBanner .paIcon{font-size:44px;display:block;margin-bottom:8px}
+#pendingAttackBanner h3{font-family:var(--fh);font-size:22px;color:var(--red);margin-bottom:6px}
+#pendingAttackBanner .paIntro{color:var(--muted);font-size:13px;font-weight:700;margin-bottom:16px;line-height:1.4}
+#pendingAttackRows{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.paRow{display:flex;align-items:center;gap:12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:12px 14px;text-align:left}
+.paRowIcon{font-size:24px;flex-shrink:0}
+.paRowInfo{flex:1;min-width:0}
+.paRowTitle{font-family:var(--fh);font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.paRowSub{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
+.paRowBtn{flex-shrink:0;padding:10px 14px;border:none;border-radius:10px;background:var(--red);color:#fff;font-family:var(--fh);font-size:12px;cursor:pointer}
+.paRowBtn:active{transform:scale(.95)}
+#pendingAttackClose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer}
+
 #logo{text-decoration:none;color:inherit;cursor:pointer}
 
 .cbtn-big.cbtn-juego{display:inline-flex;align-items:center;justify-content:center;padding:18px 32px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#FF6B35);color:#1a0a00;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 8px 40px rgba(255,165,0,.3);transition:all 0.2s ease}
@@ -1218,6 +1248,17 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div class="ubText">Hay una actualización del juego lista para instalar</div>
   <button class="ubBtn" id="updateBannerBtn">Actualizar</button>
   <button class="ubClose" id="updateBannerClose">Ahora no</button>
+</div></div>
+
+<!-- AVISO DE ATAQUE PENDIENTE DE INVASIÓN — ver checkPendingAttacksFromMain()
+     más abajo. pendingAttackRows se rellena por JS, una fila por ataque
+     sin resolver (puede haber varios, de atacantes distintos). -->
+<div id="pendingAttackOv"><div id="pendingAttackBanner">
+  <div class="paIcon">🚨</div>
+  <h3 id="pendingAttackTitle">¡Te están atacando!</h3>
+  <div class="paIntro" id="pendingAttackIntro">Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo.</div>
+  <div id="pendingAttackRows"></div>
+  <button id="pendingAttackClose">Ahora no</button>
 </div></div>
 
 <!-- ============ FIREBASE ============ -->
@@ -3100,6 +3141,75 @@ async function syncShieldState(){
   }
 }
 
+// Mismas etiquetas que invasion/index.html (DIFF_LABELS) — se repiten
+// aquí porque este archivo no importa nada de invasion/index.html (solo
+// de invasion-core.js, que no define etiquetas de UI, ver CFG.DIFFICULTY_TIERS
+// para los datos crudos que sí expone).
+const INVASION_DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal',dificil:'Difícil',muy_dificil:'Casi imposible'};
+
+// ─────────────────────────────────────────────────────────────────────
+// AVISO DE ATAQUE PENDIENTE — DESDE EL ÍNDICE PADRE (spec 4/6, ver
+// docs/DISEÑO.md sección 7 "Notificación de ataque pendiente"): hasta
+// ahora checkPendingAttacks() SOLO corría dentro de invasion/index.html,
+// así que un jugador que nunca entra manualmente al modo Invasión no se
+// enteraba nunca de que le habían atacado -el ataque se quedaba
+// 'pending' indefinidamente, invisible desde el juego principal-. Se
+// añade aquí la MISMA consulta (core.getPendingAttacksFor, ver
+// invasion-core.js) para que el aviso llegue también desde la pantalla
+// principal, no solo desde dentro de /invasion/.
+//
+// Se llama una vez al arrancar sesión (ver startGameForUser más abajo),
+// igual que syncShieldState() -no hay polling periódico mientras la
+// pestaña sigue abierta, mismo criterio que el resto de sincronización
+// de Invasión en este archivo-. Si el jugador quiere volver a comprobar
+// sin recargar, puede entrar a /invasion/ (que si tiene su propio
+// polling al abrir el hub).
+// ─────────────────────────────────────────────────────────────────────
+async function checkPendingAttacksFromMain(){
+  try{
+    const core = window.InvasionCore;
+    if(!core || !window.__fbUser) return;
+    const pending = await core.getPendingAttacksFor(window.__fbUser.uid);
+    if(!pending.length) return; // nada pendiente: no se muestra el overlay
+    const rowsEl = document.getElementById('pendingAttackRows');
+    const titleEl = document.getElementById('pendingAttackTitle');
+    const introEl = document.getElementById('pendingAttackIntro');
+    titleEl.textContent = pending.length===1 ? '¡Te están atacando!' : `¡Te están atacando! (${pending.length})`;
+    introEl.textContent = pending.length===1
+      ? 'Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo.'
+      : `${pending.length} jugadores lanzaron un misil contra ti en el modo Invasión. Defiéndete de cada uno antes de que se resuelvan los duelos.`;
+    rowsEl.innerHTML = pending.map(a => `
+      <div class="paRow">
+        <div class="paRowIcon">🚀</div>
+        <div class="paRowInfo">
+          <div class="paRowTitle">${escapeHtml(a.attackerAlias||'Jugador')} te ha atacado</div>
+          <div class="paRowSub">Nivel ${a.attackerLvl||1} · Dificultad ${INVASION_DIFF_LABELS[a.difficulty]||a.difficulty}</div>
+        </div>
+        <button class="paRowBtn" data-attack-id="${a.id}">DEFENDER</button>
+      </div>
+    `).join('');
+    rowsEl.querySelectorAll('.paRowBtn').forEach(btn=>{
+      btn.onclick=()=>goDefendFromMain(btn.dataset.attackId);
+    });
+    document.getElementById('pendingAttackOv').classList.add('show');
+  }catch(e){ console.error('checkPendingAttacksFromMain falló:', e); }
+}
+
+// Navega a la pantalla de defensa del modo Invasión con el ataque ya
+// elegido — mismo mecanismo (sessionStorage + defense.html) que usa
+// goDefend() dentro de invasion/index.html, para que defense.html no
+// necesite saber desde qué pantalla se le llamó.
+function goDefendFromMain(attackId){
+  sessionStorage.setItem('invasion_defense_attack_id', attackId);
+  sessionStorage.setItem('invasion_came_from_search','1');
+  forceSave();
+  window.location.href='invasion/defense.html';
+}
+
+document.getElementById('pendingAttackClose').onclick=()=>{
+  document.getElementById('pendingAttackOv').classList.remove('show');
+};
+
 function renderEscudoIcon(){
   const img = document.getElementById('escudoLink');
   if(!img) return;
@@ -3288,6 +3398,13 @@ window.startGameForUser=async function(user){
   // que fijarlo antes es necesario para que el await de abajo tenga efecto real.
   _appReadyForSave=true;
   await syncShieldState();
+  // No se espera (sin await): el overlay de ataque pendiente no debe
+  // retrasar el arranque visual del juego -mismo criterio que ya
+  // aplicaba el comentario BUGFIX de arriba a syncShieldState(), pero
+  // ahí SÍ hace falta esperar porque ajusta S.clk antes del primer
+  // guardado; aquí solo se pinta un overlay informativo aparte, no hay
+  // ese mismo riesgo de carrera con el autoguardado-.
+  checkPendingAttacksFromMain();
   recalc();upd();checkMiss();
   localSaveNow();
   _dirtySinceCloud=true;
