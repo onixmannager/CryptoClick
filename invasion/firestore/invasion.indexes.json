@@ -3,7 +3,26 @@
 
   "indexes": [
     {
-      "_comentario": "getActiveRevengeTarget(): últimos robos GANADOS contra mí, ordenados por fecha.",
+      "_comentario": "findCandidatesAtLevel(): candidatos de un nivel exacto, ordenados por rand para elegir uno al azar dentro de ese nivel (ver findTargetByLevel()).",
+      "collectionGroup": "invasion_targets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "lvl", "order": "ASCENDING" },
+        { "fieldPath": "rand", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "_comentario": "getPendingAttacksFor(): ataques pendientes de defender, ordenados por fecha.",
+      "collectionGroup": "invasion_attacks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "defenderUid", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_comentario": "getActiveRevengeTarget(): últimos robos GANADOS y ya resueltos contra mí, ordenados por fecha.",
       "collectionGroup": "invasion_attacks",
       "queryScope": "COLLECTION",
       "fields": [
