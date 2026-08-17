@@ -147,9 +147,9 @@ compartimentos) — ver `js/aim-game.js` para el motor compartido y
 
 **Dos minijuegos independientes, mecánicamente idénticos, con vídeo y
 tema visual distintos:**
-- **Ataque** (`minigame.html`, vídeo `videos/ataque.mp4`): el jugador
+- **Ataque** (`minigame.html`, vídeo `videos/attack.mp4`): el jugador
   lanza el misil.
-- **Defensa** (`defense.html`, vídeo `videos/defensa.mp4`): el jugador
+- **Defensa** (`defense.html`, vídeo `videos/defense.mp4`): el jugador
   intercepta un misil ya lanzado contra él.
 
 **Mecánica (igual en ambos):** el vídeo se reproduce, sobre él aparece
@@ -313,8 +313,8 @@ el agresor original lo defienda.
   Messaging u otro), infraestructura nueva más allá de esta fase. Si se
   quiere en el futuro, el service worker del padre (sw.js) ya existe
   como punto de partida técnico para añadir un listener de push.
-- **Vídeos de ataque/defensa**: `videos/ataque.mp4` y `videos/defensa.mp4`
-  deben copiarse a `invasion/videos/` con esos nombres exactos —
+- **Vídeos de ataque/defensa**: `videos/attack.mp4` y `videos/defense.mp4`
+  viven en `invasion/videos/` con esos nombres exactos —
   referenciados directamente por `minigame.html`/`defense.html`. El
   instante "0,00" se calcula por defecto cerca del final de cada vídeo
   (`duration*1000 - 400`ms, con jitter ±220ms entre partidas, ver
