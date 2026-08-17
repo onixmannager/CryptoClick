@@ -836,6 +836,10 @@ async function resolveDuel({ attackId, defenderUid, defenseScore }) {
     resolvedAt: serverTimestamp(),
   });
 
+  await batch.commit();
+  return { won: !!won, stolenAmount, difficulty: tier, attackScore: aScore, defenseScore: dScore, attackId };
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // EXPIRACIÓN POR INCOMPARECENCIA — a petición expresa: si el defensor no
 // responde dentro de CFG.PENDING_ATTACK_WINDOW_MS (24h), el duelo se
