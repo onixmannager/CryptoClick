@@ -320,6 +320,13 @@ service cloud.firestore {
     // createPendingAttack() como resolveDuel() con
     // "Missing or insufficient permissions" pese a que el código ya
     // llevaba tiempo escribiendo el esquema nuevo.
+    //
+    // Existe una TERCERA transición además de crear/resolver-jugado: la
+    // expiración por incomparecencia (a petición expresa) — si pasan 24h
+    // sin que el defensor responda, el duelo se resuelve solo a favor
+    // del atacante, con el mismo botín que una victoria jugada. Ver
+    // isValidExpiryResolution() más abajo y expirePendingAttack() en
+    // invasion-core.js.
     match /invasion_attacks/{attackId} {
       allow read: if request.auth != null;
 
@@ -331,12 +338,17 @@ service cloud.firestore {
                     && request.auth.uid == request.resource.data.attackerUid
                     && isValidPendingAttackDoc();
 
-      // Fase 2: la ÚNICA transición de update permitida es
-      // pending -> resolved, ejecutada por el DEFENSOR (es quien juega
-      // el minijuego de interceptación y conoce defenseScore).
+      // Fase 2: dos transiciones posibles de pending -> resolved, ambas
+      // ejecutadas por el DEFENSOR (es quien, al entrar a Invasión,
+      // dispara tanto "jugar y resolver" como "descubrir que ya venció
+      // y dejar que se resuelva sola" — ver getPendingAttacksFor() en
+      // invasion-core.js, que siempre se llama con el uid del propio
+      // jugador conectado, nunca con un uid ajeno):
+      //  (a) jugó su minijuego de defensa -> isValidDuelResolution()
+      //  (b) no respondió en 24h -> isValidExpiryResolution()
       allow update: if request.auth != null
                     && request.auth.uid == resource.data.defenderUid
-                    && isValidDuelResolution();
+                    && (isValidDuelResolution() || isValidExpiryResolution());
 
       allow delete: if false;
 
@@ -384,6 +396,34 @@ service cloud.firestore {
           && d.won is bool
           && d.stolenAmount is int && d.stolenAmount >= 0 && d.stolenAmount <= 200000000
           && (d.won == false ? d.stolenAmount == 0 : true) // perder (el atacante) nunca roba nada
+          && d.resolvedAt == request.time;
+      }
+
+      // Expiración por incomparecencia: mismo shape de campos tocados
+      // que isValidDuelResolution() (defenseScore/status/won/
+      // stolenAmount/resolvedAt), MÁS expiredByTimeout, que distingue
+      // esta resolución de una jugada de verdad en el historial. La
+      // salvaguarda real no es de quién ejecuta esto (ya lo exige el
+      // allow update de arriba) sino de TIEMPO: request.time es el reloj
+      // del servidor de Firestore, no algo que el cliente pueda adelantar
+      // — así que aunque alguien edite este código en DevTools para
+      // llamar a expirePendingAttack() antes de tiempo, la regla lo
+      // rechaza igual si no han pasado de verdad las 24h reales desde
+      // before.createdAt. won siempre true aquí (incomparecencia =
+      // victoria del atacante, a petición expresa: "se marca como una
+      // victoria más para el atacante y recibe el botín... que además
+      // se le debe restar al atacado siempre que pierda").
+      function isValidExpiryResolution() {
+        let d = request.resource.data;
+        let before = resource.data;
+        return before.status == 'pending'
+          && request.time > before.createdAt + duration.value(24, 'h')
+          && d.diff(before).affectedKeys().hasOnly(['defenseScore','status','won','stolenAmount','resolvedAt','expiredByTimeout'])
+          && d.defenseScore == 0        // el defensor nunca llegó a jugar, no es un 0 "jugado"
+          && d.status == 'resolved'
+          && d.won == true              // incomparecencia siempre resuelve a favor del atacante
+          && d.stolenAmount is int && d.stolenAmount >= 0 && d.stolenAmount <= 200000000
+          && d.expiredByTimeout == true
           && d.resolvedAt == request.time;
       }
     }
