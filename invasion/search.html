@@ -341,7 +341,7 @@ async function searchRandom(){
     if(!foundTarget){
       playSinExitoVideo();
       document.getElementById('noneTitle').textContent = 'Sin objetivos ahora';
-      document.getElementById('noneText').textContent = 'No hay rivales disponibles en este momento. Revisa la consola (F12) para ver el motivo exacto — puede ser que ya invadiste a todos los candidatos disponibles hace menos de 4h.';
+      document.getElementById('noneText').textContent = core.explainNoTargetFound();
       document.getElementById('retryBtn2').textContent = '🔄 Reintentar';
       directTargetFailed = false;
       showView('noneFound');
