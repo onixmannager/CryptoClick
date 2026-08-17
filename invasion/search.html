@@ -217,6 +217,19 @@ async function boot(){
   try{
     myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
 
+    // Invasión bloqueada hasta nivel 3 (spec 11) — se revalida aquí por
+    // si se llega a search.html saltándose el hub (URL directa), que es
+    // donde vive el botón ya deshabilitado para niveles 1-2.
+    if(!core.isInvasionUnlocked(myProfile.lvl)){
+      playSinExitoVideo();
+      document.getElementById('noneTitle').textContent = 'Invasión bloqueada';
+      document.getElementById('noneText').textContent = `Disponible a partir de nivel ${core.CFG.MIN_LEVEL_TO_UNLOCK}. Sigue jugando para desbloquearla.`;
+      document.getElementById('retryBtn2').textContent = '← Volver';
+      directTargetFailed = true;
+      showView('noneFound');
+      return;
+    }
+
     // Se comprueba primero si es venganza o ataque normal, porque el
     // mensaje/título que se muestra si algo falla depende de cuál sea
     // — antes esto se decidía DESPUÉS de comprobar checkCanInvade, así
@@ -280,7 +293,7 @@ async function searchDirectTarget(uid){
     // revalida aquí, ANTES de mostrar el rival y dejar avanzar al
     // minijuego, para que el mensaje de error sea claro de inmediato en
     // vez de que el jugador juegue una partida entera y descubra al
-    // volver que no contó como venganza (resolveInvasion() también
+    // volver que no contó como venganza (createPendingAttack() también
     // revalida esto de forma obligatoria — ver esa función — esta
     // comprobación de aquí es solo para dar el aviso pronto, no la única
     // barrera).
@@ -315,10 +328,16 @@ async function searchRandom(){
   // Igual que searchDirectTarget: el video de resultado (éxito/sin
   // éxito) es lo único que ve el usuario mientras dura la búsqueda real;
   // no hay pantalla de radar/spinner por separado.
+  //
+  // Prioridad por nivel (spec 10): se busca primero en el propio nivel
+  // del atacante, y solo si no hay candidato válido ahí se prueba el
+  // nivel inmediatamente inferior, y así sucesivamente — ver
+  // findTargetByLevel() en invasion-core.js. Ya no es una búsqueda
+  // puramente aleatoria entre TODOS los jugadores.
   playSinExitoVideo();
   showView('scanning');
   try{
-    foundTarget = await core.findRandomTarget(myProfile.uid, myProfile.recentTargets);
+    foundTarget = await core.findTargetByLevel(myProfile.uid, myProfile.lvl, myProfile.recentTargets);
     if(!foundTarget){
       playSinExitoVideo();
       document.getElementById('noneTitle').textContent = 'Sin objetivos ahora';
@@ -330,7 +349,7 @@ async function searchRandom(){
     }
     showResult();
   }catch(e){
-    console.error('findRandomTarget failed:',e);
+    console.error('findTargetByLevel failed:',e);
     markSearchFailed('Error al buscar. Inténtalo de nuevo.', false);
   }
 }
