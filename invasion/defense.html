@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Interceptación — Invasión</title>
+<meta name="theme-color" content="#0b0a14">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;
+  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
+  --green:#10B981;--red:#EF4444;--text:#fff;--muted:#a9a6d6;--border:rgba(255,255,255,0.07);
+  --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
+  --glass:rgba(10,12,22,.5);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow:hidden}
+
+#stage{position:fixed;inset:0;background:#000;z-index:1;touch-action:none}
+#stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+@media (min-width:901px){ #stage video{object-fit:contain} }
+
+#overlay{position:fixed;inset:0;z-index:2;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+#topBar{position:fixed;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:10px;padding:calc(14px + env(safe-area-inset-top)) 16px 26px;background:linear-gradient(to bottom,rgba(6,5,14,.8),transparent);pointer-events:none}
+#topLabel{font-family:var(--fh);font-size:14px;letter-spacing:.3px;color:var(--cyan,#06B6D4);text-shadow:0 2px 8px rgba(0,0,0,.6)}
+#topSub{font-size:11px;font-weight:800;color:var(--muted);margin-top:1px}
+
+/* Paleta defensiva: cian/verde en vez del amarillo/rojo de ataque, para
+   que se "sienta como una defensa" (spec 4) aunque la mecánica de
+   puntuación sea idéntica. */
+#countdown{font-family:var(--fh);font-size:96px;color:#06B6D4;text-shadow:0 0 30px rgba(6,182,212,.6),0 4px 16px rgba(0,0,0,.6);line-height:1}
+#countdown.zero{color:var(--green);text-shadow:0 0 34px rgba(16,185,129,.7),0 4px 16px rgba(0,0,0,.6)}
+
+#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;z-index:2;pointer-events:none;opacity:.85}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(255,255,255,.55);box-shadow:0 0 6px rgba(0,0,0,.6)}
+#crosshair::before{left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%)}
+#crosshair::after{top:50%;left:0;right:0;height:2px;transform:translateY(-50%)}
+#crosshairRing{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border:2px solid rgba(6,182,212,.5);border-radius:50%;z-index:2;pointer-events:none}
+
+.tapMark{position:fixed;z-index:4;width:46px;height:46px;border-radius:50%;border:3px solid #06B6D4;transform:translate(-50%,-50%) scale(.4);opacity:0;pointer-events:none}
+.tapMark.show{animation:tapPulse .5s ease-out forwards}
+@keyframes tapPulse{0%{transform:translate(-50%,-50%) scale(.4);opacity:1}100%{transform:translate(-50%,-50%) scale(1.8);opacity:0}}
+
+#scoreOverlay{position:fixed;inset:0;background:rgba(11,10,20,.9);backdrop-filter:blur(10px);z-index:10;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
+#scoreOverlay.show{display:flex}
+#scoreLabel{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:2px;margin-bottom:6px}
+#scoreValue{font-family:var(--fh);font-size:56px;color:#06B6D4;text-shadow:0 0 24px rgba(6,182,212,.5);margin-bottom:10px}
+#scoreValue.low{color:var(--orange)}
+#scoreValue.miss{color:var(--red)}
+
+#resultIcon{font-size:56px;margin:6px 0 8px;display:none}
+#resultTitle{font-family:var(--fh);font-size:24px;margin-bottom:8px;display:none}
+#resultTitle.win{color:var(--green);text-shadow:0 0 20px rgba(16,185,129,.5)}
+#resultTitle.lose{color:var(--red);text-shadow:0 0 20px rgba(239,68,68,.4)}
+#resultDetail{font-size:13px;color:var(--muted);font-weight:700;max-width:300px;margin-bottom:6px}
+#resultAmount{font-family:var(--fh);font-size:26px;color:var(--red);margin-top:6px;display:none}
+
+#continueBtn{width:100%;max-width:280px;margin-top:22px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#06B6D4,var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 22px rgba(6,182,212,.35)}
+#continueBtn:active{transform:scale(.96)}
+
+#rulesOverlay{position:fixed;inset:0;background:rgba(11,10,20,.96);backdrop-filter:blur(8px);z-index:70;display:none;align-items:center;justify-content:center;padding:24px}
+#rulesOverlay.show{display:flex}
+#rulesCard{width:100%;max-width:340px;background:var(--card);border:1px solid var(--glass-border);border-radius:20px;padding:24px 20px}
+#rulesCard h2{font-family:var(--fh);font-size:18px;text-align:center;margin-bottom:14px}
+.ruleRow{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:10px 14px;margin-bottom:10px}
+.ruleIcon{font-size:24px;width:28px;text-align:center;flex-shrink:0}
+.ruleText{font-size:12.5px;font-weight:700;color:var(--text);line-height:1.35}
+.ruleText b{color:#06B6D4}
+#rulesOkBtn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#06B6D4,var(--purple));color:#fff;font-family:var(--fh);font-size:15px;cursor:pointer}
+#rulesOkBtn:active{transform:scale(.96)}
+
+#loadingScreen{position:fixed;inset:0;background:var(--bg);z-index:80;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:24px}
+#loadingScreen.hide{display:none}
+#loadingScreen div{font-family:var(--fh);font-size:14px;color:var(--muted)}
+
+@media (prefers-reduced-motion:reduce){
+  .tapMark.show{animation:none;opacity:0}
+}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen"><div>CARGANDO INTERCEPTACIÓN…</div></div>
+
+<div id="rulesOverlay">
+  <div id="rulesCard">
+    <h2>Interceptación del misil</h2>
+    <div class="ruleRow"><span class="ruleIcon">🎯</span><span class="ruleText">Pulsa en el <b>centro exacto</b> de la pantalla.</span></div>
+    <div class="ruleRow"><span class="ruleIcon">⏱️</span><span class="ruleText">Pulsa justo en el instante <b>"0,00"</b>, ni antes ni después.</span></div>
+    <div class="ruleRow"><span class="ruleIcon">🛡️</span><span class="ruleText">Si tu puntuación supera a la del atacante, <b>interceptas el misil</b>.</span></div>
+    <button id="rulesOkBtn">ENTENDIDO</button>
+  </div>
+</div>
+
+<div id="stage">
+  <video id="defenseVideo" src="videos/defensa.mp4" playsinline muted preload="auto"></video>
+</div>
+
+<div id="crosshairRing"></div>
+<div id="crosshair"></div>
+
+<div id="topBar">
+  <div>
+    <div id="topLabel">🛡️ INTERCEPTACIÓN</div>
+    <div id="topSub">Atacante: <span id="attackerName">–</span></div>
+  </div>
+</div>
+
+<div id="overlay">
+  <div id="countdown">3</div>
+</div>
+
+<div id="scoreOverlay">
+  <div id="scoreLabel">TU PRECISIÓN</div>
+  <div id="scoreValue">–</div>
+  <div id="resultIcon">🛡️</div>
+  <div id="resultTitle">–</div>
+  <div id="resultDetail"></div>
+  <div id="resultAmount"></div>
+  <button id="continueBtn">CONTINUAR</button>
+</div>
+
+<script type="module">
+import './js/invasion-core.js';
+import './js/aim-game.js';
+
+let core, myProfile, attack, attackId, aimGame;
+
+function fmtClk(n){
+  n=Math.floor(n);
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return n+'';
+}
+
+const RULES_SEEN_KEY='cck4_invasion_defense_rules_shown';
+function rulesAlreadyShown(){ try{ return localStorage.getItem(RULES_SEEN_KEY)==='1'; }catch(e){ return false; } }
+function markRulesShown(){ try{ localStorage.setItem(RULES_SEEN_KEY,'1'); }catch(e){} }
+
+function spawnTapMark(x,y){
+  const m=document.createElement('div');
+  m.className='tapMark';
+  m.style.left=x+'px'; m.style.top=y+'px';
+  document.body.appendChild(m);
+  requestAnimationFrame(()=>m.classList.add('show'));
+  setTimeout(()=>m.remove(),550);
+}
+
+async function boot(){
+  core = window.InvasionCore;
+  const user = await core.authReady;
+  if(!user){ window.location.href='./'; return; }
+
+  attackId = sessionStorage.getItem('invasion_defense_attack_id');
+  sessionStorage.removeItem('invasion_defense_attack_id');
+
+  if(!attackId){
+    // Sin ataque elegido (URL directa, recarga) — vuelve al hub, que es
+    // donde se lista la notificación/panel de ataques pendientes.
+    window.location.href='./';
+    return;
+  }
+
+  try{
+    myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+
+    const attackSnap = await core.getDoc(core.doc(core.db,'invasion_attacks',attackId));
+    if(!attackSnap.exists()){ window.location.href='./'; return; }
+    attack = attackSnap.data();
+
+    // El ataque debe ser MÍO para defender y seguir pendiente — si ya se
+    // resolvió (p.ej. el jugador abrió esta pantalla dos veces) o no es
+    // suyo, no hay nada que jugar aquí.
+    if(attack.defenderUid !== myProfile.uid || attack.status !== 'pending'){
+      window.location.href='./';
+      return;
+    }
+
+    document.getElementById('attackerName').textContent = attack.attackerAlias || 'Jugador';
+
+    document.getElementById('loadingScreen').classList.add('hide');
+    if(rulesAlreadyShown()){
+      runGame();
+    }else{
+      document.getElementById('rulesOverlay').classList.add('show');
+    }
+  }catch(e){
+    console.error('boot() falló:', e);
+    window.location.href='./';
+  }
+}
+
+document.getElementById('rulesOkBtn').onclick=()=>{
+  markRulesShown();
+  document.getElementById('rulesOverlay').classList.remove('show');
+  runGame();
+};
+
+function runGame(){
+  const video = document.getElementById('defenseVideo');
+  const stage = document.getElementById('stage');
+  const countdownEl = document.getElementById('countdown');
+
+  const FALLBACK_ZERO_MS = 2600;
+  function startWithZero(zeroAtMs){
+    aimGame = window.createAimGame({
+      videoEl: video, stageEl: stage, countdownEl,
+      onTap: onDefenseResolved,
+      zeroAtMs, jitterMs: 220,
+    });
+    aimGame.start();
+  }
+
+  if(video.readyState >= 1 && isFinite(video.duration)){
+    startWithZero(Math.max(800, video.duration*1000 - 400));
+  }else{
+    video.addEventListener('loadedmetadata', ()=>{
+      startWithZero(Math.max(800, video.duration*1000 - 400));
+    }, { once:true });
+    setTimeout(()=>{ if(!aimGame) startWithZero(FALLBACK_ZERO_MS); }, 1500);
+  }
+
+  stage.addEventListener('pointerdown', (ev)=>{
+    const p = ev.touches && ev.touches[0] ? ev.touches[0] : ev;
+    spawnTapMark(p.clientX, p.clientY);
+  });
+}
+
+async function onDefenseResolved(result){
+  const countdownEl=document.getElementById('countdown');
+  countdownEl.textContent='0,00';
+  countdownEl.classList.add('zero');
+
+  const overlay=document.getElementById('scoreOverlay');
+  const valueEl=document.getElementById('scoreValue');
+  valueEl.textContent = result.score+'/100';
+  valueEl.className = result.score>=70 ? '' : (result.score>=35 ? 'low' : 'miss');
+  overlay.classList.add('show');
+
+  try{
+    const res = await core.resolveDuel({
+      attackId, defenderUid: myProfile.uid, defenseScore: result.score,
+    });
+    const iconEl=document.getElementById('resultIcon');
+    const titleEl=document.getElementById('resultTitle');
+    const detailEl=document.getElementById('resultDetail');
+    const amountEl=document.getElementById('resultAmount');
+
+    const intercepted = !res.won; // won se refiere a "ganó el atacante"
+    iconEl.textContent = intercepted ? '🛡️' : '💥';
+    iconEl.style.display='block';
+    titleEl.textContent = intercepted ? 'MISIL INTERCEPTADO' : 'MISIL IMPACTADO';
+    titleEl.className = 'show ' + (intercepted ? 'win' : 'lose');
+    titleEl.style.display='block';
+    detailEl.textContent = `Tu precisión: ${res.defenseScore}/100 · Atacante: ${res.attackScore}/100`;
+
+    if(!intercepted && res.stolenAmount>0){
+      amountEl.style.display='block';
+      amountEl.textContent = `-${fmtClk(res.stolenAmount)} $CLK`;
+    }
+  }catch(e){
+    console.error('resolveDuel failed:', e);
+    document.getElementById('resultDetail').textContent = 'No se pudo registrar el resultado — inténtalo de nuevo más tarde.';
+    document.getElementById('resultDetail').style.display='block';
+  }
+}
+
+document.getElementById('continueBtn').onclick=()=>{
+  window.location.href='./';
+};
+
+boot();
+</script>
+</body>
+</html>
