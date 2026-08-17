@@ -97,17 +97,35 @@ const CFG = {
   // basta para absorber un doble-clic accidental sin frenar el ritmo de
   // juego entre invasiones consecutivas.
   INVASION_COOLDOWN_MS: 5 * 1000,
-  // Subido de 20 a 30 junto con el cooldown más corto: con 5s de espera
-  // entre invasiones, 20/día se agotaba en menos de 2 minutos de juego
-  // seguido, lo que convertía el límite diario en la única fricción real
-  // del modo. 30/día mueve esa fricción a "vuelve mañana" en vez de
-  // "espera un minuto", que es el patrón de retención (sesión diaria) en
-  // vez de sesión maratoniana. Debe ir sincronizado con el tope
-  // invasionsToday <= 30 en firestore/invasion.rules.
-  MAX_INVASIONS_PER_DAY: 30,
+  // Bajado de 30 a 10 a petición expresa (ajuste posterior al cambio de
+  // cooldown 60s→5s documentado arriba): 30/día con un cooldown de solo
+  // 5s hacía que el límite diario fuera casi la única fricción real del
+  // modo, pero en la práctica 30 ataques por cuenta y día se consideró
+  // demasiado alto para el ritmo de partidas deseado. Se acota a 10/día,
+  // manteniendo el cooldown corto de 5s (que sigue absorbiendo el
+  // doble-clic accidental sin ser la fricción principal). Debe ir
+  // sincronizado con el tope invasionsToday <= 30 en firestore.rules —
+  // ver ese archivo, función isValidPlayerDoc(): ese límite es
+  // deliberadamente más ancho que este (actúa como techo absoluto de
+  // seguridad ante manipulación directa del cliente, no como el límite
+  // de producto real) y no hace falta bajarlo a la par de este número
+  // salvo que se quiera estrechar también esa cota de seguridad.
+  MAX_INVASIONS_PER_DAY: 10,
   SAME_TARGET_COOLDOWN_MS: 4 * 60 * 60 * 1000, // 4h sin repetir objetivo
   NEW_ACCOUNT_PROTECTION_MS: 0, // protección a cuentas nuevas desactivada a petición: cualquier cuenta puede invadir desde el minuto 1
   REVENGE_WINDOW_MS: 24 * 60 * 60 * 1000,    // 24h para vengarse
+
+  // Ventana máxima para que el DEFENSOR responda a un ataque pendiente
+  // (jugar su minijuego de interceptación) antes de que el duelo se
+  // resuelva automáticamente a favor del atacante — ver
+  // expirePendingAttack() más abajo. A petición expresa: pasadas las
+  // 24h sin respuesta, se cuenta como una victoria más del atacante,
+  // con el mismo cálculo de botín que una victoria jugada de verdad
+  // (mismo tier de dificultad, mismo robMax, mismo colchón mínimo), y
+  // el defensor SÍ pierde ese $CLK exactamente igual que si hubiera
+  // jugado y perdido. No es una expiración neutra: es una victoria por
+  // incomparecencia, a propósito.
+  PENDING_ATTACK_WINDOW_MS: 24 * 60 * 60 * 1000,
 
   // Objetivo debe tener al menos esto para poder ser robado (evita que
   // se pueda "invadir" a alguien con 0 saldo solo para gastar su cooldown)
@@ -653,10 +671,10 @@ function checkCanInvade(playerDoc) {
 // mismo, no de los que traiga la pantalla — mismo criterio que ya tenía
 // resolveInvasion().
 // ─────────────────────────────────────────────────────────────────────
-// ⚠️ LIMITACIÓN CONOCIDA DE ESTA FASE (aislada, sin tocar el juego padre;
-// heredada tal cual del diseño de una sola fase, sigue aplicando igual
-// con el flujo de dos fases — el movimiento real de clk ahora ocurre en
-// resolveDuel(), no aquí, pero el resto del razonamiento es idéntico):
+// ℹ️ SINCRONIZACIÓN CON EL SALDO DEL JUEGO PADRE (antes documentada aquí
+// como "limitación conocida sin resolver" — ya no lo es, se deja este
+// comentario para que quien lea el código encuentre la respuesta en vez
+// de la pregunta abierta):
 // invasion_players/{uid}.clk parte de saves/{uid}.clk como fuente inicial,
 // pero syncProfileFromMainSave() compara updatedAt entre ambos documentos
 // y NO deja que un saves/ desactualizado pise un robo más reciente (ver
@@ -664,21 +682,23 @@ function checkCanInvade(playerDoc) {
 // refleja robos ganados/sufridos de inmediato, sin importar cuántas veces
 // se resincronice.
 //
-// Lo que sigue sin resolverse aquí a propósito: ese cambio de saldo NUNCA
-// se escribe de vuelta en saves/{uid} — el juego principal seguirá
-// mostrando el saldo de antes del robo. Y hay un caso a vigilar: el padre
-// autoguarda solo cada ~20s si hay actividad (ver CLOUD_MIN_INTERVAL en
-// index.html del padre) — si el jugador simplemente vuelve a jugar el
-// juego principal después de una invasión, ese autoguardado ESCRIBE
-// saves/{uid} con el clk de antes del robo y un updatedAt nuevo, sin que
-// el jugador haga nada explícito para ello. La próxima vez que abra el
-// modo Invasión, saves/ "ganará" por ser más reciente y la ganancia o
-// pérdida de Invasión desaparecerá del saldo mostrado — el registro en
-// invasion_attacks (historial) sigue intacto, pero el saldo visible ya
-// no la refleja. Esto es la consecuencia directa de no tener una única
-// fuente de verdad para clk, y es exactamente el problema que resolver
-// en integración: decidir si invasion_players pasa a ser la fuente de
-// verdad de clk, o si cada robo escribe también en saves/{uid}.
+// El camino INVERSO (que ese cambio de saldo SÍ se refleje de vuelta en
+// saves/{uid}, para que el juego principal no "olvide" un robo ganado o
+// sufrido en Invasión) vive en el juego padre, no aquí: ver
+// syncShieldState() en index.html (raíz del proyecto). Esa función,
+// llamada una vez al arrancar cada sesión del padre, relee
+// invasion_players/{uid}.clk vía syncProfileFromMainSave() y, si difiere
+// de S.clk (el estado en memoria del padre), ajusta S.clk en el sentido
+// que corresponda (addClk() si ganó, resta directa si perdió) y fuerza un
+// guardado inmediato — así el $CLK movido en Invasión (por un duelo
+// jugado, por expirePendingAttack(), o por cualquier otro movimiento de
+// invasion_players.clk) pasa a ser el mismo saldo que ve y guarda el
+// juego principal, sin una segunda fuente de verdad divergente. Nota: la
+// reconciliación ocurre al ABRIR/RECARGAR el padre, no en tiempo real
+// mientras ya está abierto — si el jugador tiene el juego principal
+// abierto en el momento exacto en que gana o pierde un robo desde otra
+// pestaña/dispositivo, verá el ajuste reflejado en su próxima recarga,
+// no al instante.
 // ─────────────────────────────────────────────────────────────────────
 async function createPendingAttack({ attackerUid, defenderUid, attackScore, isRevenge }) {
   const [attackerSnap, defenderSnap] = await Promise.all([
@@ -816,8 +836,83 @@ async function resolveDuel({ attackId, defenderUid, defenseScore }) {
     resolvedAt: serverTimestamp(),
   });
 
+// ─────────────────────────────────────────────────────────────────────
+// EXPIRACIÓN POR INCOMPARECENCIA — a petición expresa: si el defensor no
+// responde dentro de CFG.PENDING_ATTACK_WINDOW_MS (24h), el duelo se
+// resuelve SOLO, como una victoria más del atacante, con el MISMO
+// cálculo de botín que resolveDuel() (mismo tier de dificultad según
+// niveles, mismo robMax, mismo colchón MIN_CLK_LEFT_AFTER_ROB) — no es
+// una fórmula distinta ni un botín simbólico, es exactamente lo que se
+// habría robado si el defensor hubiera jugado y perdido. defenseScore
+// se guarda como 0 (el defensor nunca llegó a tapear, a diferencia de un
+// 0 real por fallar el timing/espacio) para que el historial pueda, si
+// hace falta más adelante, distinguir "perdió jugando" de "no respondió"
+// sin añadir un campo nuevo al esquema — status pasa a 'resolved' igual
+// que una resolución jugada, así que ninguna pantalla que ya filtre por
+// status necesita cambios para entender este caso.
+//
+// Sin backend (ver cabecera del archivo: proyecto 100% estático, sin
+// Cloud Functions), esto NO corre solo con el reloj parado — se dispara
+// desde el cliente, la primera vez que alguien (atacante, defensor, o
+// cualquier otro jugador cuya pantalla llame a getPendingAttacksFor())
+// entra a una pantalla que compruebe pendientes tras cumplirse la
+// ventana. Ver getPendingAttacksFor() más abajo, que llama a esto por
+// cada pendiente vencido ANTES de devolver la lista, así que el defensor
+// nunca ve como "pendiente todavía" un ataque que ya expiró.
+// ─────────────────────────────────────────────────────────────────────
+async function expirePendingAttack(attackId) {
+  const attackRef = doc(db, 'invasion_attacks', attackId);
+  const attackSnap = await getDoc(attackRef);
+  if (!attackSnap.exists()) return null; // ya no existe: nada que expirar
+  const attack = attackSnap.data();
+  if (attack.status !== 'pending') return null; // alguien ya lo resolvió (jugado o expirado) mientras tanto
+
+  const createdMs = attack.createdAt && attack.createdAt.toMillis ? attack.createdAt.toMillis() : 0;
+  if (Date.now() - createdMs < CFG.PENDING_ATTACK_WINDOW_MS) return null; // todavía dentro de la ventana
+
+  const [attackerSnap, defenderSnap] = await Promise.all([
+    getDoc(doc(db, 'invasion_players', attack.attackerUid)),
+    getDoc(doc(db, 'invasion_players', attack.defenderUid)),
+  ]);
+  if (!attackerSnap.exists() || !defenderSnap.exists()) return null; // perfil borrado/corrupto: no se puede resolver con seguridad
+
+  const attacker = attackerSnap.data();
+  const defender = defenderSnap.data();
+  const now = Date.now();
+
+  // won siempre true aquí (incomparecencia = victoria del atacante),
+  // mismo cálculo de tier/botín que resolveDuel() cuando won es true.
+  const tier = difficultyFor(attacker.lvl || attack.attackerLvl || 1, defender.lvl || attack.defenderLvl || 1);
+  const rawMax = Math.floor((defender.clk || 0) * tier.robMax);
+  const capByFloor = Math.max(0, (defender.clk || 0) - CFG.MIN_CLK_LEFT_AFTER_ROB);
+  const stolenAmount = Math.max(0, Math.min(rawMax, capByFloor));
+
+  const batch = writeBatch(db);
+
+  if (stolenAmount > 0) {
+    const newAttackerClk = (attacker.clk || 0) + stolenAmount;
+    const newDefenderClk = Math.max(0, (defender.clk || 0) - stolenAmount);
+    batch.update(doc(db, 'invasion_players', attack.attackerUid), {
+      clk: newAttackerClk, updatedAt: serverTimestamp(),
+    });
+    batch.update(doc(db, 'invasion_players', attack.defenderUid), {
+      clk: newDefenderClk, lastAttackedAt: now, updatedAt: serverTimestamp(),
+    });
+    batch.set(doc(db, 'invasion_targets', attack.attackerUid), { clk: newAttackerClk }, { merge: true });
+    batch.set(doc(db, 'invasion_targets', attack.defenderUid), { clk: newDefenderClk }, { merge: true });
+  }
+
+  batch.update(attackRef, {
+    defenseScore: 0,
+    status: 'resolved',
+    won: true,
+    stolenAmount,
+    resolvedAt: serverTimestamp(),
+    expiredByTimeout: true, // distingue esta resolución de una jugada de verdad, ver comentario de la función
+  });
+
   await batch.commit();
-  return { won: !!won, stolenAmount, difficulty: tier, attackScore: aScore, defenseScore: dScore, attackId };
+  return { won: true, stolenAmount, difficulty: tier, attackScore: attack.attackScore || 0, defenseScore: 0, attackId, expiredByTimeout: true };
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -828,6 +923,13 @@ async function resolveDuel({ attackId, defenderUid, defenseScore }) {
 // de defensa. Puede haber más de uno a la vez (varios atacantes
 // distintos pueden tener un misil pendiente contra el mismo defensor
 // simultáneamente; cada uno se resuelve por separado con resolveDuel()).
+//
+// Antes de devolver la lista, resuelve (expirePendingAttack) cualquier
+// pendiente que ya superó CFG.PENDING_ATTACK_WINDOW_MS — así el defensor
+// nunca ve como "pendiente, puedes defenderte" un ataque que ya se
+// resolvió solo en su contra. Se procesan en paralelo (Promise.all): no
+// hay dependencia entre expirar un ataque y otro, cada uno toca su
+// propio documento.
 // ─────────────────────────────────────────────────────────────────────
 async function getPendingAttacksFor(uid, max = 20) {
   const q = query(
@@ -838,7 +940,26 @@ async function getPendingAttacksFor(uid, max = 20) {
     limit(max)
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const now = Date.now();
+  const stillPending = [];
+  const toExpire = [];
+  for (const a of all) {
+    const createdMs = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+    if (now - createdMs >= CFG.PENDING_ATTACK_WINDOW_MS) toExpire.push(a.id);
+    else stillPending.push(a);
+  }
+  if (toExpire.length > 0) {
+    await Promise.all(toExpire.map(id => expirePendingAttack(id).catch(e => {
+      // Un fallo al expirar UN ataque concreto (p.ej. perfil borrado) no
+      // debe tumbar la carga del resto de pendientes reales — se loguea
+      // y se sigue; ese ataque en concreto quedará 'pending' y se
+      // reintentará expirar en la próxima llamada a esta función.
+      console.error('[DIAG] expirePendingAttack falló para', id, e);
+    })));
+  }
+  return stillPending;
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -1169,7 +1290,7 @@ window.InvasionCore = {
   CFG, db, auth, authReady,
   difficultyFor, todayKeyUTC, shieldCost, isInvasionUnlocked, computeAimScore,
   syncProfileFromMainSave, findRandomTarget, findTargetByLevel, explainNoTargetFound, checkCanInvade,
-  createPendingAttack, resolveDuel, getPendingAttacksFor,
+  createPendingAttack, resolveDuel, getPendingAttacksFor, expirePendingAttack,
   activateShield, getActiveRevengeTarget, hasRevengedAttack, isLegitimateRevenge, getAttackHistory, getAttackHistoryPage,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
   initInvasionBgm, // arranca la música de fondo del modo Invasión (loop, respeta cck4_muted)
