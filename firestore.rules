@@ -308,29 +308,45 @@ service cloud.firestore {
     }
 
     // ===== invasion_attacks/{attackId} =====
-    // Historial de robos. Se crea una vez por invasión resuelta, nunca
-    // se actualiza ni se borra. El atacante autenticado es quien escribe
-    // (es quien resuelve el batch completo), así que no se exige que
-    // request.auth.uid coincida con attackerUid como único caso — se
-    // exige que SEA uno de los dos participantes reales según lo que el
-    // propio documento declara, y que la forma/rango sea válida.
+    // Flujo de dos fases (ver docs/DISEÑO.md sección 3): se crea en
+    // estado 'pending' cuando el atacante lanza el misil (fase 1, solo
+    // conoce attackScore) y pasa a 'resolved' cuando el defensor
+    // completa su minijuego de interceptación (fase 2, añade
+    // defenseScore/won/stolenAmount reales). Esta es la versión
+    // sincronizada con invasion/firestore/invasion.rules — antes este
+    // archivo tenía todavía la regla del diseño ANTIGUO de una sola fase
+    // (sin 'pending'/'attackScore'/'defenseScore' en el esquema
+    // permitido y con allow update: if false), lo que rechazaba tanto
+    // createPendingAttack() como resolveDuel() con
+    // "Missing or insufficient permissions" pese a que el código ya
+    // llevaba tiempo escribiendo el esquema nuevo.
     match /invasion_attacks/{attackId} {
       allow read: if request.auth != null;
 
+      // Fase 1: solo el ATACANTE puede crear un ataque (a diferencia del
+      // diseño de una sola fase, el defensor no interviene hasta la
+      // fase 2, así que no tiene sentido -ni sería seguro- dejarle crear
+      // el documento).
       allow create: if request.auth != null
-                    && (request.auth.uid == request.resource.data.attackerUid
-                        || request.auth.uid == request.resource.data.defenderUid)
-                    && isValidAttackDoc();
+                    && request.auth.uid == request.resource.data.attackerUid
+                    && isValidPendingAttackDoc();
 
-      allow update: if false;
+      // Fase 2: la ÚNICA transición de update permitida es
+      // pending -> resolved, ejecutada por el DEFENSOR (es quien juega
+      // el minijuego de interceptación y conoce defenseScore).
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.defenderUid
+                    && isValidDuelResolution();
+
       allow delete: if false;
 
-      function isValidAttackDoc() {
+      function isValidPendingAttackDoc() {
         let d = request.resource.data;
         return d.keys().hasOnly([
           'attackerUid','attackerAlias','defenderUid','defenderAlias',
-          'attackerLvl','defenderLvl','difficulty','won','stolenAmount',
-          'isRevenge','createdAt'
+          'attackerLvl','defenderLvl','difficulty',
+          'attackScore','defenseScore','status',
+          'won','stolenAmount','isRevenge','createdAt'
         ])
           && d.attackerUid is string && d.attackerUid.size() > 0
           && d.defenderUid is string && d.defenderUid.size() > 0
@@ -340,11 +356,35 @@ service cloud.firestore {
           && d.attackerLvl is int && d.attackerLvl >= 1
           && d.defenderLvl is int && d.defenderLvl >= 1
           && d.difficulty in ['muy_facil','facil','normal','dificil','muy_dificil']
-          && d.won is bool
-          && d.stolenAmount is int && d.stolenAmount >= 0
-          && (d.won == false ? d.stolenAmount == 0 : true) // perder nunca roba nada
+          && d.attackScore is int && d.attackScore >= 0 && d.attackScore <= 100
+          && d.defenseScore == null
+          && d.status == 'pending'
+          && d.won == false            // placeholder obligatorio mientras está pendiente
+          && d.stolenAmount == 0       // placeholder obligatorio mientras está pendiente
           && d.isRevenge is bool
           && d.createdAt == request.time;
+      }
+
+      // Recalcular aquí el stolenAmount exacto a partir de tier.robMax
+      // requeriría leer invasion_players/{defenderUid}.clk dentro de la
+      // regla (Rules SÍ permite un get() por path conocido, a diferencia
+      // de una query) — se opta por NO hacerlo para no encadenar una
+      // lectura adicional a cada escritura de duelo, y en su lugar se
+      // acota por el mismo techo absoluto duro que ya usa el resto del
+      // archivo (ver isTargetClkOnlyUpdate más arriba) más la coherencia
+      // interna won<->stolenAmount, que si son consistentes entre sí es
+      // la parte con más superficie de abuso real.
+      function isValidDuelResolution() {
+        let d = request.resource.data;
+        let before = resource.data;
+        return before.status == 'pending'
+          && d.diff(before).affectedKeys().hasOnly(['defenseScore','status','won','stolenAmount','resolvedAt'])
+          && d.defenseScore is int && d.defenseScore >= 0 && d.defenseScore <= 100
+          && d.status == 'resolved'
+          && d.won is bool
+          && d.stolenAmount is int && d.stolenAmount >= 0 && d.stolenAmount <= 200000000
+          && (d.won == false ? d.stolenAmount == 0 : true) // perder (el atacante) nunca roba nada
+          && d.resolvedAt == request.time;
       }
     }
 
