@@ -334,9 +334,25 @@ async function searchRandom(){
   // nivel inmediatamente inferior, y así sucesivamente — ver
   // findTargetByLevel() en invasion-core.js. Ya no es una búsqueda
   // puramente aleatoria entre TODOS los jugadores.
+  //
+  // BUGFIX: myProfile se cargaba UNA SOLA VEZ en boot() y se reutilizaba
+  // en memoria en cada llamada a searchRandom() (p.ej. al pulsar
+  // "🔄 Reintentar" varias veces sin salir de esta pantalla) — así que
+  // el cooldown de 4h por objetivo (recentTargets), que SÍ queda bien
+  // escrito en Firestore por createPendingAttack() tras cada ataque,
+  // nunca se veía reflejado aquí hasta recargar la página entera o
+  // volver a pasar por el hub (invasion/index.html, que sí resincroniza
+  // en su propio boot()). Efecto observable: se podía atacar 2-3 veces
+  // seguidas al mismo rival pese al cooldown, con solo pulsar
+  // "Reintentar" repetidamente. Se relee el perfil real justo antes de
+  // cada búsqueda para que cualquier cooldown recién escrito (por este
+  // ataque o por otra pestaña/dispositivo con la misma cuenta) se
+  // respete siempre, sin depender de cuántas veces se reintente sin
+  // recargar.
   playSinExitoVideo();
   showView('scanning');
   try{
+    myProfile = { uid: myProfile.uid, ...(await core.syncProfileFromMainSave(myProfile.uid)) };
     foundTarget = await core.findTargetByLevel(myProfile.uid, myProfile.lvl, myProfile.recentTargets);
     if(!foundTarget){
       playSinExitoVideo();
