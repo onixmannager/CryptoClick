@@ -2623,12 +2623,12 @@ function showRankup(r){
     // Este video trae su propio audio, así que pausamos la música de
     // fondo mientras se reproduce (igual que con el video de intro) y la
     // reanudamos si falla la carga; si el usuario cierra con #ruclose, BGM.resume()
-    // se llama desde ese mismo botón. vid.muted=false es necesario porque el
+    // se llama desde ese mismo botón. vid.muted=true permite el arranque automático porque el
     // <video> ya no trae el atributo muted en el HTML, pero por las dudas
     // (algún navegador, o si el elemento quedó muteado de un intento previo)
     // lo forzamos aquí explícitamente antes de reproducir.
     BGM.pause();
-    vid.muted=false;
+    vid.muted=true;
     vid.oncanplay=()=>{box.classList.remove('wait-video');box.classList.add('has-video');vid.play().catch(()=>{});};
     vid.onerror=()=>{box.classList.remove('has-video','wait-video');BGM.resume();};
     playMuxVideo(vid, src); // src es ahora un Playback ID de Mux, no una URL .mp4; se carga DESPUÉS de registrar los handlers de arriba para evitar que hls.js dispare 'canplay' antes de que oncanplay esté asignado
@@ -3091,7 +3091,7 @@ function playIntroVideo(onDone){
     onDone();
   };
   BGM.pause(); // el video tiene su propio audio: la música de fondo no debe sonar a la vez
-  vid.muted=false;
+  vid.muted=true;
   fade.style.transitionDuration=INTRO_FADE_MS+'ms';
   fade.classList.remove('in'); // arranca tapado en negro
   ov.classList.add('show');
