@@ -6,6 +6,7 @@
 <title>Buscando rival — Invasión</title>
 <meta name="theme-color" content="#0b0a14">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.2/dist/mux-player.js"></script>
 <style>
 :root{
   --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;
@@ -26,10 +27,10 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
    superpuestos (uno por resultado) y solo se muestra el que toque vía
    .show, para poder cambiar de uno a otro sin recrear el elemento. ── */
 #videoStage{position:fixed;inset:0;background:#000;z-index:1}
-#videoStage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
-#videoStage video.show{display:block}
+#videoStage mux-player{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;--controls:none}
+#videoStage mux-player.show{display:block}
 @media (min-width:901px){
-  #videoStage video{object-fit:contain}
+  #videoStage mux-player{object-fit:contain}
 }
 
 /* ── Overlay de información, SIEMPRE por encima del video. Franja
@@ -90,8 +91,8 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 <body>
 
 <div id="videoStage">
-  <video id="videoSinExito" src="videos/radarsinexito.mp4" playsinline loop></video>
-  <video id="videoExito" src="videos/radarexito.mp4" playsinline loop></video>
+  <mux-player id="videoSinExito" stream-type="on-demand" playback-id="Jk01e7JET6fWivLqUhOMMH8uBpGx01Ub01wDsIDGujgJ3Q" no-muted-pref playsinline loop></mux-player>
+  <mux-player id="videoExito" stream-type="on-demand" playback-id="JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs" no-muted-pref playsinline loop></mux-player>
 </div>
 
 <div id="overlay">

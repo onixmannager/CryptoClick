@@ -6,6 +6,7 @@
 <title>Interceptación — Invasión</title>
 <meta name="theme-color" content="#0b0a14">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.2/dist/mux-player.js"></script>
 <style>
 :root{
   --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;
@@ -18,8 +19,8 @@
 html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);overflow:hidden}
 
 #stage{position:fixed;inset:0;background:#000;z-index:1;touch-action:none}
-#stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-@media (min-width:901px){ #stage video{object-fit:contain} }
+#stage mux-player{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;--controls:none}
+@media (min-width:901px){ #stage mux-player{object-fit:contain} }
 
 #overlay{position:fixed;inset:0;z-index:2;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center}
 
@@ -95,7 +96,7 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 </div>
 
 <div id="stage">
-  <video id="defenseVideo" src="videos/defense.mp4" playsinline muted preload="auto"></video>
+  <mux-player id="defenseVideo" stream-type="on-demand" playback-id="nVM01l01DTfXaT9z7W8EicT9xLN00e9c2K2BFTVfdWmG00c" no-muted-pref playsinline></mux-player>
 </div>
 
 <div id="crosshairRing"></div>
