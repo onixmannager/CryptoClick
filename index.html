@@ -1835,14 +1835,32 @@ function readLocalCandidate(uid,allowLegacy){
     if(allowLegacy){
       const legacyRaw=localStorage.getItem(SAVE_KEY);
       const legacyData=parseSave(legacyRaw);
-      if(legacyData){
-        // La clave legacy 'cck4' (sin uid) es de una versión anterior a que existiera
-        // saveKeyForUid(). Se consume una sola vez para migrar su progreso al uid que
-        // la reclama aquí. Si no se borra, se queda flotando en el navegador para
-        // siempre y el PRÓXIMO usuario "nuevo" (sin datos propios en cck4_user_<uid>
-        // ni en Firestore) que inicie sesión en ese mismo dispositivo la hereda sin
-        // ninguna relación con esa cuenta: eso es lo que se percibía como "entro con
-        // una cuenta nueva y carga datos de otra persona".
+      // BUGFIX: antes se devolvía legacyData aquí con solo comprobar que parseara,
+      // sin más condición. La clave legacy 'cck4' (sin uid) es de una versión
+      // anterior a que existiera saveKeyForUid(), y se pensó para migrarse UNA
+      // sola vez al primer uid que la reclama en ESTE navegador. El problema:
+      // 'cck4' con progreso real es indistinguible entre dos casos que antes se
+      // trataban igual (ambos "la heredo"): (a) migración legítima de un jugador
+      // que jugó en este navegador antes de que existiera el login con Google, o
+      // (b) el resto que deja CUALQUIER cuenta ya usada en este dispositivo (esa
+      // sesión sí tiene su propia cck4_user_<uid>, pero 'cck4' sin uid puede haber
+      // quedado escrita por algún guardado intermedio). Sin distinguirlos, una
+      // cuenta de Google NUEVA en un dispositivo que ya jugó con otra cuenta
+      // heredaba su alias y sus $CLK - eso es lo que se percibía como "inicio una
+      // cuenta nueva y ya tiene datos/tokens de otra persona". La diferencia real
+      // entre (a) y (b) es si YA existe alguna otra cck4_user_<uid> en este
+      // navegador: si existe, 'cck4' no es un resto huérfano de antes del login,
+      // sino algo escrito mientras ya había cuentas con Google en este dispositivo,
+      // así que no debe ofrecerse a una cuenta nueva. Solo se hereda cuando 'cck4'
+      // es un huérfano real (ninguna otra cuenta se ha usado nunca aquí).
+      let otherUserKeyExists=false;
+      try{
+        for(let i=0;i<localStorage.length;i++){
+          const k=localStorage.key(i);
+          if(k&&k.indexOf(SAVE_KEY_PREFIX)===0&&k!==saveKeyForUid(uid)){otherUserKeyExists=true;break;}
+        }
+      }catch(e){}
+      if(legacyData&&!otherUserKeyExists){
         try{localStorage.removeItem(SAVE_KEY);}catch(e){}
         return{raw:legacyRaw,data:legacyData,key:SAVE_KEY,legacy:true};
       }
