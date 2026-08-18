@@ -3124,13 +3124,7 @@ function playIntroVideo(onDone){
       requestAnimationFrame(()=>fade.classList.add('in'));
     }).catch(finish); // autoplay con sonido puede fallar sin gesto previo del usuario
   };
-  // A petición: el video de intro se reproduce con el link directo de Mux
-  // (vid.src = URL .m3u8), sin pasar por hls.js. Esto reproduce nativamente
-  // en Safari/iOS; en Chrome/Firefox/Edge, que no leen HLS de forma nativa,
-  // el navegador puede no reproducir el video igualmente (limitación del
-  // propio navegador, no de esta línea) - si eso pasa, avisar para volver
-  // a playMuxVideo(vid, INTRO_VIDEO_PLAYBACK_ID) aquí debajo.
-  vid.src = `https://stream.mux.com/${INTRO_VIDEO_PLAYBACK_ID}.m3u8`;
+  playMuxVideo(vid, INTRO_VIDEO_PLAYBACK_ID);
   window.__skipIntroVideo=finish;
 }
 function skipIntroVideo(){ if(window.__skipIntroVideo)window.__skipIntroVideo(); }
