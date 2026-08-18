@@ -1637,10 +1637,7 @@ function playMuxVideo(vid, playbackId){
   } else if (window.Hls && window.Hls.isSupported()) {
     const hls = new Hls();
     hls.on(Hls.Events.ERROR, (event, data) => {
-      if (data && data.fatal) {
-        console.error('[Mux] Error fatal cargando', src, data); // antes esto se tragaba en silencio y no aparecía nada en consola
-        if (typeof vid.onerror === 'function') vid.onerror(data);
-      }
+      if (data && data.fatal && typeof vid.onerror === 'function') vid.onerror(data);
     });
     hls.loadSource(src);
     hls.attachMedia(vid);
@@ -2645,7 +2642,16 @@ function showRankup(r){
     // lo forzamos aquí explícitamente antes de reproducir.
     BGM.pause();
     vid.muted=false;
-    vid.oncanplay=()=>{box.classList.remove('wait-video');box.classList.add('has-video');vid.play().catch(()=>{});};
+    vid.oncanplay=()=>{
+      box.classList.remove('wait-video');box.classList.add('has-video');
+      vid.play().catch(()=>{
+        // Igual que en playIntroVideo: si el autoplay con sonido es
+        // rechazado, reintentamos muteado para que el video igual se
+        // vea en vez de quedar congelado en su primer frame sin sonar.
+        vid.muted=true;
+        vid.play().catch(()=>{});
+      });
+    };
     vid.onerror=()=>{box.classList.remove('has-video','wait-video');BGM.resume();};
     playMuxVideo(vid, src); // src es ahora un Playback ID de Mux, no una URL .mp4; se carga DESPUÉS de registrar los handlers de arriba para evitar que hls.js dispare 'canplay' antes de que oncanplay esté asignado
     // Al terminar el video (o si el usuario pulsa "Saltar", ver
@@ -3125,7 +3131,19 @@ function playIntroVideo(onDone){
     vid.currentTime=0;
     vid.play().then(()=>{
       requestAnimationFrame(()=>fade.classList.add('in'));
-    }).catch(finish); // autoplay con sonido puede fallar sin gesto previo del usuario
+    }).catch(()=>{
+      // El navegador bloqueó el autoplay CON sonido (todavía no hubo gesto
+      // del usuario en la página). En vez de abortar el video entero
+      // (que antes lo dejaba sin reproducirse nunca, sin ningún error
+      // visible), reintentamos muteado: el autoplay silenciado sí está
+      // permitido siempre. Así el video se ve igual, aunque sin audio
+      // hasta que el usuario reaccione.
+      if(done)return;
+      vid.muted=true;
+      vid.play().then(()=>{
+        requestAnimationFrame(()=>fade.classList.add('in'));
+      }).catch(finish); // si ni siquiera muteado puede reproducir, ahí sí abortamos
+    });
   };
   playMuxVideo(vid, INTRO_VIDEO_PLAYBACK_ID);
   window.__skipIntroVideo=finish;
