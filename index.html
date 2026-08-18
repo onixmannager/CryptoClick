@@ -925,6 +925,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #redeemgo{width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;border-radius:12px;color:white;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px}
 #redeemcancel{width:100%;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
 </head>
 <body>
 
@@ -1215,7 +1216,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 </div></div>
 
 <div id="introov">
-  <video id="introvideo" src="videos/alieniniciocohete.mp4" playsinline></video>
+  <video id="introvideo" playsinline></video>
   <div id="introfade"></div>
   <button id="introskip" onclick="skipIntroVideo()">Saltar ⏭️</button>
 </div>
@@ -1598,15 +1599,58 @@ const RANKS=[
    emoji+bounce de siempre, asi que no hace falta rellenar los 8 de una vez.
    Para migrar a Cloudinary/Mux mas adelante, solo hay que cambiar las URLs
    de este objeto; el resto del codigo no necesita tocarse. */
+/* Estos son PLAYBACK IDs de Mux (no URLs .mp4). Si tus 7 rangos usan
+   vídeos distintos, cambia cada uno por su propio Playback ID desde
+   el dashboard de Mux -> tu asset -> pestaña "Playback and Thumbnails". */
 const RANK_VIDEOS={
-  'Hodler':      'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4',
-  'Trader Pro':  'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4',
-  'DeFi Shark':  'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4',
-  'Whale':       'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4',
-  'DeFi King':   'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4',
-  'Satoshi':     'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4',
-  'Blockchain God':'https://raw.githubusercontent.com/onixmannager/CryptoClick/main/videos/alien%20busca%20y%20mina.mp4',
+  'Hodler':         'JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs',
+  'Trader Pro':     'JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs',
+  'DeFi Shark':     'JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs',
+  'Whale':          'JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs',
+  'DeFi King':      'JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs',
+  'Satoshi':        'JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs',
+  'Blockchain God': 'JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs',
 };
+
+/* Playback ID del vídeo de intro (el que arranca al abrir la web).
+   Cámbialo por el tuyo si es un vídeo distinto al de arriba. */
+const INTRO_VIDEO_PLAYBACK_ID = 'JJDwuSwjtgL1kvyj3gA02XSA79hNBbU00MRXEC1GJaQDs';
+
+/* ── MUX: reproduce un playback ID de Mux en un <video> normal. ──
+   Mux entrega HLS (.m3u8); Safari lo lee nativo, el resto de
+   navegadores necesitan hls.js (cargado en el <head>). Esta función
+   sustituye a "vid.src = url.mp4" en todos los sitios donde antes
+   asignabas el vídeo directamente.
+   IMPORTANTE: con hls.js, vid.play() no debe llamarse hasta que el
+   manifest esté parseado (evento MANIFEST_PARSED) — llamarlo antes
+   puede fallar. Por eso esta función NO reproduce el vídeo ella
+   misma: solo lo deja "listo", y sigues usando el 'canplay' nativo
+   del <video> (que ya disparabas antes) para decidir cuándo hacer
+   vid.play(), igual que en el código original. */
+const _hlsInstances = new WeakMap();
+function playMuxVideo(vid, playbackId){
+  const src = `https://stream.mux.com/${playbackId}.m3u8`;
+  const prev = _hlsInstances.get(vid);
+  if (prev) { prev.destroy(); _hlsInstances.delete(vid); }
+  if (vid.canPlayType('application/vnd.apple.mpegurl')) {
+    vid.src = src; // Safari/iOS: HLS nativo, dispara 'canplay' normalmente
+  } else if (window.Hls && window.Hls.isSupported()) {
+    const hls = new Hls();
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      if (data && data.fatal && typeof vid.onerror === 'function') vid.onerror(data);
+    });
+    hls.loadSource(src);
+    hls.attachMedia(vid);
+    _hlsInstances.set(vid, hls);
+    // No llamamos a vid.play() aquí: el <video> dispara su propio evento
+    // nativo 'canplay' cuando hls.js ha llenado suficiente buffer via MSE
+    // (esto SÍ es fiable en Chrome/Firefox/Edge), así que el oncanplay que
+    // ya registra cada punto de llamada (showRankup, playIntroVideo) sigue
+    // funcionando sin cambios adicionales.
+  } else {
+    console.warn('Este navegador no puede reproducir vídeo de Mux (falta hls.js o soporte HLS).');
+  }
+}
 
 const SKINS=[
   {id:0,ico:'🌟',name:'Original',cls:'s0',lvl:1 },
@@ -2559,6 +2603,7 @@ function showRankup(r){
   const vid=document.getElementById('ruvideo');
   const src=RANK_VIDEOS[r.name];
   box.classList.remove('has-video','wait-video');
+  { const prevHls=_hlsInstances.get(vid); if(prevHls){ prevHls.destroy(); _hlsInstances.delete(vid); } } // por si el rango anterior seguía cargando/reproduciendo vía hls.js
   vid.pause();vid.removeAttribute('src');vid.load();
   vid.onended=null;vid.onerror=null;vid.oncanplay=null;
   window.__skipRankupVideo=null;
@@ -2579,9 +2624,9 @@ function showRankup(r){
     // lo forzamos aquí explícitamente antes de reproducir.
     BGM.pause();
     vid.muted=false;
-    vid.src=src;
     vid.oncanplay=()=>{box.classList.remove('wait-video');box.classList.add('has-video');vid.play().catch(()=>{});};
     vid.onerror=()=>{box.classList.remove('has-video','wait-video');BGM.resume();};
+    playMuxVideo(vid, src); // src es ahora un Playback ID de Mux, no una URL .mp4; se carga DESPUÉS de registrar los handlers de arriba para evitar que hls.js dispare 'canplay' antes de que oncanplay esté asignado
     // Al terminar el video (o si el usuario pulsa "Saltar", ver
     // skipRankupVideo): cerrar el overlay automaticamente, igual que el
     // video de intro. El aviso de rango (titulo+nombre) ya se mostró
@@ -3041,7 +3086,6 @@ function playIntroVideo(onDone){
     onDone();
   };
   BGM.pause(); // el video tiene su propio audio: la música de fondo no debe sonar a la vez
-  vid.currentTime=0;
   vid.muted=false;
   fade.style.transitionDuration=INTRO_FADE_MS+'ms';
   fade.classList.remove('in'); // arranca tapado en negro
@@ -3052,9 +3096,17 @@ function playIntroVideo(onDone){
   // (no solo "play() resuelto", sino el primer frame ya avanzando) se
   // desvanece el negro. requestAnimationFrame tras play() evita un
   // parpadeo si el primer frame tarda un instante en pintarse.
-  vid.play().then(()=>{
-    requestAnimationFrame(()=>fade.classList.add('in'));
-  }).catch(finish); // autoplay con sonido puede fallar sin gesto previo del usuario
+  // 'canplay' se registra ANTES de cargar el vídeo (playMuxVideo) para
+  // que, con hls.js, no se pierda el evento si dispara muy rápido.
+  vid.oncanplay=()=>{
+    vid.oncanplay=null; // solo nos interesa el primer canplay de esta reproducción
+    if(done)return; // el usuario ya pulsó "Saltar" antes de que el vídeo cargara: no arrancar
+    vid.currentTime=0;
+    vid.play().then(()=>{
+      requestAnimationFrame(()=>fade.classList.add('in'));
+    }).catch(finish); // autoplay con sonido puede fallar sin gesto previo del usuario
+  };
+  playMuxVideo(vid, INTRO_VIDEO_PLAYBACK_ID);
   window.__skipIntroVideo=finish;
 }
 function skipIntroVideo(){ if(window.__skipIntroVideo)window.__skipIntroVideo(); }
