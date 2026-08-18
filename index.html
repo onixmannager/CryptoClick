@@ -1637,7 +1637,10 @@ function playMuxVideo(vid, playbackId){
   } else if (window.Hls && window.Hls.isSupported()) {
     const hls = new Hls();
     hls.on(Hls.Events.ERROR, (event, data) => {
-      if (data && data.fatal && typeof vid.onerror === 'function') vid.onerror(data);
+      if (data && data.fatal) {
+        console.error('[Mux] Error fatal cargando', src, data); // antes esto se tragaba en silencio y no aparecía nada en consola
+        if (typeof vid.onerror === 'function') vid.onerror(data);
+      }
     });
     hls.loadSource(src);
     hls.attachMedia(vid);
