@@ -1641,9 +1641,6 @@ function playMuxVideo(vid, playbackId){
     hls.on(Hls.Events.ERROR, (event, data) => {
       if (data && data.fatal && typeof vid.onerror === 'function') vid.onerror(data);
     });
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      if (typeof vid.oncanplay === 'function') vid.oncanplay();
-    });
     hls.loadSource(src);
     hls.attachMedia(vid);
     _hlsInstances.set(vid, hls);
