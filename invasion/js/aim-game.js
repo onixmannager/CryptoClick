@@ -18,7 +18,7 @@
 
    CONTRATO:
      const game = createAimGame({
-       videoEl,              // <video> ya en el DOM, con su src puesto
+       videoEl,              // reproductor ya en el DOM, con su fuente configurada
        stageEl,               // contenedor sobre el que se centra el punto de mira
        countdownEl,           // elemento de texto para pintar 3/2/1/0,00
        onTap(result) {...},   // se llama tras el tap (o tras agotar la ventana) con {score, timingScore, spaceScore, timingMs, distancePx}
@@ -106,8 +106,12 @@ function createAimGame({ videoEl, stageEl, countdownEl, onTap, zeroAtMs, jitterM
     const targetVideoMs = Math.max(0, zeroAtMs + jitter);
 
     try { videoEl.currentTime = 0; } catch (e) {}
+    videoEl.muted=false;
     const playPromise = videoEl.play();
-    if (playPromise && playPromise.catch) playPromise.catch(() => {});
+    if (playPromise && playPromise.catch) playPromise.catch(() => {
+      videoEl.muted=true;
+      return videoEl.play();
+    }).catch(() => {});
 
     // Cuenta atrás 3→2→1→0,00 sincronizada con targetVideoMs: se calcula
     // hacia atrás desde el instante en que el vídeo llegará a
