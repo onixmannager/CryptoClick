@@ -700,6 +700,32 @@ function checkCanInvade(playerDoc) {
 // pestaña/dispositivo, verá el ajuste reflejado en su próxima recarga,
 // no al instante.
 // ─────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
+// ¿TIENE ESTE JUGADOR UN ATAQUE PENDIENTE SIN RESOLVER? — a petición
+// expresa: mientras un defensor tenga un ataque en status:'pending'
+// contra él, no puede recibir otro (createPendingAttack() lo usa como
+// barrera) ni aparecer como objetivo en la búsqueda (search.html lo usa
+// para filtrar). El ATACANTE sí puede seguir lanzando misiles contra
+// otros aunque él mismo tenga un ataque pendiente sin resolver contra sí
+// mismo — esta función solo se consulta sobre el lado DEFENSOR, nunca
+// sobre el atacante, a propósito.
+//
+// Nota: esto sustituye la decisión de diseño anterior documentada en
+// DISENO.md sección 4 ("Ataques pendientes simultáneos" — permitía
+// varios atacantes a la vez contra el mismo defensor). Cambio de regla
+// de negocio confirmado expresamente, no un descuido.
+// ─────────────────────────────────────────────────────────────────────
+async function hasPendingDefense(uid) {
+  const q = query(
+    collection(db, 'invasion_attacks'),
+    where('defenderUid', '==', uid),
+    where('status', '==', 'pending'),
+    limit(1)
+  );
+  const snap = await getDocs(q);
+  return !snap.empty;
+}
+
 async function createPendingAttack({ attackerUid, defenderUid, attackScore, isRevenge }) {
   const [attackerSnap, defenderSnap] = await Promise.all([
     getDoc(doc(db, 'invasion_players', attackerUid)),
@@ -716,6 +742,7 @@ async function createPendingAttack({ attackerUid, defenderUid, attackScore, isRe
   const invadeCheck = checkCanInvade(attacker);
   if (!invadeCheck.ok) throw new Error('No se puede invadir ahora mismo: ' + invadeCheck.reason);
   if ((defender.shieldUntil || 0) > now) throw new Error('El objetivo activó un escudo justo ahora');
+  if (await hasPendingDefense(defenderUid)) throw new Error('El objetivo ya tiene un ataque pendiente sin resolver');
 
   // isRevenge llega del cliente sin que nada lo haya verificado de forma
   // obligatoria hasta aquí (mismo razonamiento que tenía la resolución
@@ -1294,7 +1321,7 @@ window.InvasionCore = {
   CFG, db, auth, authReady,
   difficultyFor, todayKeyUTC, shieldCost, isInvasionUnlocked, computeAimScore,
   syncProfileFromMainSave, findRandomTarget, findTargetByLevel, explainNoTargetFound, checkCanInvade,
-  createPendingAttack, resolveDuel, getPendingAttacksFor, expirePendingAttack,
+  createPendingAttack, resolveDuel, getPendingAttacksFor, expirePendingAttack, hasPendingDefense,
   activateShield, getActiveRevengeTarget, hasRevengedAttack, isLegitimateRevenge, getAttackHistory, getAttackHistoryPage,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
   initInvasionBgm, // arranca la música de fondo del modo Invasión (loop, respeta cck4_muted)
