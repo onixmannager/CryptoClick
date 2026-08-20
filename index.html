@@ -3212,19 +3212,58 @@ const INVASION_DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal
 // sin recargar, puede entrar a /invasion/ (que si tiene su propio
 // polling al abrir el hub).
 // ─────────────────────────────────────────────────────────────────────
+const PENDING_ATTACK_DISMISSED_KEY='cck4_pendingAttackDismissed';
+function getDismissedPendingAttackIds(){
+  try{ return JSON.parse(localStorage.getItem(PENDING_ATTACK_DISMISSED_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function markPendingAttackIdsDismissed(ids){
+  try{
+    const cur = getDismissedPendingAttackIds();
+    // Set para deduplicar sin arrastrar ids de ataques ya resueltos hace
+    // tiempo -la lista solo crece con lo que el jugador realmente cerró,
+    // así que se recorta al vuelo contra lo que sigue pending en el
+    // siguiente chequeo (ver checkPendingAttacksFromMain), no hace falta
+    // una limpieza periódica aparte.
+    localStorage.setItem(PENDING_ATTACK_DISMISSED_KEY, JSON.stringify([...new Set([...cur, ...ids])]));
+  }catch(e){ console.error('markPendingAttackIdsDismissed falló:', e); }
+}
+
+let _pendingAttackShownIds = []; // ids mostrados en el overlay ahora mismo, ver botón "Ahora no" más abajo
+
 async function checkPendingAttacksFromMain(){
   try{
     const core = window.InvasionCore;
     if(!core || !window.__fbUser) return;
-    const pending = await core.getPendingAttacksFor(window.__fbUser.uid);
-    if(!pending.length) return; // nada pendiente: no se muestra el overlay
+    const allPending = await core.getPendingAttacksFor(window.__fbUser.uid);
+    const dismissed = new Set(getDismissedPendingAttackIds());
+    // Poda: un id descartado cuyo ataque ya no está en allPending es
+    // porque ya se resolvió (jugado o expirado a las 24h) -no hace
+    // falta seguir arrastrándolo en localStorage para siempre. Se poda
+    // aquí, antes del early-return de abajo, para que corra en cada
+    // chequeo y no solo cuando queda algo pendiente que mostrar.
+    if(dismissed.size){
+      const stillPendingIds = new Set(allPending.map(a=>a.id));
+      const pruned = [...dismissed].filter(id=>stillPendingIds.has(id));
+      if(pruned.length!==dismissed.size){
+        try{ localStorage.setItem(PENDING_ATTACK_DISMISSED_KEY, JSON.stringify(pruned)); }catch(e){}
+        dismissed.clear(); pruned.forEach(id=>dismissed.add(id));
+      }
+    }
+    // A petición expresa: un ataque que el jugador ya cerró con "Ahora
+    // no" no debe volver a aparecer, aunque siga pending y aunque se
+    // recargue la página -pero un ataque NUEVO (id distinto) sí debe
+    // notificarse con normalidad, así que se filtra por id, no se
+    // suprime el aviso entero.
+    const pending = allPending.filter(a => !dismissed.has(a.id));
+    if(!pending.length) return; // nada pendiente sin descartar: no se muestra el overlay
     const rowsEl = document.getElementById('pendingAttackRows');
     const titleEl = document.getElementById('pendingAttackTitle');
     const introEl = document.getElementById('pendingAttackIntro');
     titleEl.textContent = pending.length===1 ? '¡Te están atacando!' : `¡Te están atacando! (${pending.length})`;
     introEl.textContent = pending.length===1
-      ? 'Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo.'
-      : `${pending.length} jugadores lanzaron un misil contra ti en el modo Invasión. Defiéndete de cada uno antes de que se resuelvan los duelos.`;
+      ? 'Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo. Mientras tanto, tu $CLK está congelado y no puedes gastarlo en mejoras.'
+      : `${pending.length} jugadores lanzaron un misil contra ti en el modo Invasión. Defiéndete de cada uno antes de que se resuelvan los duelos. Mientras tanto, tu $CLK está congelado y no puedes gastarlo en mejoras.`;
     rowsEl.innerHTML = pending.map(a => `
       <div class="paRow">
         <div class="paRowIcon">🚀</div>
@@ -3238,6 +3277,7 @@ async function checkPendingAttacksFromMain(){
     rowsEl.querySelectorAll('.paRowBtn').forEach(btn=>{
       btn.onclick=()=>goDefendFromMain(btn.dataset.attackId);
     });
+    _pendingAttackShownIds = pending.map(a=>a.id);
     document.getElementById('pendingAttackOv').classList.add('show');
   }catch(e){ console.error('checkPendingAttacksFromMain falló:', e); }
 }
@@ -3254,6 +3294,7 @@ function goDefendFromMain(attackId){
 }
 
 document.getElementById('pendingAttackClose').onclick=()=>{
+  if(_pendingAttackShownIds.length) markPendingAttackIdsDismissed(_pendingAttackShownIds);
   document.getElementById('pendingAttackOv').classList.remove('show');
 };
 
