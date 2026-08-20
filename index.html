@@ -3369,7 +3369,18 @@ function renderShieldModalContent(){
     // escudo activo no se puede volver a comprar el MISMO tipo, y
     // tampoco se puede comprar 3d con un 7d activo. Comprar 7d con un
     // 3d activo sí está permitido (mejora la protección).
-    const blocked = active && (type===shieldState.shieldType || (type==='3d' && shieldState.shieldType==='7d'));
+    const blockedByActiveShield = active && (type===shieldState.shieldType || (type==='3d' && shieldState.shieldType==='7d'));
+    // BUGFIX: este panel (el modal de escudo del juego principal) llama
+    // a core.activateShield() directamente, en paralelo al mismo botón
+    // que ya existe dentro del propio modo Invasión (invasion/index.html,
+    // renderShieldButtons()) — pendingDefenseFreeze ya congela el gasto
+    // en mejoras normales (spendClk()/buyUp() más abajo) pero no se
+    // aplicaba aquí, así que se podía seguir comprando un escudo desde
+    // este panel mientras había una defensa pendiente sin resolver.
+    // Misma variable ya calculada en startGameForUser() (ver
+    // syncPendingDefenseFreeze() más abajo), sin necesidad de recalcular
+    // nada aparte para este panel.
+    const blocked = blockedByActiveShield || pendingDefenseFreeze;
     const btn=document.createElement('button');
     btn.className='shieldBuyBtnMain';
     // El texto "Bloqueado por X activo" se elimina a petición expresa:
@@ -3381,6 +3392,9 @@ function renderShieldModalContent(){
     btn.innerHTML = blocked
       ? `${imgTag}Escudo ${label}`
       : `${imgTag}Escudo ${label}<br>🪙 ${fmt(cost)}`;
+    if(pendingDefenseFreeze && !blockedByActiveShield){
+      btn.title = 'Saldo congelado: tienes un ataque de Invasión pendiente de defender';
+    }
     // shieldState.clk es un snapshot de $CLK tomado UNA vez al arrancar
     // la sesión (ver syncShieldState() / startGameForUser) y no se
 
@@ -3401,6 +3415,17 @@ function renderShieldModalContent(){
 async function buyShieldFromMain(type, expectedCost){
   const core = window.InvasionCore;
   if(!core || !window.__fbUser) return;
+  // Misma barrera que activateShield() no aplica por sí sola (solo lee
+  // clk/coste): el botón ya viene deshabilitado por
+  // renderShieldModalContent() en el caso normal, esto es para no dejar
+  // pasar un click que se colara pese a eso (doble click justo antes del
+  // repintado, modal ya abierto cuando llega un ataque, etc.), mismo
+  // criterio de doble comprobación que ya usa buyUp() con
+  // pendingDefenseFreeze para las mejoras normales.
+  if(pendingDefenseFreeze){
+    toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender');
+    return;
+  }
   try{
     // activateShield() cobra en el servidor releyendo invasion_players/{uid}
     // en Firestore, NO el shieldState que hay en memoria en el cliente. Ese
