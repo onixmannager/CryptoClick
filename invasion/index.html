@@ -297,6 +297,22 @@ function fmtCountdown(ms){
 let core, myProfile, countdownInterval, invadeHintInterval;
 const DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal',dificil:'Difícil',muy_dificil:'Casi imposible'};
 
+// BUGFIX: mientras el jugador tiene una defensa pendiente sin resolver,
+// el juego padre (index.html) ya congela su saldo para que no se gaste
+// en mejoras (ver pendingDefenseFreeze/syncPendingDefenseFreeze() ahí),
+// pero ese mismo saldo SÍ se podía seguir gastando aquí, dentro del
+// propio modo Invasión, comprando un escudo (activateShield()/
+// buyShield() más abajo) — ningún sitio lo impedía. Mismo criterio y
+// misma fuente (core.hasPendingDefense()) que usa el padre, calculado
+// aparte en vez de derivarlo de getPendingAttacksFor() (que también se
+// consulta en este archivo, ver checkPendingAttacks() más abajo) porque
+// esa otra consulta no se resuelve hasta después del vídeo de
+// presentación — demasiado tarde para la primera pintura de los
+// botones de escudo, que ya ocurre dentro de renderAll() nada más
+// arrancar. No vive en myProfile ni se persiste: es, igual que en el
+// padre, un reflejo en vivo de esta sesión.
+let pendingDefenseFreeze = false;
+
 /* ── Video de presentación de Invasión, mismo criterio que el video de
    intro del juego padre (index.html): se reproduce una sola vez, la
    primera vez que se entra a este modo, con fundido de entrada/salida
@@ -444,6 +460,11 @@ async function boot(){
 
   try{
     myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+    try{
+      pendingDefenseFreeze = await core.hasPendingDefense(myProfile.uid);
+    }catch(e){
+      console.error('No se pudo comprobar pendingDefenseFreeze:', e);
+    }
     renderAll();
     const waitLoad=Math.max(0, MIN_LOADING_MS-(Date.now()-_bootStartMs));
     if(waitLoad>0){ await new Promise(r=>setTimeout(r,waitLoad)); }
@@ -540,18 +561,25 @@ function renderShieldButtons(){
     const label = SHIELD_LABELS_FIJAS[type] || `${core.CFG.SHIELD_HOURS[type]}h`;
     const imgSrc = SHIELD_IMG_POR_TIPO[type];
     const cost = core.shieldCost(type, myProfile.lvl || 1);
-    const blocked = !!activeType && (type===activeType || (type==='3d' && activeType==='7d'));
+    const blockedByActiveShield = !!activeType && (type===activeType || (type==='3d' && activeType==='7d'));
+    const blocked = blockedByActiveShield || pendingDefenseFreeze;
     const btn=document.createElement('button');
     btn.className='shieldBuyBtn';
     // El texto "Bloqueado por X activo" se elimina a petición expresa:
     // el botón bloqueado se queda SOLO con la etiqueta de duración (sin
     // coste, que no aplica porque no se puede comprar en ese estado), y
     // sigue deshabilitado (btn.disabled más abajo) para impedir la
-    // compra mientras el otro escudo esté activo.
+    // compra mientras el otro escudo esté activo. Mismo tratamiento
+    // visual quieto (sin coste) para el caso de saldo congelado por
+    // defensa pendiente, pero con su propio título en el botón para que
+    // no se confunda con "ya tienes un escudo activo".
     const imgTag = `<img src="${imgSrc}" alt="" class="shieldBuyBtnImg">`;
     btn.innerHTML = blocked
       ? `${imgTag}Escudo ${label}`
       : `${imgTag}Escudo ${label}<br>🪙 ${fmtClk(cost)}`;
+    if(pendingDefenseFreeze && !blockedByActiveShield){
+      btn.title = 'Saldo congelado: tienes un ataque de Invasión pendiente de defender';
+    }
     btn.disabled = blocked || (myProfile.clk||0) < cost;
     btn.onclick=()=>buyShield(type, cost);
     wrap.appendChild(btn);
@@ -559,6 +587,22 @@ function renderShieldButtons(){
 }
 
 async function buyShield(type, expectedCost){
+  // A diferencia del saldo insuficiente o del tipo de escudo (que
+  // activateShield() SÍ vuelve a comprobar leyendo Firestore antes de
+  // cobrar), la congelación por defensa pendiente NO tiene ninguna
+  // barrera del lado de activateShield() ni de firestore.rules — ese
+  // motivo concreto solo se conoce aquí, en el cliente, igual que
+  // pendingDefenseFreeze en el índice padre. Así que esta comprobación
+  // es la única que existe para esta regla concreta: el botón ya viene
+  // deshabilitado por renderShieldButtons() en el caso normal, esto es
+  // para no dejar pasar un click que se colara pese a eso (doble click
+  // justo antes del repintado, recarga a medio camino, etc.), mismo
+  // criterio de doble comprobación que ya usa search.html con
+  // hasPendingDefense() antes de atacar.
+  if(pendingDefenseFreeze){
+    toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender');
+    return;
+  }
   try{
     const { shieldUntil, cost, newClk } = await core.activateShield(myProfile.uid, type);
     myProfile.shieldUntil = shieldUntil;
