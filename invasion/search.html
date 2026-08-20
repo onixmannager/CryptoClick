@@ -317,6 +317,10 @@ async function searchDirectTarget(uid){
       markSearchFailed('Ese jugador ya no tiene $CLK suficiente para robar.', true);
       return;
     }
+    if(await core.hasPendingDefense(uid)){
+      markSearchFailed('Ese jugador ya tiene otro ataque pendiente sin resolver — inténtalo de nuevo más tarde.', true);
+      return;
+    }
     foundTarget = { uid, ...d };
     showResult();
   }catch(e){
@@ -383,10 +387,30 @@ function showResult(){
   showView('result');
 }
 
-document.getElementById('attackBtn').onclick=()=>{
-  sessionStorage.setItem('invasion_battle_defender', foundTarget.uid);
-  sessionStorage.setItem('invasion_battle_is_revenge', isRevengeFlow ? '1':'0');
-  window.location.href='minigame.html';
+document.getElementById('attackBtn').onclick=async ()=>{
+  const btn=document.getElementById('attackBtn');
+  btn.disabled=true;
+  try{
+    // Un defensor solo puede tener UN ataque pendiente sin resolver a la
+    // vez — se revalida aquí, justo antes del punto de no retorno, para
+    // no dejar que el jugador juegue el minijuego entero y descubra al
+    // volver que el objetivo ya estaba ocupado (createPendingAttack()
+    // también revalida esto de forma obligatoria — ver esa función —
+    // esta comprobación es solo para avisar pronto, no la única barrera).
+    const busy = await core.hasPendingDefense(foundTarget.uid);
+    if(busy){
+      markSearchFailed('Ese jugador ya tiene otro ataque pendiente sin resolver — inténtalo de nuevo más tarde.', isRevengeFlow);
+      return;
+    }
+    sessionStorage.setItem('invasion_battle_defender', foundTarget.uid);
+    sessionStorage.setItem('invasion_battle_is_revenge', isRevengeFlow ? '1':'0');
+    window.location.href='minigame.html';
+  }catch(e){
+    console.error('hasPendingDefense check failed:', e);
+    markSearchFailed('No se pudo comprobar el objetivo. Inténtalo de nuevo.', isRevengeFlow);
+  }finally{
+    btn.disabled=false;
+  }
 };
 document.getElementById('retryBtn').onclick=()=>searchRandom();
 document.getElementById('retryBtn2').onclick=()=>{
