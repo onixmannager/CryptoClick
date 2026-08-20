@@ -504,11 +504,24 @@ async function findCandidatesAtLevel(lvl, r) {
 
 // Filtra en cliente los candidatos leídos de un nivel: cuenta propia,
 // saldo mínimo robable, escudo activo, cuenta nueva, cooldown de mismo
-// objetivo. Devuelve el primer candidato válido o null. Se separa de
-// findCandidatesAtLevel() para que findTargetByLevel() pueda reusar este
-// mismo criterio de filtrado en cada peldaño de la escalera de niveles
-// sin repetir el cuerpo del bucle.
-function firstValidCandidate(docs, myUid, myRecentTargets, now, skipped) {
+// objetivo, ataque pendiente sin resolver. Devuelve el primer candidato
+// válido o null. Se separa de findCandidatesAtLevel() para que
+// findTargetByLevel() pueda reusar este mismo criterio de filtrado en
+// cada peldaño de la escalera de niveles sin repetir el cuerpo del bucle.
+//
+// BUGFIX: mientras un jugador tiene un ataque en status:'pending' contra
+// él (ver hasPendingDefense() más abajo), no debe poder aparecer como
+// objetivo en la búsqueda — esa regla ya se aplicaba como comprobación
+// final en createPendingAttack() y en el botón "Atacar" de search.html,
+// pero faltaba aquí, en el propio filtro de candidatos: un jugador con
+// defensa pendiente SÍ podía llegar a mostrarse en la pantalla de
+// "rival encontrado" y solo se rechazaba al pulsar "Atacar" al final.
+// Se comprueba async (await) por candidato, igual que el resto de la
+// función es awaited desde findTargetByLevel() — el bucle ya corta en el
+// primer candidato válido, así que en el caso normal esto añade como
+// mucho una lectura extra por candidato descartado, no una por cada uno
+// de los hasta 30 candidatos leídos.
+async function firstValidCandidate(docs, myUid, myRecentTargets, now, skipped) {
   for (const docSnap of docs) {
     const uid = docSnap.id;
     const d = docSnap.data();
@@ -518,6 +531,7 @@ function firstValidCandidate(docs, myUid, myRecentTargets, now, skipped) {
     if (now - (d.accountCreatedAt || 0) < CFG.NEW_ACCOUNT_PROTECTION_MS) { skipped.newAccount++; continue; }
     const lastHit = (myRecentTargets || {})[uid] || 0;
     if (now - lastHit < CFG.SAME_TARGET_COOLDOWN_MS) { skipped.cooldown++; continue; }
+    if (await hasPendingDefense(uid)) { skipped.pendingDefense++; continue; }
     return { uid, ...d };
   }
   return null;
@@ -555,7 +569,7 @@ async function findTargetByLevel(myUid, myLvl, myRecentTargets) {
   const now = Date.now();
   const r = Math.random();
   const startLvl = Math.max(1, Math.floor(myLvl || 1));
-  const skipped = { self: 0, lowClk: 0, shielded: 0, newAccount: 0, cooldown: 0 };
+  const skipped = { self: 0, lowClk: 0, shielded: 0, newAccount: 0, cooldown: 0, pendingDefense: 0 };
   let levelsChecked = 0;
   let totalCandidatesSeen = 0;
 
@@ -563,7 +577,7 @@ async function findTargetByLevel(myUid, myLvl, myRecentTargets) {
     levelsChecked++;
     const docs = await findCandidatesAtLevel(lvl, r);
     totalCandidatesSeen += docs.length;
-    const found = firstValidCandidate(docs, myUid, myRecentTargets, now, skipped);
+    const found = await firstValidCandidate(docs, myUid, myRecentTargets, now, skipped);
     if (found) return found;
   }
 
@@ -613,6 +627,7 @@ function explainNoTargetFound() {
   if (s.lowClk > 0) motivos.push(`${s.lowClk} sin $CLK suficiente para robar`);
   if (s.cooldown > 0) motivos.push(`${s.cooldown} ya invadidos por ti hace menos de 4h`);
   if (s.newAccount > 0) motivos.push(`${s.newAccount} con cuenta demasiado nueva`);
+  if (s.pendingDefense > 0) motivos.push(`${s.pendingDefense} ya tienen otro ataque pendiente de resolver`);
   if (s.self > 0) motivos.push(`${s.self} eras tú mismo`);
 
   if (motivos.length === 0) {
