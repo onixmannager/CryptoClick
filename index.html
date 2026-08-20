@@ -2084,14 +2084,14 @@ async function loadCloud(uid){
   if(!S.missions)S.missions={};if(!S.ups)S.ups={};
 }
 function addClk(amount,mode){if(!isFinite(amount)||amount<=0)return;const n=Math.floor(amount*100)/100;S.clk+=n;S.totalClk+=n;}
-function spendClk(amount){if(S.clk<amount)return false;S.clk-=amount;return true;}
+function spendClk(amount){if(pendingDefenseFreeze)return false;if(S.clk<amount)return false;S.clk-=amount;return true;}
 
 function fmt(n){n=Math.floor(n);if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n+''}
 function getRank(){let r=RANKS[0];for(const x of RANKS)if(S.lvl>=x.minLvl)r=x;return r}
 function upCost(u){return Math.floor(u.base*Math.pow(1.5,S.ups[u.id]||0))}
 function isBoost(){return Date.now()<S.boostEnd}
 function upgradeSortValue(u){
-  const l=S.ups[u.id]||0,cost=upCost(u),maxed=l>=u.max,can=!maxed&&S.clk>=cost;
+  const l=S.ups[u.id]||0,cost=upCost(u),maxed=l>=u.max,can=!maxed&&!pendingDefenseFreeze&&S.clk>=cost;
   return {can,maxed,cost};
 }
 function sortUpgradesForUser(a,b){
@@ -2625,7 +2625,7 @@ function renderUps(){
     const allMaxed=ups.every(u=>(S.ups[u.id]||0)>=u.max);
     const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:800;letter-spacing:2px;color:'+cat.col+';margin:14px 0 6px;padding-left:2px';hdr.textContent=cat.label+(allMaxed?' ✅':'');list.appendChild(hdr);
     for(const u of ups){
-      const l=S.ups[u.id]||0,cost=upCost(u),maxed=l>=u.max,can=!maxed&&S.clk>=cost;
+      const l=S.ups[u.id]||0,cost=upCost(u),maxed=l>=u.max,can=!maxed&&!pendingDefenseFreeze&&S.clk>=cost;
       let bonus='';if(u.pph)bonus='+'+fmt(Math.floor(u.pph*l*Math.pow(1.15,Math.max(0,l-1))))+'/h';else if(u.tapB)bonus='+'+u.tapB*l+' tap';else if(u.eB)bonus='+'+u.eB*l+' E';else if(u.rB)bonus='+'+(u.rB*l).toFixed(2)+'/s';else if(u.bMin)bonus='+'+u.bMin*l+'min x2';
       const pct=Math.round(l/u.max*100);
       const card=document.createElement('div');card.className='uc'+(can?' canbuy':'')+(maxed?' maxed':'');
@@ -2638,7 +2638,7 @@ function renderUps(){
   bab.style.opacity=bab.disabled?'.4':'1';
   renderSkins();
 }
-function buyUp(id){const u=UPS.find(x=>x.id===id);if(!u)return;const l=S.ups[id]||0;if(l>=u.max)return;const cost=upCost(u);if(!spendClk(cost)){toast('❌ Sin suficiente $CLK');SFX.buyFail();return}S.ups[id]=(l+1);S.upsCount++;if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;recalc();upd();renderUps();checkMiss();toast('✅ '+u.n+' → Nivel '+S.ups[id]);SFX.coinBuy();forceSave();}
+function buyUp(id){const u=UPS.find(x=>x.id===id);if(!u)return;const l=S.ups[id]||0;if(l>=u.max)return;const cost=upCost(u);if(!spendClk(cost)){toast(pendingDefenseFreeze?'❌ Saldo congelado: tienes un ataque de Invasión pendiente':'❌ Sin suficiente $CLK');SFX.buyFail();return}S.ups[id]=(l+1);S.upsCount++;if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;recalc();upd();renderUps();checkMiss();toast('✅ '+u.n+' → Nivel '+S.ups[id]);SFX.coinBuy();forceSave();}
 function buyAllUps(){
   // Compra en cascada: en cada pasada busca, entre TODAS las mejoras no
   // maxeadas, la de menor costo actual que sea asequible con el $CLK que
@@ -2646,6 +2646,13 @@ function buyAllUps(){
   // siguiente nivel de esa misma mejora (upCost crece con S.ups[u.id]),
   // esto reparte el gasto de más barato a más caro en todo el árbol de
   // mejoras hasta que ninguna disponible entra ya en el saldo restante.
+  //
+  // Se corta aquí si el saldo está congelado (ataque de Invasión
+  // pendiente): el bucle de abajo compara cost<=S.clk directamente (no
+  // pasa por el booleano de spendClk() en cada vuelta), así que sin este
+  // corte seguiría "comprando" mejoras gratis en bucle mientras
+  // spendClk() rechaza en silencio y S.clk nunca baja.
+  if(pendingDefenseFreeze){toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente');SFX.buyFail();return}
   let count=0,spent=0;
   while(true){
     let cheapest=null,cheapestCost=Infinity;
@@ -3086,6 +3093,31 @@ let _gameStarted=false;
 let shieldState = { shieldUntil: 0, shieldType: '', lvl: 1, clk: 0 }; // valor por defecto hasta que syncShieldState() resuelva
 let shieldSynced = false; // true tras la primera respuesta real de syncProfileFromMainSave; distingue "aún no llegó nada" de "sincronizado y sin escudo"
 
+// ─────────────────────────────────────────────────────────────────────
+// SALDO CONGELADO MIENTRAS HAY UN ATAQUE DE INVASIÓN SIN RESOLVER — a
+// petición expresa: mientras el jugador tenga un ataque en
+// status:'pending' contra él (ver core.hasPendingDefense(), invasion/
+// js/invasion-core.js), su $CLK sigue siendo suyo y se sigue viendo en
+// el HUD igual que siempre, pero no se puede GASTAR en mejoras (spendClk()
+// lo comprueba, ver esa función) hasta que resuelva la defensa — así no
+// puede vaciar el saldo en mejoras justo antes de que se le robe.
+// No vive dentro de S (el objeto de guardado persistente): es un reflejo
+// en vivo del estado real en invasion_attacks para esta sesión, no
+// progreso del jugador que deba guardarse/sincronizarse entre
+// dispositivos, mismo criterio que shieldState/shieldSynced arriba.
+// ─────────────────────────────────────────────────────────────────────
+let pendingDefenseFreeze = false;
+
+async function syncPendingDefenseFreeze(){
+  try{
+    const core = window.InvasionCore;
+    if(!core || !window.__fbUser) return;
+    pendingDefenseFreeze = await core.hasPendingDefense(window.__fbUser.uid);
+  }catch(e){
+    console.error('syncPendingDefenseFreeze falló:', e);
+  }
+}
+
 async function syncShieldState(){
   try{
     const core = window.InvasionCore;
@@ -3413,6 +3445,7 @@ window.startGameForUser=async function(user){
   // que fijarlo antes es necesario para que el await de abajo tenga efecto real.
   _appReadyForSave=true;
   await syncShieldState();
+  await syncPendingDefenseFreeze();
   // No se espera (sin await): el overlay de ataque pendiente no debe
   // retrasar el arranque visual del juego -mismo criterio que ya
   // aplicaba el comentario BUGFIX de arriba a syncShieldState(), pero
