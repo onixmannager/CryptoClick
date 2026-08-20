@@ -160,16 +160,24 @@ service cloud.firestore {
                     && isValidPlayerDoc()
                     && request.resource.data.clk <= 1000000000;
 
-      // Un update puede venir de dos casos:
+      // Un update puede venir de tres casos:
       //  (a) el propio jugador sincronizando su perfil / activando escudo
       //      / actualizando su propio cooldown tras invadir
-      //  (b) otro jugador autenticado escribiendo el resultado de un robo
-      //      sobre TU documento (baja tu clk, sube tu lastAttackedAt)
-      // No se puede distinguir (a) de (b) por request.auth.uid == uid,
+      //  (b) el DEFENSOR de un duelo ya resuelto escribiendo el resultado
+      //      sobre TU documento cuando TÚ eras el defensor y perdiste
+      //      (baja tu clk, sube tu lastAttackedAt)
+      //  (c) el DEFENSOR de un duelo ya resuelto escribiendo el resultado
+      //      sobre TU documento cuando TÚ eras el atacante y ganaste (sube
+      //      tu clk) — resolveDuel()/expirePendingAttack() se ejecutan con
+      //      request.auth.uid == defenderUid, así que es el defensor quien
+      //      tiene que escribir el alza de clk del atacante, dentro del
+      //      mismo batch que baja la suya propia (caso (b)).
+      // No se puede distinguir (a) de (b)/(c) por request.auth.uid == uid,
       // así que se acota por CAMPOS TOCADOS + rango de cambio permitido.
       allow update: if request.auth != null && (
                       isSelfProfileUpdate()
                       || isIncomingRobberyUpdate()
+                      || isOutgoingRewardUpdate()
                     );
 
       allow delete: if false;
@@ -236,15 +244,15 @@ service cloud.firestore {
           && (clkIncrease <= 0 || request.time > before.updatedAt + duration.value(300, 'ms'));
       }
 
-      // Caso (b): otro jugador (el atacante) escribe el resultado de un
-      // robo SOBRE TU documento. Solo puede tocar clk/lastAttackedAt/
-      // updatedAt, `clk` solo puede BAJAR (nunca a negativo, nunca a 0
-      // en seco: el mínimo lo aplica invasion-core.js con
-      // MIN_CLK_LEFT_AFTER_ROB, aquí se exige como cota dura clk >= 0).
-      // No necesita cooldown propio: bajar clk no es una superficie de
-      // auto-abuso (nadie se beneficia de robarse saldo a sí mismo), y
-      // el atacante ya tiene su propio cooldown de 60s entre invasiones
-      // (CFG.INVASION_COOLDOWN_MS, aplicado en checkCanInvade()).
+      // Caso (b): el DEFENSOR de un duelo ya resuelto escribe el resultado
+      // SOBRE TU documento cuando TÚ eras el defensor y perdiste. Solo
+      // puede tocar clk/lastAttackedAt/updatedAt, `clk` solo puede BAJAR
+      // (nunca a negativo, nunca a 0 en seco: el mínimo lo aplica
+      // invasion-core.js con MIN_CLK_LEFT_AFTER_ROB, aquí se exige como
+      // cota dura clk >= 0). No necesita cooldown propio: bajar clk no es
+      // una superficie de auto-abuso (nadie se beneficia de robarse saldo
+      // a sí mismo), y el atacante ya tiene su propio cooldown de
+      // invasión (CFG.INVASION_COOLDOWN_MS, aplicado en checkCanInvade()).
       function isIncomingRobberyUpdate() {
         let d = request.resource.data;
         let before = resource.data;
@@ -252,6 +260,51 @@ service cloud.firestore {
           && d.diff(before).affectedKeys().hasOnly(['clk','lastAttackedAt','updatedAt'])
           && d.clk is int && d.clk >= 0 && d.clk <= before.clk
           && d.lastAttackedAt is int && d.lastAttackedAt >= before.lastAttackedAt
+          && d.updatedAt == request.time;
+      }
+
+      // Caso (c): el DEFENSOR de un duelo ya resuelto (request.auth.uid ==
+      // defenderUid del ataque, no el uid de este documento) sube el clk
+      // del ATACANTE tras perder — este doc es el del atacante (uid ==
+      // attackerUid), así que aquí request.auth.uid NUNCA es igual a uid,
+      // exactamente igual que en isIncomingRobberyUpdate(); ambos casos son
+      // indistinguibles entre sí por esa sola condición (los dos son "otro
+      // jugador autenticado toca tu clk"), así que se distinguen por la
+      // DIRECCIÓN del cambio: aquí solo se permite que clk SUBA, en
+      // isIncomingRobberyUpdate() solo se permite que BAJE — un mismo
+      // batch.commit() de resolveDuel()/expirePendingAttack() dispara una
+      // escritura de cada tipo, una por cada documento afectado, nunca las
+      // dos sobre el mismo doc a la vez.
+      //
+      // BUGFIX: esta función faltaba en este archivo (el firestore.rules
+      // real y desplegado del proyecto padre) aunque ya estaba completa en
+      // invasion/firestore/invasion.rules (la copia de preintegración de
+      // estas mismas reglas) — nunca se trasladó al copiar el resto del
+      // bloque. Sin ella, la escritura que sube el clk del atacante caía
+      // en isIncomingRobberyUpdate() (que exige clk <= before.clk) y se
+      // rechazaba. Al ser un writeBatch, el rechazo de CUALQUIER operación
+      // tumba el batch COMPLETO: ni el atacante cobraba, ni el defensor
+      // perdía saldo, ni invasion_attacks pasaba a 'resolved' — el duelo
+      // se quedaba 'pending' para siempre pese a que el minijuego de
+      // defensa sí se había jugado.
+      //
+      // Misma honestidad que el resto del archivo: no se puede verificar
+      // aquí que exista de verdad un invasion_attacks/{attackId} con
+      // status:'pending' que respalde este alza -Rules no puede hacer
+      // queries, y el id del ataque no es conocido en esta regla-, así que
+      // se acota por un techo absoluto duro, MISMA cifra que el resto de
+      // topes de "auto-robo fabricado a mano" del archivo
+      // (isSelfProfileUpdate, isTargetClkOnlyUpdate). No impide un update
+      // aislado y fabricado a mano por completo, pero limita el daño
+      // máximo de uno solo y el cooldown de invasión (aplicado en
+      // checkCanInvade() del lado cliente) impide repetirlo en ráfaga
+      // desde la misma cuenta atacante.
+      function isOutgoingRewardUpdate() {
+        let d = request.resource.data;
+        let before = resource.data;
+        return request.auth.uid != uid
+          && d.diff(before).affectedKeys().hasOnly(['clk','updatedAt'])
+          && d.clk is int && d.clk >= before.clk && d.clk - before.clk <= 200000000
           && d.updatedAt == request.time;
       }
     }
