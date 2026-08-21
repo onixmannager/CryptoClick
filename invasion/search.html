@@ -317,7 +317,7 @@ async function searchDirectTarget(uid){
       markSearchFailed('Ese jugador ya no tiene $CLK suficiente para robar.', true);
       return;
     }
-    if(await core.hasPendingDefense(uid)){
+    if(await core.hasActivePendingDefense(uid)){
       markSearchFailed('Ese jugador ya tiene otro ataque pendiente sin resolver — inténtalo de nuevo más tarde.', true);
       return;
     }
@@ -397,7 +397,16 @@ document.getElementById('attackBtn').onclick=async ()=>{
     // volver que el objetivo ya estaba ocupado (createPendingAttack()
     // también revalida esto de forma obligatoria — ver esa función —
     // esta comprobación es solo para avisar pronto, no la única barrera).
-    const busy = await core.hasPendingDefense(foundTarget.uid);
+    //
+    // hasActivePendingDefense() en vez de hasPendingDefense(): el
+    // candidato ya pasó este mismo filtro (con este mismo criterio) para
+    // llegar a mostrarse en pantalla, tanto desde la búsqueda aleatoria
+    // (firstValidCandidate() en invasion-core.js) como desde la venganza
+    // directa (searchDirectTarget() más arriba) — usar aquí la variante
+    // genérica sin fecha rechazaría, con un mensaje que ya no es cierto,
+    // a un candidato cuyo único pendiente ya venció y que el resto del
+    // flujo ya trató (y, de paso, resolvió) como libre.
+    const busy = await core.hasActivePendingDefense(foundTarget.uid);
     if(busy){
       markSearchFailed('Ese jugador ya tiene otro ataque pendiente sin resolver — inténtalo de nuevo más tarde.', isRevengeFlow);
       return;
@@ -406,7 +415,7 @@ document.getElementById('attackBtn').onclick=async ()=>{
     sessionStorage.setItem('invasion_battle_is_revenge', isRevengeFlow ? '1':'0');
     window.location.href='minigame.html';
   }catch(e){
-    console.error('hasPendingDefense check failed:', e);
+    console.error('hasActivePendingDefense check failed:', e);
     markSearchFailed('No se pudo comprobar el objetivo. Inténtalo de nuevo.', isRevengeFlow);
   }finally{
     btn.disabled=false;
