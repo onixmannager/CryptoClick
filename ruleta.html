@@ -1595,7 +1595,7 @@ window.ALIEN_FRAMES = [
       document.getElementById('ruletaLoginOv').classList.add('show');
       return;
     }
-    // Límite de 1 tirada cada 24h (ver window.ruletaCooldown, definido en el
+    // Límite de 1 tirada cada 12h (ver window.ruletaCooldown, definido en el
     // <script type="module"> de Firebase más abajo — otro ámbito JS, por eso
     // se consulta vía window en vez de una variable compartida). El botón ya
     // debería estar disabled en este caso, así que esto es solo una segunda
@@ -1950,13 +1950,13 @@ function bumpBalUI(clk){
   numEl.classList.remove('bump'); void numEl.offsetWidth; numEl.classList.add('bump');
 }
 
-// ---- límite de 1 tirada cada 24h, sin acumular tiradas pendientes ----
+// ---- límite de 1 tirada cada 12h, sin acumular tiradas pendientes ----
 // "Sin acumular" significa literal: si el jugador deja pasar 2, 3 o más días
 // sin entrar, al volver solo tiene la 1 tirada normal disponible (no se le
 // "deben" las tiradas de los días que faltó). Por eso el cooldown se calcula
-// siempre como lastRuletaSpin + 24h, nunca como un contador de fichas que
+// siempre como lastRuletaSpin + 12h, nunca como un contador de fichas que
 // vaya sumando una por día.
-const RULETA_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const RULETA_COOLDOWN_MS = 12 * 60 * 60 * 1000;
 let _lastKnownRuletaSpin = 0; // último lastRuletaSpin visto (local o nube), en memoria para que spin() lo consulte sin tener que esperar a Firestore
 function msUntilNextSpin(lastSpinTs){
   if (!isFinite(lastSpinTs) || lastSpinTs <= 0) return 0;
@@ -2076,7 +2076,7 @@ async function _awardRuletaPrizeNow(amount){
     localData.clk += won;
     localData.totalClk += won;
     localData.lastSave = Date.now();
-    localData.lastRuletaSpin = localData.lastSave; // arranca el cooldown de 24h desde este mismo instante
+    localData.lastRuletaSpin = localData.lastSave; // arranca el cooldown de 12h desde este mismo instante
     try{ localStorage.setItem(key, JSON.stringify(localData)); }catch(e){
       console.warn('No se pudo guardar el premio de la ruleta en localStorage:', e);
     }
