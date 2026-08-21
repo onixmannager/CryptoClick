@@ -1,13 +1,925 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CLK Arcade Hub</title>
-    <script type="module" crossorigin src="/arcade/assets/index-Cf4kA9Qo.js"></script>
-    <link rel="stylesheet" crossorigin href="/arcade/assets/index-DkI6quzy.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Invasión — Crypto Alien Click</title>
+
+<meta name="theme-color" content="#0b0a14">
+
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.2/dist/mux-player.js"></script>
+<style>
+:root{
+  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;--card3:#252342;
+  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
+  --blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--red:#EF4444;
+  --text:#fff;--muted:#6B68A0;--border:rgba(255,255,255,0.07);
+  --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
+  --glass:rgba(10,12,22,.42);--glass2:rgba(12,14,26,.5);
+  --glass-border:rgba(255,255,255,.14);--glass-blur:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{width:100%;min-height:100vh;background-color:#0b0a14;background-image:linear-gradient(180deg,rgba(6,6,14,.275) 0%,rgba(8,7,18,.36) 45%,rgba(9,8,20,.46) 100%),url('images/fondoinvasion.jpg');background-position:center top;background-size:contain;background-repeat:no-repeat;background-attachment:fixed}
+body{width:100%;min-height:100vh;background:transparent;color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;scrollbar-width:none;display:flex;justify-content:center}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
+
+#blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.1;animation:blobF 10s ease-in-out infinite alternate}
+.b1{width:500px;height:500px;background:#8B5CF6;top:-150px;left:-150px}
+.b2{width:400px;height:400px;background:#FF3CAC;bottom:-100px;right:-100px;animation-delay:-4s}
+.b3{width:300px;height:300px;background:#06B6D4;top:40%;left:60%;animation-delay:-7s}
+@keyframes blobF{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,30px) scale(1.1)}}
+
+#app{position:relative;z-index:1;width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;padding-bottom:32px}
+
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;gap:10px}
+#backHome{color:var(--text);text-decoration:none;font-weight:800;font-size:20px;line-height:1;flex-shrink:0}
+#logo{font-family:var(--fh);font-size:15px;color:var(--yellow);text-decoration:none;flex:1;text-align:center}
+#balMini{display:flex;align-items:center;gap:7px;background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:12px;padding:6px 12px}
+#balMiniIcon{font-size:17px}
+#balMiniNum{font-family:var(--fh);font-size:18px;color:var(--yellow);line-height:1}
+#balMiniLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:1px}
+#muteBtn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,border-color .2s;flex-shrink:0}
+#muteBtn:active{transform:scale(.88)}
+#muteBtn.off{opacity:.5;border-color:var(--border)}
+
+main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
+
+.panel{background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:18px;padding:18px}
+
+/* ESCUDO */
+#shieldPanel.active{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.08)}
+#shieldPanel.inactive{border-color:rgba(239,68,68,.35)}
+.shieldRow{display:flex;align-items:center;gap:12px}
+.shieldIcon{font-size:32px}
+.shieldIcon img{width:32px;height:32px;object-fit:contain;display:block}
+.shieldTitle{font-family:var(--fh);font-size:16px;color:var(--text)}
+.shieldSub{font-size:12px;color:var(--muted);font-weight:700;margin-top:2px}
+.shieldCountdown{font-family:var(--fh);font-size:20px;color:var(--green);margin-left:auto}
+.shieldBuyBtns{display:flex;gap:8px;margin-top:12px}
+.shieldBuyBtn{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 6px;font-weight:800;font-size:12px;color:var(--text);cursor:pointer;text-align:center;line-height:1.5}
+.shieldBuyBtn:active{transform:scale(.96)}
+.shieldBuyBtn:disabled{opacity:.4;cursor:not-allowed}
+/* Icono del tipo de escudo (plateado/dorado) dentro de cada botón de
+   compra, encima del texto de duración/coste que ya había — mismo
+   criterio que .shieldBuyBtnImg en el index.html padre. */
+.shieldBuyBtnImg{display:block;width:28px;height:28px;object-fit:contain;margin:0 auto 4px}
+
+/* BOTÓN INVASIÓN */
+#invadeBtn{width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:18px;cursor:pointer;box-shadow:0 8px 24px rgba(255,60,172,.35)}
+#invadeBtn:active{transform:scale(.97)}
+#invadeBtn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+#invadeHint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;font-weight:700}
+
+/* VENGANZA */
+#revengePanel{display:none;border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.08)}
+#revengePanel.show{display:block}
+.revengeRow{display:flex;align-items:center;gap:12px}
+.revengeIcon{font-size:28px}
+#revengeBtn{margin-top:10px;width:100%;padding:12px;border:none;border-radius:12px;background:var(--orange);color:#fff;font-family:var(--fh);font-size:14px;cursor:pointer}
+#revengeBtn:active{transform:scale(.97)}
+
+/* ATAQUES PENDIENTES — notificación real ("Fulano te ha atacado") con
+   una fila por ataque sin resolver. Mismo lenguaje visual que
+   #revengePanel (borde/fondo de color de alerta) pero en rojo, para
+   distinguirlo de un aviso de venganza (naranja) — esto es "tienes que
+   defenderte", más urgente que "puedes vengarte si quieres". */
+.pendingPanel{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.08);margin-bottom:14px}
+.pendingRow{display:flex;align-items:center;gap:12px}
+.pendingRow+.pendingRow{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.pendingIcon{font-size:26px;flex-shrink:0}
+.pendingInfo{flex:1;min-width:0}
+.pendingTitle{font-family:var(--fh);font-size:14px;color:var(--text)}
+.pendingSub{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:2px}
+.pendingDefendBtn{flex-shrink:0;padding:10px 16px;border:none;border-radius:10px;background:var(--red);color:#fff;font-family:var(--fh);font-size:12.5px;cursor:pointer}
+.pendingDefendBtn:active{transform:scale(.95)}
+
+/* BLOQUEO POR NIVEL (spec 11) */
+#lockedHint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;font-weight:700}
+
+/* HISTORIAL */
+.sectionTitle{font-family:var(--fh);font-size:14px;color:var(--muted);letter-spacing:.5px;margin-bottom:8px;padding-left:4px}
+.histRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.histRow:last-child{border-bottom:none}
+.histIcon{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.histText{flex:1;font-size:13px;font-weight:700;min-width:0}
+.histText b{color:var(--text)}
+.histAmount{font-family:var(--fh);font-size:14px;flex-shrink:0}
+.histAmount.win{color:var(--green)}
+.histAmount.lose{color:var(--red)}
+.histTime{font-size:10px;color:var(--muted);margin-top:2px}
+.emptyHist{text-align:center;color:var(--muted);font-size:12px;font-weight:700;padding:20px 0}
+/* Botón "Vengarse" dentro de una fila del historial — mismo color que
+   #revengeBtn (var(--orange)) para que se lea como la misma acción,
+   pero en tamaño reducido porque vive dentro de una fila compacta en
+   vez de ser el único CTA de un panel. Solo aparece en filas que
+   cumplen la condición de venganza (ver renderHistRevengeBtn en el
+   script): soy el defensor, gané quien me atacó, y sigue dentro de
+   CFG.REVENGE_WINDOW_MS. */
+.histRevengeBtn{flex-shrink:0;background:var(--orange);border:none;border-radius:8px;padding:6px 10px;font-family:var(--fb);font-weight:800;font-size:11px;color:#fff;cursor:pointer}
+.histRevengeBtn:active{transform:scale(.94)}
+.histRevengeBtn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Selector de páginas numeradas debajo del panel de historial — mismo
+   criterio visual que .shieldBuyBtn (fondo var(--card2), borde sutil)
+   para no introducir un lenguaje visual nuevo. La página activa se
+   distingue con el gradiente de #invadeBtn, ya usado en esta misma
+   pantalla como acento de acción/selección. */
+#histPager{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.histPageBtn{background:var(--card2);border:1px solid var(--border);border-radius:8px;min-width:30px;height:30px;padding:0 8px;font-family:var(--fb);font-weight:800;font-size:12px;color:var(--text);cursor:pointer}
+.histPageBtn:active{transform:scale(.92)}
+.histPageBtn.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent}
+.histPageBtn:disabled{opacity:.35;cursor:not-allowed}
+
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+
+#loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s}
+#loading.hide{opacity:0;pointer-events:none}
+/* ── Imagen de carga de Invasión — reemplaza por completo al antiguo
+   texto/icono "👾 INVASIÓN" de #loading (eliminado a propósito, sin
+   dejarlo como respaldo). Se muestra SIEMPRE que se entra al modo (a
+   diferencia del video de intro, que solo se ve la primera vez), a
+   pantalla completa igual que el resto de overlays de este archivo.
+   La imagen es vertical 9:16 (720x1280), mismo criterio que el video
+   de intro: en MOVIL object-fit:cover (llena el viewport). En
+   ESCRITORIO (ver media query min-width:901px más abajo) pasa a
+   object-fit:contain -misma proporción 9:16 sin recortar, centrada
+   con barras a los lados- igual que #introvideo. Si la imagen no
+   llega a cargar (ver JS), #loading se ve vacío sobre el fondo
+   #0b0a14 — es el comportamiento pedido explícitamente, sin texto de
+   respaldo. ── */
+#loadingimg{display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:99999}
+#loadingimg.show{display:block}
+
+/* ── Video de INTRO de Invasión — se muestra una sola vez, la primera
+   vez que se entra a este modo (misma lógica y misma interfaz que el
+   video de presentación del juego padre en index.html: overlay a
+   pantalla completa con fundido de entrada/salida y botón "Saltar").
+   La música de fondo de Invasión (ver core.initInvasionBgm() en
+   boot()) se pausa mientras dura este video y se reanuda al terminar
+   o al saltarlo -mismo criterio que BGM.pause()/BGM.resume() en el
+   índice padre-, porque el video de intro trae su propio audio.
+
+   El video está en vertical 9:16. En MOVIL ocupa todo el viewport con
+   object-fit:cover. En ESCRITORIO (min-width:901px) se mantiene la
+   MISMA proporción 9:16 sin estirar, centrada sobre fondo negro con
+   object-fit:contain -igual criterio que el padre-.
+
+   #introfade es una capa negra por encima del video que se usa SOLO
+   para el fundido de 1s de entrada/salida; no recorta ni adelanta el
+   video, que sigue su curso completo por debajo. ─────────────────── */
+#introov{display:none;position:fixed;inset:0;background:#000;z-index:100000;align-items:center;justify-content:center}
+#introov.show{display:flex}
+#introvideo{display:block;width:100%;height:100%;object-fit:cover;--controls:none}
+#introfade{position:fixed;inset:0;background:#000;z-index:100002;opacity:1;pointer-events:none;transition:opacity 1s linear}
+#introfade.in{opacity:0}
+#introskip{position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:100003;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;cursor:pointer;backdrop-filter:blur(4px)}
+@media (min-width:901px){
+  #introvideo{width:100%;height:100%;object-fit:contain}
+  /* Misma lógica que el video: en ESCRITORIO se mantiene la proporción
+     vertical 9:16 completa de la imagen sin recortarla -object-fit:contain-,
+     centrada sobre el fondo #0b0a14 de #loading con barras a los lados,
+     en vez de cover (que recortaría los laterales en pantallas anchas). */
+  #loadingimg{object-fit:contain}
+}
+</style>
+</head>
+<body>
+
+<div id="loading"><img id="loadingimg" src="images/preloadinvasion.jpeg" alt=""></div>
+<div id="introov">
+  <mux-player id="introvideo" stream-type="on-demand" autoplay="any" no-muted-pref playsinline></mux-player>
+  <div id="introfade"></div>
+  <button id="introskip" onclick="skipIntroVideo()">Saltar ⏭️</button>
+</div>
+<div id="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<div id="app">
+  <div id="topbar">
+    <a href="../index.html" id="backHome" aria-label="Volver al juego principal">←</a>
+    <a href="#" id="logo"></a>
+    <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
+    <div id="balMini">
+      <span id="balMiniIcon">🪙</span>
+      <div><div id="balMiniNum">–</div><div id="balMiniLabel">$CLK</div></div>
+    </div>
+  </div>
+
+  <main>
+    <!-- ESCUDO -->
+    <div class="panel" id="shieldPanel">
+      <div class="shieldRow">
+        <div class="shieldIcon" id="shieldIcon">🛡️</div>
+        <div>
+          <div class="shieldTitle" id="shieldTitle">Sin escudo</div>
+          <div class="shieldSub" id="shieldSub">Eres un objetivo válido</div>
+        </div>
+        <div class="shieldCountdown" id="shieldCountdown" style="display:none"></div>
+      </div>
+      <div class="shieldBuyBtns" id="shieldBuyBtns"></div>
+    </div>
+
+    <!-- ATAQUES PENDIENTES DE DEFENDER (spec 4/6): notificación real de
+         que alguien te atacó, incluso si estabas offline cuando pasó —
+         se rellena en checkPendingAttacks(), una fila por ataque
+         pendiente (puede haber más de uno, de atacantes distintos). -->
+    <div id="pendingAttacksPanel" style="display:none"></div>
+
+    <!-- VENGANZA -->
+    <div class="panel" id="revengePanel">
+      <div class="revengeRow">
+        <div class="revengeIcon">⚔️</div>
+        <div>
+          <div class="shieldTitle" id="revengeTitle">¡Te han robado!</div>
+          <div class="shieldSub" id="revengeSub"></div>
+        </div>
+      </div>
+      <button id="revengeBtn">VENGARSE AHORA</button>
+    </div>
+
+    <!-- BUSCAR RIVAL -->
+    <div class="panel">
+      <button id="invadeBtn">🚀 BUSCAR RIVAL</button>
+      <div id="invadeHint"></div>
+      <div id="lockedHint" style="display:none"></div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div>
+      <div class="sectionTitle">HISTORIAL DE ROBOS</div>
+      <div class="panel" id="histPanel">
+        <div class="emptyHist">Cargando historial…</div>
+      </div>
+      <div id="histPager"></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import './js/invasion-core.js'; // define window.InvasionCore antes de seguir
+
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function fmtClk(n){
+  n=Math.floor(n);
+  if(n>=1e12)return(n/1e12).toFixed(2)+'T';
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return n+'';
+}
+
+function fmtCountdown(ms){
+  if(ms<=0)return '';
+  const s=Math.floor(ms/1000);
+  const d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  if(d>0)return `${d}d ${h}h`;
+  if(h>0)return `${h}h ${m}m`;
+  if(m>0)return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+let core, myProfile, countdownInterval, invadeHintInterval;
+const DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal',dificil:'Difícil',muy_dificil:'Casi imposible'};
+
+// BUGFIX: mientras el jugador tiene una defensa pendiente sin resolver,
+// el juego padre (index.html) ya congela su saldo para que no se gaste
+// en mejoras (ver pendingDefenseFreeze/syncPendingDefenseFreeze() ahí),
+// pero ese mismo saldo SÍ se podía seguir gastando aquí, dentro del
+// propio modo Invasión, comprando un escudo (activateShield()/
+// buyShield() más abajo) — ningún sitio lo impedía. Mismo criterio y
+// misma fuente (core.hasPendingDefense()) que usa el padre, calculado
+// aparte en vez de derivarlo de getPendingAttacksFor() (que también se
+// consulta en este archivo, ver checkPendingAttacks() más abajo) porque
+// esa otra consulta no se resuelve hasta después del vídeo de
+// presentación — demasiado tarde para la primera pintura de los
+// botones de escudo, que ya ocurre dentro de renderAll() nada más
+// arrancar. No vive en myProfile ni se persiste: es, igual que en el
+// padre, un reflejo en vivo de esta sesión.
+let pendingDefenseFreeze = false;
+
+/* ── Video de presentación de Invasión, mismo criterio que el video de
+   intro del juego padre (index.html): se reproduce una sola vez, la
+   primera vez que se entra a este modo, con fundido de entrada/salida
+   de 1s sobre una capa negra (#introfade) que no toca ni recorta el
+   video -éste sigue su curso completo por debajo-. Como este archivo
+   es un <script type="module">, sus declaraciones no quedan colgadas
+   de window por defecto, así que skipIntroVideo se expone a mano para
+   que el botón "Saltar" (onclick en HTML) pueda encontrarla.
+   La "primera vez" se recuerda en localStorage bajo la misma
+   convención de prefijo cck4_ que usa el resto del proyecto (ver
+   cck4_muted/cck4_refs en index.html), así que una vez visto no
+   vuelve a aparecer aunque se recargue o se reabra la app. ────────── */
+const INVASION_INTRO_KEY='cck4_invasion_intro_shown';
+const INVASION_INTRO_PLAYBACK_ID='lenv8lzWh00JRVC4xraCY35BvTCFlpB6Ro5tt00C027p54';
+const INTRO_FADE_MS=1000;
+function invasionIntroAlreadyShown(){
+  try{ return localStorage.getItem(INVASION_INTRO_KEY)==='1'; }catch(e){ return false; }
+}
+function markInvasionIntroShown(){
+  try{ localStorage.setItem(INVASION_INTRO_KEY,'1'); }catch(e){}
+}
+function playIntroVideo(onDone){
+  const ov=document.getElementById('introov');
+  const vid=document.getElementById('introvideo');
+  const fade=document.getElementById('introfade');
+  if(!ov||!vid){onDone();return}
+  let done=false;
+  let outStarted=false;
+  // Fundido de SALIDA: arranca 1s antes de que el video termine, para
+  // que justo cuando llega a su último frame ya esté en negro. No toca
+  // la reproducción -sigue corriendo hasta el final real-, solo tapa
+  // visualmente ese último segundo.
+  const onTime=()=>{
+    if(outStarted||!vid.duration)return;
+    if(vid.duration-vid.currentTime<=INTRO_FADE_MS/1000){
+      outStarted=true;
+      fade.classList.remove('in');
+    }
+  };
+  vid.addEventListener('timeupdate',onTime);
+  const finish=()=>{
+    if(done)return; done=true;
+    vid.removeEventListener('timeupdate',onTime);
+    vid.pause();
+    ov.classList.remove('show');
+    fade.classList.remove('in'); // listo en negro por si se necesitara reutilizar el overlay
+    markInvasionIntroShown();
+    core.resumeInvasionBgm(); // la música de fondo de Invasión retoma donde estaba
+    onDone();
+  };
+  core.pauseInvasionBgm(); // el video tiene su propio audio: la música de fondo no debe sonar a la vez
+  vid.muted=false;
+  fade.style.transitionDuration=INTRO_FADE_MS+'ms';
+  fade.classList.remove('in'); // arranca tapado en negro
+  ov.classList.add('show');
+  vid.onended=finish;
+  vid.onerror=finish; // si el archivo no carga (red, ruta, etc.), seguimos sin bloquear el arranque
+  vid.oncanplay=()=>{
+    vid.oncanplay=null;
+    if(done)return;
+    vid.currentTime=0;
+    vid.play().then(()=>{
+      requestAnimationFrame(()=>fade.classList.add('in'));
+    }).catch(()=>{
+      vid.muted=true;
+      vid.play().then(()=>requestAnimationFrame(()=>fade.classList.add('in'))).catch(finish);
+    });
+  };
+  vid.setAttribute('playback-id', INVASION_INTRO_PLAYBACK_ID);
+  window.__skipInvasionIntroVideo=finish;
+}
+window.skipIntroVideo=function(){ if(window.__skipInvasionIntroVideo)window.__skipInvasionIntroVideo(); };
+
+// Botón de silenciar del topbar — mismo icono/comportamiento que
+// #muteBtn en el índice padre (toggleMute() ahí), pero delegando el
+// estado a core.toggleInvasionMute() porque aquí la única fuente de
+// sonido es la música de fondo de Invasión (no hay motor SFX propio en
+// este modo). Se expone en window por el mismo motivo que
+// skipIntroVideo: este es un <script type="module">.
+window.toggleMute=function(){
+  const isMuted=core.toggleInvasionMute();
+  const btn=document.getElementById('muteBtn');
+  btn.textContent=isMuted?'🔇':'🔊';
+  btn.classList.toggle('off',isMuted);
+};
+
+// ── Imagen de carga (preloadinvasion.jpeg) — se muestra SIEMPRE que se
+// entra al modo desde el juego padre (index.html raíz), a diferencia
+// del video de intro, que solo la primera vez. Si la imagen carga
+// bien se revela con .show; si falla (red, ruta, etc.) no hay texto
+// de respaldo -eliminado a propósito- y #loading se ve vacío sobre el
+// fondo, sin romper el arranque.
+// EXCEPCIÓN 1: si se vuelve desde search.html (botón "atrás" dentro del
+// propio modo Invasión), no debe mostrarse esta imagen. Se detecta con
+// un marcador en sessionStorage escrito justo antes de navegar hacia
+// search.html (ver invadeBtn/revengeBtn más abajo) — document.referrer
+// no es fiable aquí (PWA standalone, políticas de referrer, etc.), así
+// que se usa el mismo mecanismo de sessionStorage que ya usa el resto
+// del archivo para pasar datos entre index.html/search.html/minigame.html.
+// EXCEPCIÓN 2: si esta es la PRIMERA vez que se entra a Invasión, va a
+// reproducirse el video de intro (ver invasionIntroAlreadyShown() más
+// arriba) y esta imagen NO debe mostrarse en ningún momento -ni un frame-
+// antes del video. willShowIntroVideo se calcula aquí, de forma síncrona
+// y ANTES de intentar mostrar la imagen, con la misma función que boot()
+// usa después para decidir si reproduce el video, así que ambas
+// decisiones (mostrar imagen / reproducir video) quedan sincronizadas.
+const cameFromSearch = sessionStorage.getItem('invasion_came_from_search')==='1';
+sessionStorage.removeItem('invasion_came_from_search');
+const willShowIntroVideo = !cameFromSearch && !invasionIntroAlreadyShown();
+(function(){
+  if(cameFromSearch || willShowIntroVideo)return;
+  const img=document.getElementById('loadingimg');
+  if(!img)return;
+  if(img.complete && img.naturalWidth>0){ img.classList.add('show'); return; }
+  img.addEventListener('load',()=>img.classList.add('show'));
+  img.addEventListener('error',()=>{});
+})();
+
+// Duración mínima que #loading permanece visible en pantalla (con la
+// imagen de carga) antes de ocultarse, aunque el perfil ya haya
+// terminado de sincronizar antes de ese tiempo — evita un parpadeo si
+// la carga real es muy rápida. No afecta al video de intro (que sigue
+// arrancando justo después de ocultarse #loading, sin cambios).
+// Si se vuelve desde search.html, o si va a reproducirse el video de
+// intro (ver willShowIntroVideo arriba), no hay imagen que mostrar, así
+// que tampoco se retiene #loading con esta espera mínima — se oculta en
+// cuanto boot() termine (y justo después arranca el video).
+const MIN_LOADING_MS=(cameFromSearch||willShowIntroVideo)?0:1500;
+const _bootStartMs=Date.now();
+
+async function boot(){
+  // El import de invasion-core.js al principio de este mismo módulo ya
+  // garantiza que window.InvasionCore existe antes de que llegue este punto.
+  core = window.InvasionCore;
+  core.initInvasionBgm(); // música de fondo del modo Invasión (sounds/invasion.mp3, loop)
+  const mb=document.getElementById('muteBtn');
+  if(mb){mb.textContent=core.invasionMuted?'🔇':'🔊';mb.classList.toggle('off',core.invasionMuted);}
+  const user = await core.authReady;
+  if(!user){
+    toast('⚠️ Debes iniciar sesión en el juego principal primero');
+    const waitAuth=Math.max(0, MIN_LOADING_MS-(Date.now()-_bootStartMs));
+    setTimeout(()=>document.getElementById('loading').classList.add('hide'), waitAuth);
+    return;
+  }
+
+  try{
+    myProfile = { uid: user.uid, ...(await core.syncProfileFromMainSave(user.uid)) };
+    try{
+      pendingDefenseFreeze = await core.hasPendingDefense(myProfile.uid);
+    }catch(e){
+      console.error('No se pudo comprobar pendingDefenseFreeze:', e);
+    }
+    renderAll();
+    const waitLoad=Math.max(0, MIN_LOADING_MS-(Date.now()-_bootStartMs));
+    if(waitLoad>0){ await new Promise(r=>setTimeout(r,waitLoad)); }
+    document.getElementById('loading').classList.add('hide');
+
+    const startRest=()=>{
+      countdownInterval = setInterval(updateShieldUI, 1000);
+      loadHistory();
+      checkRevenge();
+      checkPendingAttacks();
+    };
+    // El video de presentación (si aplica) arranca SOLO cuando el
+    // loading ya terminó de ocultarse, nunca en paralelo con él —mismo
+    // criterio que el video de intro del juego padre en index.html—.
+    // El resto del arranque (countdown, historial, revancha) espera a
+    // que termine o se salte el video para no competir por atención
+    // con él mientras está en pantalla.
+    if(!invasionIntroAlreadyShown()){
+      playIntroVideo(startRest);
+    }else{
+      startRest();
+    }
+  }catch(e){
+    // Sin este catch, cualquier fallo aquí (permisos, red, lo que sea)
+    // dejaba el loader colgado para siempre en silencio, sin mostrar
+    // nada al jugador ni una pista de qué pasó. Con el catch, al menos
+    // se ve el error real en consola y el jugador sabe que algo falló
+    // en vez de quedarse mirando el logo parpadeando sin explicación.
+    console.error('boot() falló:', e);
+    toast('❌ No se pudo cargar el modo Invasión. Reintenta o avisa si persiste.');
+    document.getElementById('loading').classList.add('hide');
+  }
+}
+
+function renderAll(){
+  document.getElementById('balMiniNum').textContent = fmtClk(myProfile.clk);
+  renderShieldButtons();
+  updateShieldUI();
+  updateInvadeButton();
+}
+
+function updateShieldUI(){
+  const panel=document.getElementById('shieldPanel');
+  const now=Date.now();
+  const active = myProfile.shieldUntil > now;
+  panel.classList.toggle('active', active);
+  panel.classList.toggle('inactive', !active);
+  const shieldIconEl = document.getElementById('shieldIcon');
+  if(active){
+    // Dorado para el escudo de 7 días, plateado para el de 3 días.
+    const imgSrc = myProfile.shieldType==='7d' ? 'images/escudodorado.png' : 'images/escudoplateado.png';
+    shieldIconEl.innerHTML = `<img src="${imgSrc}" alt="Escudo ${myProfile.shieldType}">`;
+  } else {
+    shieldIconEl.innerHTML = `<img src="images/sinescudo.png" alt="Sin escudo">`;
+  }
+  document.getElementById('shieldTitle').textContent = active
+    ? 'Escudo activo'
+    : 'Sin escudo';
+  document.getElementById('shieldSub').textContent = active
+    ? 'No puedes ser invadido'
+    : 'Eres un objetivo válido';
+  const cd=document.getElementById('shieldCountdown');
+  if(active){
+    cd.style.display='block';
+    cd.textContent = fmtCountdown(myProfile.shieldUntil - now);
+  } else {
+    cd.style.display='none';
+  }
+}
+
+function renderShieldButtons(){
+  const wrap=document.getElementById('shieldBuyBtns');
+  wrap.innerHTML='';
+  // Misma regla que aplica activateShield() en invasion-core.js (fuente
+  // de verdad real): con un escudo activo no se puede volver a comprar
+  // el MISMO tipo, y tampoco se puede comprar 3d con un 7d activo. Sí se
+  // permite comprar 7d con un 3d activo (mejora la protección).
+  const now = Date.now();
+  const activeType = (myProfile.shieldUntil||0) > now ? myProfile.shieldType : '';
+  // Etiqueta fija por tipo (no calculada desde SHIELD_HOURS): a petición
+  // expresa, el botón muestra solo '12H.' (plata / '3d') o '24H.' (dorado
+  // / '7d') tal cual, en vez de derivarla de las horas configuradas -que
+  // con 24h daría '1d' por el corte hours>=24 que usaba antes esta misma
+  // etiqueta-. Mismo criterio que renderShieldModalContent() en el
+  // index.html padre.
+  const SHIELD_LABELS_FIJAS = { '3d': '12H.', '7d': '24H.' };
+  // Imagen del escudo correspondiente a cada tipo, mismo criterio que
+  // updateShieldUI() más arriba (dorado='7d', plateado el resto) y que
+  // index.html padre — se añade DENTRO de cada botón de compra, a
+  // petición expresa, sin quitar el icono de #shieldIcon que ya muestra
+  // el escudo ACTIVO por separado; este es el icono de cada OPCIÓN.
+  const SHIELD_IMG_POR_TIPO = { '3d': 'images/escudoplateado.png', '7d': 'images/escudodorado.png' };
+  core.CFG.SHIELDS_ENABLED.forEach(type=>{
+    const label = SHIELD_LABELS_FIJAS[type] || `${core.CFG.SHIELD_HOURS[type]}h`;
+    const imgSrc = SHIELD_IMG_POR_TIPO[type];
+    const cost = core.shieldCost(type, myProfile.lvl || 1);
+    const blockedByActiveShield = !!activeType && (type===activeType || (type==='3d' && activeType==='7d'));
+    const blocked = blockedByActiveShield || pendingDefenseFreeze;
+    const btn=document.createElement('button');
+    btn.className='shieldBuyBtn';
+    // El texto "Bloqueado por X activo" se elimina a petición expresa:
+    // el botón bloqueado se queda SOLO con la etiqueta de duración (sin
+    // coste, que no aplica porque no se puede comprar en ese estado), y
+    // sigue deshabilitado (btn.disabled más abajo) para impedir la
+    // compra mientras el otro escudo esté activo. Mismo tratamiento
+    // visual quieto (sin coste) para el caso de saldo congelado por
+    // defensa pendiente, pero con su propio título en el botón para que
+    // no se confunda con "ya tienes un escudo activo".
+    const imgTag = `<img src="${imgSrc}" alt="" class="shieldBuyBtnImg">`;
+    btn.innerHTML = blocked
+      ? `${imgTag}Escudo ${label}`
+      : `${imgTag}Escudo ${label}<br>🪙 ${fmtClk(cost)}`;
+    if(pendingDefenseFreeze && !blockedByActiveShield){
+      btn.title = 'Saldo congelado: tienes un ataque de Invasión pendiente de defender';
+    }
+    btn.disabled = blocked || (myProfile.clk||0) < cost;
+    btn.onclick=()=>buyShield(type, cost);
+    wrap.appendChild(btn);
+  });
+}
+
+async function buyShield(type, expectedCost){
+  // A diferencia del saldo insuficiente o del tipo de escudo (que
+  // activateShield() SÍ vuelve a comprobar leyendo Firestore antes de
+  // cobrar), la congelación por defensa pendiente NO tiene ninguna
+  // barrera del lado de activateShield() ni de firestore.rules — ese
+  // motivo concreto solo se conoce aquí, en el cliente, igual que
+  // pendingDefenseFreeze en el índice padre. Así que esta comprobación
+  // es la única que existe para esta regla concreta: el botón ya viene
+  // deshabilitado por renderShieldButtons() en el caso normal, esto es
+  // para no dejar pasar un click que se colara pese a eso (doble click
+  // justo antes del repintado, recarga a medio camino, etc.), mismo
+  // criterio de doble comprobación que ya usa search.html con
+  // hasPendingDefense() antes de atacar.
+  if(pendingDefenseFreeze){
+    toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender');
+    return;
+  }
+  try{
+    const { shieldUntil, cost, newClk } = await core.activateShield(myProfile.uid, type);
+    myProfile.shieldUntil = shieldUntil;
+    myProfile.shieldType = type;
+    myProfile.clk = newClk;
+    document.getElementById('balMiniNum').textContent = fmtClk(myProfile.clk);
+    renderShieldButtons();
+    updateShieldUI();
+    toast(`🛡️ Escudo activado por 🪙 ${fmtClk(cost)}`);
+  }catch(e){
+    console.error(e);
+    if((e.message||'').includes('CLK insuficiente')){
+      toast(`❌ Te faltan $CLK para este escudo (cuesta 🪙 ${fmtClk(expectedCost)})`);
+    }else if((e.message||'').includes('Ya tienes un escudo')){
+      toast(`❌ ${e.message}`);
+      renderShieldButtons();
+    }else{
+      toast('❌ No se pudo activar el escudo');
+    }
+  }
+}
+
+// Spec 11: Invasión bloqueada en nivel 1 y 2, se desbloquea en
+// CFG.MIN_LEVEL_TO_UNLOCK (3). Se comprueba ANTES que cooldown/límite
+// diario/cuenta nueva — un jugador bloqueado por nivel no necesita saber
+// que además tiene cooldown, necesita saber que tiene que subir de
+// nivel primero.
+function updateInvadeButton(){
+  const btn=document.getElementById('invadeBtn');
+  const hint=document.getElementById('invadeHint');
+  const lockedHint=document.getElementById('lockedHint');
+  clearInterval(invadeHintInterval);
+
+  if(!core.isInvasionUnlocked(myProfile.lvl)){
+    btn.disabled=true;
+    hint.textContent='';
+    lockedHint.style.display='block';
+    lockedHint.textContent = `🔒 Disponible a partir de nivel ${core.CFG.MIN_LEVEL_TO_UNLOCK} (tu nivel: ${myProfile.lvl})`;
+    return;
+  }
+  lockedHint.style.display='none';
+
+  const check = core.checkCanInvade(myProfile);
+  if(check.ok){
+    btn.disabled=false;
+    hint.textContent='';
+    return;
+  }
+  btn.disabled=true;
+  const reasons={
+    cuenta_nueva:'Cuenta nueva: protegida 24h antes de poder invadir',
+    cooldown:'Espera antes de lanzar otra invasión',
+    limite_diario:'Límite diario de invasiones alcanzado',
+  };
+  const update=()=>{
+    const c2 = core.checkCanInvade(myProfile);
+    if(c2.ok){
+      btn.disabled=false;hint.textContent='';clearInterval(invadeHintInterval);return;
+    }
+    hint.textContent = reasons[c2.reason] + (c2.msLeft>0 ? ` (${fmtCountdown(c2.msLeft)})` : '');
+  };
+  update();
+  invadeHintInterval=setInterval(update,1000);
+}
+
+document.getElementById('invadeBtn').onclick=()=>{
+  sessionStorage.setItem('invasion_came_from_search','1'); // para que, al volver con "←" desde
+                                                              // search.html, no se muestre de nuevo
+                                                              // la imagen de carga (ver cameFromSearch)
+  window.location.href='search.html';
+};
+
+document.getElementById('revengeBtn').onclick=async ()=>{
+  const target = await core.getActiveRevengeTarget(myProfile.uid);
+  if(!target){
+    toast('Ya no puedes vengarte de ese ataque');
+    document.getElementById('revengePanel').classList.remove('show');
+    return;
+  }
+  sessionStorage.setItem('invasion_direct_target', target.attackerUid);
+  sessionStorage.setItem('invasion_is_revenge', '1');
+  sessionStorage.setItem('invasion_came_from_search','1'); // idem invadeBtn: evita reaparición
+                                                              // de la imagen de carga al volver
+  window.location.href='search.html'; // search.html detecta invasion_direct_target
+                                        // y salta la búsqueda aleatoria, pero SÍ
+                                        // muestra la pantalla de confirmación de
+                                        // rival (dificultad, saldo) antes del
+                                        // minijuego — "directa" es saltarse el
+                                        // azar, no saltarse la confirmación.
+};
+
+async function checkRevenge(){
+  try{
+    const target = await core.getActiveRevengeTarget(myProfile.uid);
+    const panel=document.getElementById('revengePanel');
+    if(target){
+      document.getElementById('revengeSub').textContent =
+        `${target.attackerAlias} te robó ${fmtClk(target.stolenAmount)} $CLK — ${fmtCountdown(target.msLeft)} para vengarte`;
+      panel.classList.add('show');
+    }else{
+      panel.classList.remove('show');
+    }
+  }catch(e){ console.error('checkRevenge failed:',e); }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// NOTIFICACIÓN DE ATAQUE PENDIENTE (spec 4/6): "Dani te ha atacado".
+// A diferencia del panel de venganza (que avisa de un robo YA resuelto
+// y ofrece revancha), este panel avisa de un misil TODAVÍA sin
+// resolver — el jugador tiene que jugar el minijuego de defensa para
+// que el ataque se cierre. Se comprueba al abrir el hub, igual que
+// checkRevenge(), así que aunque el jugador estuviera offline cuando le
+// lanzaron el misil, lo ve en cuanto vuelve a entrar (spec 4: "si está
+// offline, no pasa nada… cuando vuelva a entrar debe recibir una
+// notificación").
+// ─────────────────────────────────────────────────────────────────────
+async function checkPendingAttacks(){
+  try{
+    const pending = await core.getPendingAttacksFor(myProfile.uid);
+    const panel=document.getElementById('pendingAttacksPanel');
+    if(!pending.length){
+      panel.style.display='none';
+      panel.innerHTML='';
+      return;
+    }
+    panel.innerHTML =
+      '<div class="panel pendingPanel">' +
+      pending.map(a => `
+        <div class="pendingRow" data-attack-id="${a.id}">
+          <div class="pendingIcon">🚀</div>
+          <div class="pendingInfo">
+            <div class="pendingTitle">${escapeHtml(a.attackerAlias||'Jugador')} te ha atacado</div>
+            <div class="pendingSub">Nivel ${a.attackerLvl||1} · Dificultad ${DIFF_LABELS[a.difficulty]||a.difficulty}</div>
+          </div>
+          <button class="pendingDefendBtn" data-attack-id="${a.id}">DEFENDER</button>
+        </div>
+      `).join('') +
+      '</div>';
+    panel.style.display='block';
+    panel.querySelectorAll('.pendingDefendBtn').forEach(btn=>{
+      btn.onclick=()=>goDefend(btn.dataset.attackId);
+    });
+  }catch(e){ console.error('checkPendingAttacks failed:',e); }
+}
+
+function goDefend(attackId){
+  sessionStorage.setItem('invasion_defense_attack_id', attackId);
+  sessionStorage.setItem('invasion_came_from_search','1'); // evita reaparición de la imagen de carga al volver
+  window.location.href='defense.html';
+}
+
+let histCurrentPage = 1;
+const HIST_PAGE_SIZE = 15;
+
+// Dispara el mismo flujo que #revengeBtn (guardar el objetivo en
+// sessionStorage y navegar a search.html), pero a partir de un
+// attackerUid/attackerAlias sueltos en vez de core.getActiveRevengeTarget()
+// — así una fila cualquiera del historial puede iniciar la venganza sin
+// depender de que ese ataque sea el "último sufrido" que el panel naranja
+// de arriba rastrea.
+function goRevengeOn(attackerUid){
+  sessionStorage.setItem('invasion_direct_target', attackerUid);
+  sessionStorage.setItem('invasion_is_revenge', '1');
+  sessionStorage.setItem('invasion_came_from_search','1'); // idem invadeBtn/revengeBtn: evita
+                                                              // reaparición de la imagen de carga
+  window.location.href='search.html';
+}
+
+async function loadHistory(page){
+  const panel=document.getElementById('histPanel');
+  const pager=document.getElementById('histPager');
+  histCurrentPage = page || histCurrentPage;
+  try{
+    const result = await core.getAttackHistoryPage(myProfile.uid, histCurrentPage, HIST_PAGE_SIZE);
+    histCurrentPage = result.page; // por si se pidió una página fuera de rango, queda acotada
+    if(result.totalRows===0){
+      panel.innerHTML='<div class="emptyHist">Aún no hay robos registrados</div>';
+      pager.innerHTML='';
+      return;
+    }
+    panel.innerHTML='';
+    const now=Date.now();
+
+    // BUG corregido aquí: withinRevengeWindow solo miraba "dentro de las
+    // 24h", sin comprobar si esa venganza ya se había hecho — así que el
+    // botón "Vengarse" se quedaba en la fila para siempre (dentro de la
+    // ventana) aunque el jugador ya se hubiera vengado, y no había forma
+    // de ver en el historial que la venganza había ocurrido. Ahora se
+    // comprueba con core.hasRevengedAttack() (mismo criterio que usa
+    // core.getActiveRevengeTarget() para el panel naranja de arriba) y,
+    // si ya hubo venganza, la fila muestra "Vengado" en vez del botón.
+    // Se resuelve en paralelo, una llamada por fila candidata (como
+    // mucho HIST_PAGE_SIZE de esta página), no una por cada fila del
+    // historial completo.
+    const revengeChecks = await Promise.all(result.rows.map(r=>{
+      const isMeAttacker = r.role==='attacker';
+      const createdMs = r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : Date.now();
+      const withinRevengeWindow = !isMeAttacker && r.won && (now - createdMs <= core.CFG.REVENGE_WINDOW_MS);
+      if(!withinRevengeWindow) return Promise.resolve(false);
+      return core.hasRevengedAttack(myProfile.uid, r.attackerUid, createdMs);
+    }));
+
+    result.rows.forEach((r,i)=>{
+      const isMeAttacker = r.role==='attacker';
+      const otherAlias = isMeAttacker ? r.defenderAlias : r.attackerAlias;
+      const createdMs = r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : Date.now();
+      const row=document.createElement('div');
+      row.className='histRow';
+
+      // Ataque todavía sin resolver (status:'pending'): won/stolenAmount
+      // son solo placeholders hasta que el defensor juegue su minijuego
+      // (ver createPendingAttack() en invasion-core.js) — mostrarlos como
+      // "fallaste"/"te robó" sería engañoso, así que esta fila tiene su
+      // propio texto neutro de "en curso" en vez de reusar la lógica de
+      // ganado/perdido de abajo.
+      if(r.status==='pending'){
+        const icon = isMeAttacker ? '🚀' : '🛰️';
+        const text = isMeAttacker
+          ? `Misil en camino hacia <b>${escapeHtml(otherAlias)}</b>`
+          : `<b>${escapeHtml(otherAlias)}</b> te atacó — pendiente de defender`;
+        row.innerHTML=`
+          <div class="histIcon">${icon}</div>
+          <div class="histText">${text}<div class="histTime">${timeAgo(createdMs)}</div></div>
+          <div class="histAmount">…</div>
+        `;
+        if(!isMeAttacker){
+          const dBtn=document.createElement('button');
+          dBtn.className='histRevengeBtn';
+          dBtn.textContent='Defender';
+          dBtn.onclick=()=>goDefend(r.id);
+          row.appendChild(dBtn);
+        }
+        panel.appendChild(row);
+        return;
+      }
+
+      const won = r.won;
+      const icon = isMeAttacker ? (won?'💰':'💥') : (won?'😱':'🛡️');
+      let text;
+      if(isMeAttacker){
+        text = won ? `Impactaste a <b>${escapeHtml(otherAlias)}</b>` : `<b>${escapeHtml(otherAlias)}</b> interceptó tu misil`;
+      }else{
+        text = won ? `<b>${escapeHtml(otherAlias)}</b> te robó` : `Interceptaste el misil de <b>${escapeHtml(otherAlias)}</b>`;
+      }
+      const amountClass = (isMeAttacker && won) ? 'win' : ((!isMeAttacker && won) ? 'lose' : '');
+      const amountText = r.stolenAmount>0 ? `${isMeAttacker?'+':'-'}${fmtClk(r.stolenAmount)}` : '—';
+      row.innerHTML=`
+        <div class="histIcon">${icon}</div>
+        <div class="histText">${text}<div class="histTime">${timeAgo(createdMs)}</div></div>
+        <div class="histAmount ${amountClass}">${amountText}</div>
+      `;
+      // Botón "Vengarse" por fila: solo cuando YO fui el defensor, quien
+      // me atacó GANÓ el robo, sigue dentro de la misma ventana de 24h
+      // que ya usa core.getActiveRevengeTarget() (CFG.REVENGE_WINDOW_MS)
+      // Y todavía no me he vengado de ese ataque concreto (ver
+      // revengeChecks arriba) — misma regla de negocio que el panel
+      // naranja de arriba, aplicada aquí por fila en vez de solo al
+      // ataque más reciente.
+      const isMeDefender = !isMeAttacker;
+      const withinRevengeWindow = isMeDefender && won && (now - createdMs <= core.CFG.REVENGE_WINDOW_MS);
+      const alreadyRevenged = revengeChecks[i];
+      if(withinRevengeWindow && !alreadyRevenged){
+        const rBtn=document.createElement('button');
+        rBtn.className='histRevengeBtn';
+        rBtn.textContent='Vengarse';
+        rBtn.onclick=()=>goRevengeOn(r.attackerUid);
+        row.appendChild(rBtn);
+      }else if(withinRevengeWindow && alreadyRevenged){
+        const doneBadge=document.createElement('button');
+        doneBadge.className='histRevengeBtn';
+        doneBadge.textContent='Vengado';
+        doneBadge.disabled=true;
+        row.appendChild(doneBadge);
+      }
+      panel.appendChild(row);
+    });
+    renderHistPager(result.page, result.totalPages);
+  }catch(e){
+    console.error('loadHistory failed:',e);
+    panel.innerHTML='<div class="emptyHist">No se pudo cargar el historial</div>';
+    pager.innerHTML='';
+  }
+}
+
+// Selector de páginas con números — mismo criterio que el resto de
+// botones de esta pantalla (deshabilitado mientras es la página activa
+// o mientras no hay a dónde ir). Con totalPages<=1 no se muestra nada,
+// para no dejar un selector vacío de una sola página sin sentido.
+function renderHistPager(currentPage, totalPages){
+  const pager=document.getElementById('histPager');
+  pager.innerHTML='';
+  if(totalPages<=1) return;
+  for(let p=1;p<=totalPages;p++){
+    const btn=document.createElement('button');
+    btn.className='histPageBtn'+(p===currentPage?' active':'');
+    btn.textContent=String(p);
+    btn.disabled = p===currentPage;
+    btn.onclick=()=>loadHistory(p);
+    pager.appendChild(btn);
+  }
+}
+
+function escapeHtml(s){
+  const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;
+}
+function timeAgo(ms){
+  const diff=Date.now()-ms;
+  const m=Math.floor(diff/60000);
+  if(m<1)return 'ahora mismo';
+  if(m<60)return `hace ${m}m`;
+  const h=Math.floor(m/60);
+  if(h<24)return `hace ${h}h`;
+  return `hace ${Math.floor(h/24)}d`;
+}
+
+boot();
+</script>
+
+</body>
 </html>
