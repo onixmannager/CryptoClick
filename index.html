@@ -1079,12 +1079,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
     <div style="background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,107,53,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center;margin-bottom:14px">
       <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:6px">🎁 +50.000 $CLK POR ENLACE</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5">Síguenos en cada red y reclama tu recompensa — solo tienes que pulsar el botón, una vez por enlace</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5">Síguenos en cada red — pulsa el enlace para abrirla y luego reclama tu recompensa, una vez por red</div>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div style="background:linear-gradient(135deg,#0088cc,#006aaa);border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,136,204,.3)">
-        <a href="https://t.me/cryptoclikoficial" target="_blank" rel="noopener" class="socialLink" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
+        <a href="https://t.me/Crypto_Click_News" target="_blank" rel="noopener" class="socialLink" onclick="markSocialLinkClicked('telegram')" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
           <div style="font-size:32px;flex-shrink:0">📢</div>
           <div style="flex:1">
             <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Canal de Noticias</div>
@@ -1092,10 +1092,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
           </div>
           <div style="font-size:20px;color:white">›</div>
         </a>
-        <button id="socialClaimTelegram" class="rdbtn" style="width:100%" onclick="claimSocial('telegram')">🎁 Reclamar +50.000 $CLK</button>
+        <button id="socialClaimTelegram" class="rdbtn" style="width:100%" disabled onclick="claimSocial('telegram')">🎁 Pulsa el enlace primero</button>
       </div>
       <div style="background:linear-gradient(135deg,#1a1a1a,#000);border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,.3)">
-        <a href="https://x.com/TU_USUARIO_AQUI" target="_blank" rel="noopener" class="socialLink" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
+        <a href="https://x.com/harley_pax" target="_blank" rel="noopener" class="socialLink" onclick="markSocialLinkClicked('twitter')" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
           <div style="font-size:32px;flex-shrink:0">🐦</div>
           <div style="flex:1">
             <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Síguenos en X (Twitter)</div>
@@ -1103,7 +1103,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
           </div>
           <div style="font-size:20px;color:white">›</div>
         </a>
-        <button id="socialClaimTwitter" class="rdbtn" style="width:100%" onclick="claimSocial('twitter')">🎁 Reclamar +50.000 $CLK</button>
+        <button id="socialClaimTwitter" class="rdbtn" style="width:100%" disabled onclick="claimSocial('twitter')">🎁 Pulsa el enlace primero</button>
       </div>
     </div>
 
@@ -2791,11 +2791,38 @@ function subRef(){const v=document.getElementById('refinp').value.trim().toUpper
 
 // Recompensa única (+50.000 $CLK) por seguir cada red social — una sola vez por
 // red, igual que el patrón anti-doble-cobro de subRef() (flag en localStorage,
-// no en S, así no hace falta tocar sanitize()/mergeStates()). No verifica que el
-// jugador realmente siga la cuenta (el enlace ya abrió en una pestaña nueva al
-// pulsar) — es un honor-system deliberado, igual que el resto de la sección.
+// no en S, así no hace falta tocar sanitize()/mergeStates()).
+//
+// A petición expresa: el botón de reclamar solo se activa DESPUÉS de haber
+// pulsado el enlace de esa red — antes cualquiera podía reclamar sin haber
+// pulsado nada. markSocialLinkClicked(network) se dispara con el propio
+// onclick del <a> (ver el HTML de la sección Comunidad), en el mismo golpe de
+// click que abre la pestaña nueva — el navegador dispara el evento click del
+// <a> de forma síncrona antes de que la pestaña termine de cargar, así que no
+// hay ningún problema de tiempos aquí.
+//
+// Esto sigue sin verificar que el jugador realmente siga la cuenta (no hay
+// backend ni integración con la API de Telegram/X en todo el proyecto para
+// comprobarlo) — sigue siendo un honor-system, solo que ahora exige al menos
+// un click real detectado en el enlace antes de dejar reclamar, en vez de
+// dejar reclamar sin más.
 const SOCIAL_CLAIM_KEY='cck4_social_claimed';
+const SOCIAL_LINK_CLICKED_KEY='cck4_social_link_clicked';
+function markSocialLinkClicked(network){
+  const clicked=JSON.parse(localStorage.getItem(SOCIAL_LINK_CLICKED_KEY)||'{}');
+  if(clicked[network])return; // ya estaba marcado, no hace falta volver a escribir ni repintar
+  clicked[network]=true;
+  localStorage.setItem(SOCIAL_LINK_CLICKED_KEY,JSON.stringify(clicked));
+  renderSocialClaims();
+}
 function claimSocial(network){
+  const clicked=JSON.parse(localStorage.getItem(SOCIAL_LINK_CLICKED_KEY)||'{}');
+  // Misma barrera que ya deja el botón deshabilitado en el caso normal (ver
+  // renderSocialClaims): esto es solo para no dejar pasar un click que se
+  // colara pese a eso (el atributo disabled se puede quitar a mano desde
+  // DevTools), mismo criterio de doble comprobación que ya usa buyShield()
+  // con pendingDefenseFreeze.
+  if(!clicked[network])return;
   const claimed=JSON.parse(localStorage.getItem(SOCIAL_CLAIM_KEY)||'{}');
   if(claimed[network])return;
   claimed[network]=true;
@@ -2809,11 +2836,18 @@ function claimSocial(network){
 }
 function renderSocialClaims(){
   const claimed=JSON.parse(localStorage.getItem(SOCIAL_CLAIM_KEY)||'{}');
+  const clicked=JSON.parse(localStorage.getItem(SOCIAL_LINK_CLICKED_KEY)||'{}');
   const map={telegram:'socialClaimTelegram',twitter:'socialClaimTwitter'};
   for(const network in map){
     const btn=document.getElementById(map[network]);
     if(!btn)continue;
-    if(claimed[network]){btn.disabled=true;btn.style.opacity='.4';btn.textContent='✅ Recompensa reclamada';}
+    if(claimed[network]){
+      btn.disabled=true;btn.style.opacity='.4';btn.textContent='✅ Recompensa reclamada';
+    }else if(clicked[network]){
+      btn.disabled=false;btn.style.opacity='1';btn.textContent='🎁 Reclamar +50.000 $CLK';
+    }else{
+      btn.disabled=true;btn.style.opacity='.4';btn.textContent='🎁 Pulsa el enlace primero';
+    }
   }
 }
 
