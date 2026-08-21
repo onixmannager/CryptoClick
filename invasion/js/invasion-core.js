@@ -510,12 +510,25 @@ async function findCandidatesAtLevel(lvl, r) {
 // cada peldaño de la escalera de niveles sin repetir el cuerpo del bucle.
 //
 // BUGFIX: mientras un jugador tiene un ataque en status:'pending' contra
-// él (ver hasPendingDefense() más abajo), no debe poder aparecer como
-// objetivo en la búsqueda — esa regla ya se aplicaba como comprobación
-// final en createPendingAttack() y en el botón "Atacar" de search.html,
-// pero faltaba aquí, en el propio filtro de candidatos: un jugador con
-// defensa pendiente SÍ podía llegar a mostrarse en la pantalla de
-// "rival encontrado" y solo se rechazaba al pulsar "Atacar" al final.
+// él, no debe poder aparecer como objetivo en la búsqueda — esa regla ya
+// se aplicaba como comprobación final en createPendingAttack() y en el
+// botón "Atacar" de search.html, pero faltaba aquí, en el propio filtro
+// de candidatos: un jugador con defensa pendiente SÍ podía llegar a
+// mostrarse en la pantalla de "rival encontrado" y solo se rechazaba al
+// pulsar "Atacar" al final.
+//
+// Se usa hasActivePendingDefense() en vez de hasPendingDefense() a
+// propósito: esta última solo mira status:'pending', sin fecha, así que
+// un candidato cuyo único pendiente ya superó las 24h de
+// CFG.PENDING_ATTACK_WINDOW_MS (y por tanto, en la práctica, ya perdió
+// por incomparecencia) seguiría invisible en la búsqueda hasta que ÉL
+// MISMO volviera a abrir el juego. hasActivePendingDefense() no solo
+// ignora esos vencidos: los resuelve de verdad (mismo reparto de saldo
+// que si el propio defensor hubiera dejado pasar las 24h desde su
+// pantalla), así que "ya no bloquea" aquí es una verdad definitiva, no
+// una decisión de visualización que createPendingAttack() fuera a
+// contradecir más abajo en el mismo flujo de ataque.
+//
 // Se comprueba async (await) por candidato, igual que el resto de la
 // función es awaited desde findTargetByLevel() — el bucle ya corta en el
 // primer candidato válido, así que en el caso normal esto añade como
@@ -531,7 +544,7 @@ async function firstValidCandidate(docs, myUid, myRecentTargets, now, skipped) {
     if (now - (d.accountCreatedAt || 0) < CFG.NEW_ACCOUNT_PROTECTION_MS) { skipped.newAccount++; continue; }
     const lastHit = (myRecentTargets || {})[uid] || 0;
     if (now - lastHit < CFG.SAME_TARGET_COOLDOWN_MS) { skipped.cooldown++; continue; }
-    if (await hasPendingDefense(uid)) { skipped.pendingDefense++; continue; }
+    if (await hasActivePendingDefense(uid)) { skipped.pendingDefense++; continue; }
     return { uid, ...d };
   }
   return null;
@@ -739,6 +752,42 @@ async function hasPendingDefense(uid) {
   );
   const snap = await getDocs(q);
   return !snap.empty;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// ¿TIENE ESTE JUGADOR UNA DEFENSA PENDIENTE QUE TODAVÍA BLOQUEA? — misma
+// pregunta que hasPendingDefense(), pero además resuelve por expiración
+// (no solo ignora) cualquier pendiente que ya superó
+// CFG.PENDING_ATTACK_WINDOW_MS (24h), en vez de dejarlo tal cual hasta
+// que su propio dueño vuelva a conectarse.
+//
+// BUGFIX: firstValidCandidate() (más abajo) usaba hasPendingDefense()
+// para no mostrar en la búsqueda a nadie con una defensa sin resolver —
+// pero esa función solo mira status:'pending', sin fecha, así que un
+// jugador cuyo único pendiente ya superó las 24h (y por tanto, en la
+// práctica, ya perdió por incomparecencia) se quedaba invisible en
+// búsquedas indefinidamente hasta que ÉL MISMO volviera a abrir el
+// juego — nadie más disparaba nunca su expiración, porque
+// getPendingAttacksFor() (la única función que la dispara) siempre se
+// llamaba con el uid del propio jugador conectado.
+//
+// firestore.rules ya permite ahora que CUALQUIER usuario autenticado
+// ejecute la transición de expiración de un ataque ajeno (ver
+// isValidExpiryResolution() ahí — esa transición no depende de ningún
+// dato que aporte quien la ejecuta, así que un tercero produce
+// exactamente el mismo resultado que el propio defensor), así que aquí
+// se reutiliza getPendingAttacksFor(uid) tal cual — la misma función que
+// ya usa el hub para el propio jugador — para, de paso, dejar
+// REALMENTE resueltos (con su reparto de saldo correspondiente) los
+// pendientes vencidos de un candidato ajeno, no solo tratarlos como
+// libres de cara a esta comprobación puntual. Así, cuando createPendingAttack()
+// vuelva a comprobar hasPendingDefense() más abajo en el mismo flujo de
+// ataque, ya no encontrará el vencido — se resolvió de verdad, no solo
+// se ignoró aquí.
+// ─────────────────────────────────────────────────────────────────────
+async function hasActivePendingDefense(uid) {
+  const stillPending = await getPendingAttacksFor(uid);
+  return stillPending.length > 0;
 }
 
 async function createPendingAttack({ attackerUid, defenderUid, attackScore, isRevenge }) {
@@ -1336,7 +1385,7 @@ window.InvasionCore = {
   CFG, db, auth, authReady,
   difficultyFor, todayKeyUTC, shieldCost, isInvasionUnlocked, computeAimScore,
   syncProfileFromMainSave, findRandomTarget, findTargetByLevel, explainNoTargetFound, checkCanInvade,
-  createPendingAttack, resolveDuel, getPendingAttacksFor, expirePendingAttack, hasPendingDefense,
+  createPendingAttack, resolveDuel, getPendingAttacksFor, expirePendingAttack, hasPendingDefense, hasActivePendingDefense,
   activateShield, getActiveRevengeTarget, hasRevengedAttack, isLegitimateRevenge, getAttackHistory, getAttackHistoryPage,
   doc, getDoc, // se re-exportan por si una pantalla necesita leer algo puntual
   initInvasionBgm, // arranca la música de fondo del modo Invasión (loop, respeta cck4_muted)
