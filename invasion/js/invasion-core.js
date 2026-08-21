@@ -71,14 +71,14 @@ const CFG = {
   // misGoal = g*1.6^(lvl-1)) — aquí: costeBase * exponente^(lvl-1).
   // '7d' usa una base y exponente mayores que '3d' para que salga siempre
   // más caro que '3d' en cualquier nivel, no solo en el nivel 1.
-  // base fijada a petición expresa para que en nivel 1 (el más bajo)
-  // cueste exactamente 5.000 (3d) y 10.000 (7d); exp intacto (mismo
-  // ritmo de escalado agresivo que ya tenía el sistema, confirmado
-  // explícitamente en vez de suavizarlo pese a que la base es mucho
-  // mayor que antes). A nivel 50 esto da ~1,29M (3d) / ~6,14M (7d).
+  // base x10 a petición expresa (antes 5.000/10.000 en nivel 1) para que
+  // en nivel 1 cueste exactamente 50.000 (3d) y 100.000 (7d); exp intacto
+  // (mismo ritmo de escalado agresivo que ya tenía el sistema), así que
+  // el x10 se mantiene proporcional en cualquier nivel, no solo en el 1.
+  // A nivel 50 esto da ~12,90M (3d) / ~61,42M (7d).
   SHIELD_COST: {
-    '3d': { base: 5000,  exp: 1.12 },
-    '7d': { base: 10000, exp: 1.14 },
+    '3d': { base: 50000,  exp: 1.12 },
+    '7d': { base: 100000, exp: 1.14 },
   },
 
   // NOTA: existía aquí una probabilidad de victoria fija (WIN_PROBABILITY)
