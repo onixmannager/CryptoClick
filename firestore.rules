@@ -391,17 +391,46 @@ service cloud.firestore {
                     && request.auth.uid == request.resource.data.attackerUid
                     && isValidPendingAttackDoc();
 
-      // Fase 2: dos transiciones posibles de pending -> resolved, ambas
-      // ejecutadas por el DEFENSOR (es quien, al entrar a Invasión,
-      // dispara tanto "jugar y resolver" como "descubrir que ya venció
-      // y dejar que se resuelva sola" — ver getPendingAttacksFor() en
-      // invasion-core.js, que siempre se llama con el uid del propio
-      // jugador conectado, nunca con un uid ajeno):
-      //  (a) jugó su minijuego de defensa -> isValidDuelResolution()
-      //  (b) no respondió en 24h -> isValidExpiryResolution()
-      allow update: if request.auth != null
-                    && request.auth.uid == resource.data.defenderUid
-                    && (isValidDuelResolution() || isValidExpiryResolution());
+      // Fase 2: dos transiciones posibles de pending -> resolved, con
+      // requisitos de "quién" distintos cada una:
+      //  (a) jugó su minijuego de defensa -> isValidDuelResolution(),
+      //      SOLO el DEFENSOR — introduce un defenseScore que nadie más
+      //      debería poder inventar en su nombre, así que aquí sí importa
+      //      de verdad quién ejecuta la escritura.
+      //  (b) no respondió en 24h -> isValidExpiryResolution(), CUALQUIER
+      //      usuario autenticado — esta transición no depende de ningún
+      //      dato que aporte quien la ejecuta (won/stolenAmount/
+      //      defenseScore están completamente fijados por la propia
+      //      regla a partir de before, no del request), así que un
+      //      tercero ejecutándola produce exactamente el mismo resultado
+      //      que si la ejecutara el defensor — el propio comentario de
+      //      isValidExpiryResolution() ya lo explicaba: la salvaguarda
+      //      real es el TIEMPO (request.time del servidor contra
+      //      before.createdAt), no el ejecutor.
+      //
+      // BUGFIX: antes, ambas ramas exigían request.auth.uid ==
+      // defenderUid en el propio allow update, así que SOLO el defensor
+      // podía disparar (b) — pero getPendingAttacksFor() en
+      // invasion-core.js, la única función que llama a esto en la
+      // práctica, siempre se invoca con el uid del jugador conectado en
+      // ese momento, nunca con un uid ajeno (no hay backend con reloj:
+      // ver cabecera del archivo, todo se dispara desde el cliente al
+      // entrar a una pantalla). Resultado: si el defensor no volvía a
+      // abrir el juego, su pendiente vencido nunca se expiraba —
+      // seguía en status:'pending' indefinidamente, y con él, cualquier
+      // filtro que mirara ese estado (por ejemplo, no aparecer en
+      // búsqueda mientras hay defensa pendiente) se quedaba bloqueado
+      // más allá de las 24h reales. Separar (b) para que cualquiera
+      // pueda dispararla (p.ej. un atacante que se cruza con ese
+      // defensor al buscar rival) es lo que permite que
+      // hasActivePendingDefense()/firstValidCandidate() en
+      // invasion-core.js puedan, además de TRATAR como libre a un
+      // candidato con pendiente vencido, dejarlo REALMENTE resuelto de
+      // una vez sin esperar a que su dueño vuelva.
+      allow update: if request.auth != null && (
+                      (request.auth.uid == resource.data.defenderUid && isValidDuelResolution())
+                      || isValidExpiryResolution()
+                    );
 
       allow delete: if false;
 
