@@ -1074,6 +1074,23 @@ async function activateShield(uid, shieldType) {
   if (!snap.exists()) throw new Error('Perfil de invasión no encontrado');
   const player = snap.data();
 
+  // BUGFIX: un escudo comprado aquí solo se comprueba en createPendingAttack()
+  // (al CREAR un ataque nuevo) — ni resolveDuel() ni expirePendingAttack()
+  // vuelven a mirar shieldUntil una vez el ataque ya existe como 'pending'.
+  // Sin esta barrera, un jugador con un ataque pendiente podía comprar un
+  // escudo pensando que lo protegía, y perder $CLK igual al resolverse ese
+  // mismo ataque (jugado o por incomparecencia a las 24h): el escudo solo
+  // cubre ataques FUTUROS, nunca uno que ya está en curso. Se corta la
+  // compra en origen en vez de arreglarlo en la resolución, para que el
+  // jugador nunca pague por una protección que no va a servir de nada
+  // contra lo que ya tiene encima. Reutiliza hasPendingDefense(), la misma
+  // función que createPendingAttack() ya usa para bloquear ataques nuevos
+  // contra alguien con una defensa pendiente — mismo criterio en todo el
+  // archivo, no una segunda regla en paralelo.
+  if (await hasPendingDefense(uid)) {
+    throw new Error('Tienes un ataque pendiente de defender: resuélvelo antes de comprar un escudo');
+  }
+
   // Mientras haya un escudo activo, no se puede volver a comprar el
   // MISMO tipo (evita repetir 3d sobre 3d, o 7d sobre 7d, sin ganar nada
   // porque solo reinicia el contador en vez de sumarlo). Tampoco se
