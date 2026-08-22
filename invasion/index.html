@@ -587,18 +587,19 @@ function renderShieldButtons(){
 }
 
 async function buyShield(type, expectedCost){
-  // A diferencia del saldo insuficiente o del tipo de escudo (que
-  // activateShield() SÍ vuelve a comprobar leyendo Firestore antes de
-  // cobrar), la congelación por defensa pendiente NO tiene ninguna
-  // barrera del lado de activateShield() ni de firestore.rules — ese
-  // motivo concreto solo se conoce aquí, en el cliente, igual que
-  // pendingDefenseFreeze en el índice padre. Así que esta comprobación
-  // es la única que existe para esta regla concreta: el botón ya viene
-  // deshabilitado por renderShieldButtons() en el caso normal, esto es
-  // para no dejar pasar un click que se colara pese a eso (doble click
-  // justo antes del repintado, recarga a medio camino, etc.), mismo
-  // criterio de doble comprobación que ya usa search.html con
-  // hasPendingDefense() antes de atacar.
+  // BUGFIX: activateShield() ahora SÍ vuelve a comprobar esto releyendo
+  // Firestore (hasPendingDefense()) antes de cobrar, igual que ya hace con
+  // el saldo insuficiente o el tipo de escudo — antes esta regla solo
+  // existía aquí, en el cliente, y una compra que se colara igualmente
+  // pagaba un escudo que no protegía nada contra el ataque ya pendiente
+  // (ver invasion-core.js). Esta comprobación en el cliente se conserva
+  // igual: el botón ya viene deshabilitado por renderShieldButtons() en el
+  // caso normal, esto es solo para no dejar pasar un click que se colara
+  // pese a eso (doble click justo antes del repintado, recarga a medio
+  // camino, etc.), mismo criterio de doble comprobación que ya usa
+  // search.html con hasPendingDefense() antes de atacar. El catch de más
+  // abajo cubre además el caso en que el ataque pendiente llegó DESPUÉS de
+  // pintar el botón habilitado: ahí manda la respuesta del servidor.
   if(pendingDefenseFreeze){
     toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender');
     return;
@@ -618,6 +619,14 @@ async function buyShield(type, expectedCost){
       toast(`❌ Te faltan $CLK para este escudo (cuesta 🪙 ${fmtClk(expectedCost)})`);
     }else if((e.message||'').includes('Ya tienes un escudo')){
       toast(`❌ ${e.message}`);
+      renderShieldButtons();
+    }else if((e.message||'').includes('ataque pendiente de defender')){
+      // Mismo criterio que el catch de pendingDefenseFreeze de más arriba:
+      // el servidor detectó el ataque pendiente después de que el botón se
+      // pintara habilitado, así que se avisa igual y se refresca el panel
+      // para que quede bloqueado con el resto de la UI ya al día.
+      toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender');
+      pendingDefenseFreeze = true;
       renderShieldButtons();
     }else{
       toast('❌ No se pudo activar el escudo');
