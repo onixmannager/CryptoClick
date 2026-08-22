@@ -481,12 +481,21 @@ async function syncProfileFromMainSave(uid) {
 // primera vez que la query se ejecuta en producción si no existe ya
 // (ver invasion.indexes.json, se documenta ahí también).
 // ─────────────────────────────────────────────────────────────────────
-async function findCandidatesAtLevel(lvl, r) {
+// findCandidatesAtLevel(r): candidatos AL AZAR de TODA la colección
+// invasion_targets, sin restringir por nivel (antes filtraba por
+// where('lvl','==',lvl) y solo probaba el nivel propio del atacante y,
+// si no había nadie, bajaba nivel a nivel — a petición expresa se quita
+// esa restricción: cualquier jugador registrado en Invasión, de
+// cualquier nivel, es candidato válido). La técnica de 'rand' se
+// mantiene igual que antes para elegir al azar sin ORDER BY random()
+// nativo (Firestore no lo tiene, ver docs/DISEÑO.md): cada documento
+// tiene un campo rand (0-1) fijado una vez, y se buscan los más
+// cercanos a un r aleatorio nuevo generado en cada búsqueda.
+async function findCandidatesAtLevel(r) {
   const targetsCol = collection(db, 'invasion_targets');
   async function tryDirection(op, order) {
     const q = query(
       targetsCol,
-      where('lvl', '==', lvl),
       where('rand', op, r),
       orderBy('rand', order),
       limit(30)
@@ -534,7 +543,43 @@ async function findCandidatesAtLevel(lvl, r) {
 // primer candidato válido, así que en el caso normal esto añade como
 // mucho una lectura extra por candidato descartado, no una por cada uno
 // de los hasta 30 candidatos leídos.
+// Filtra en cliente los candidatos leídos: cuenta propia, saldo mínimo
+// robable, escudo activo, cuenta nueva, cooldown de mismo objetivo,
+// ataque pendiente sin resolver. De TODOS los que pasan el filtro,
+// elige uno al azar (antes se devolvía siempre el primero del lote, que
+// es el más cercano a r por construcción de la query — eso sesgaba la
+// búsqueda hacia siempre el mismo candidato mientras su rand siguiera
+// siendo el más cercano al r de turno; elegir al azar entre TODOS los
+// válidos, no solo el más cercano, es lo que evita el patrón repetido a
+// petición expresa).
+//
+// BUGFIX: mientras un jugador tiene un ataque en status:'pending' contra
+// él, no debe poder aparecer como objetivo en la búsqueda — esa regla ya
+// se aplicaba como comprobación final en createPendingAttack() y en el
+// botón "Atacar" de search.html, pero faltaba aquí, en el propio filtro
+// de candidatos: un jugador con defensa pendiente SÍ podía llegar a
+// mostrarse en la pantalla de "rival encontrado" y solo se rechazaba al
+// pulsar "Atacar" al final.
+//
+// Se usa hasActivePendingDefense() en vez de hasPendingDefense() a
+// propósito: esta última solo mira status:'pending', sin fecha, así que
+// un candidato cuyo único pendiente ya superó las 24h de
+// CFG.PENDING_ATTACK_WINDOW_MS (y por tanto, en la práctica, ya perdió
+// por incomparecencia) seguiría invisible en la búsqueda hasta que ÉL
+// MISMO volviera a abrir el juego. hasActivePendingDefense() no solo
+// ignora esos vencidos: los resuelve de verdad (mismo reparto de saldo
+// que si el propio defensor hubiera dejado pasar las 24h desde su
+// pantalla), así que "ya no bloquea" aquí es una verdad definitiva, no
+// una decisión de visualización que createPendingAttack() fuera a
+// contradecir más abajo en el mismo flujo de ataque.
+//
+// Se comprueba async (await) por candidato, igual que antes — ya no se
+// corta en el primer válido (hace falta recorrer el lote entero para
+// poder elegir entre todos los válidos), así que en el peor caso esto
+// añade una lectura extra por cada uno de los hasta 30 candidatos del
+// lote, no solo por los descartados antes del primer match.
 async function firstValidCandidate(docs, myUid, myRecentTargets, now, skipped) {
+  const valid = [];
   for (const docSnap of docs) {
     const uid = docSnap.id;
     const d = docSnap.data();
@@ -545,27 +590,31 @@ async function firstValidCandidate(docs, myUid, myRecentTargets, now, skipped) {
     const lastHit = (myRecentTargets || {})[uid] || 0;
     if (now - lastHit < CFG.SAME_TARGET_COOLDOWN_MS) { skipped.cooldown++; continue; }
     if (await hasActivePendingDefense(uid)) { skipped.pendingDefense++; continue; }
-    return { uid, ...d };
+    valid.push({ uid, ...d });
   }
-  return null;
+  if (valid.length === 0) return null;
+  return valid[Math.floor(Math.random() * valid.length)];
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// BUSCAR RIVAL POR NIVEL (sustituye a la búsqueda puramente aleatoria) —
-// spec punto 10: la prioridad de objetivos se basa en el nivel del
-// atacante. Un atacante de nivel N prueba primero objetivos de nivel N
-// exactamente; si no encuentra ninguno válido, prueba N-1, luego N-2, y
-// así sucesivamente hasta nivel 1. Dentro de cada nivel, el candidato en
-// concreto se sigue eligiendo al azar (técnica `rand`, ver
-// findCandidatesAtLevel()) para no repetir siempre el mismo rival a
-// igualdad de nivel.
+// BUSCAR RIVAL AL AZAR ENTRE TODOS LOS JUGADORES — a petición expresa se
+// quita la restricción por nivel que tenía antes (spec punto 10 original:
+// probar primero el propio nivel, luego bajar de uno en uno). Ahora
+// cualquier jugador registrado en invasion_targets, de cualquier nivel,
+// es un candidato válido de partida; el resto de filtros (escudo, saldo
+// mínimo, cuenta nueva, cooldown por objetivo, ataque pendiente) se
+// mantienen igual que antes en firstValidCandidate().
 //
-// Un atacante de nivel 3 prueba 3→2→1 (spec sección 11: nivel 3 es el
-// mínimo desbloqueado, así que nunca hace falta bajar de nivel 1). Un
-// atacante de nivel 17 prueba 17→16→…→1 en el peor caso — cada peldaño
-// vacío es una lectura de hasta 30 docs, así que en la práctica esto se
-// detiene en cuanto encuentra el primer nivel con población real, no
-// recorre los 17 siempre.
+// El candidato en concreto se sigue eligiendo al azar dentro del lote de
+// hasta 30 que devuelve findCandidatesAtLevel() (técnica `rand`, ver esa
+// función) y, desde este cambio, también al azar DENTRO de ese lote
+// (ver firstValidCandidate()) en vez de tomar siempre el más cercano a
+// r — así no sale siempre el mismo rival cuando su rand es el más
+// cercano al r de turno en varias búsquedas seguidas.
+//
+// Se mantiene el nombre findTargetByLevel (y el parámetro myLvl en la
+// firma, aunque ya no se usa para filtrar) para no tener que tocar
+// search.html, que ya llama a esta función con esos tres argumentos.
 // ─────────────────────────────────────────────────────────────────────
 // Diagnóstico de la última búsqueda sin resultado — se rellena SOLO
 // cuando findTargetByLevel() devuelve null, y se limpia (a null) al
@@ -581,33 +630,24 @@ async function findTargetByLevel(myUid, myLvl, myRecentTargets) {
   _lastSearchDiagnostic = null;
   const now = Date.now();
   const r = Math.random();
-  const startLvl = Math.max(1, Math.floor(myLvl || 1));
   const skipped = { self: 0, lowClk: 0, shielded: 0, newAccount: 0, cooldown: 0, pendingDefense: 0 };
-  let levelsChecked = 0;
-  let totalCandidatesSeen = 0;
 
-  for (let lvl = startLvl; lvl >= 1; lvl--) {
-    levelsChecked++;
-    const docs = await findCandidatesAtLevel(lvl, r);
-    totalCandidatesSeen += docs.length;
-    const found = await firstValidCandidate(docs, myUid, myRecentTargets, now, skipped);
-    if (found) return found;
-  }
+  const docs = await findCandidatesAtLevel(r);
+  const totalCandidatesSeen = docs.length;
+  const found = await firstValidCandidate(docs, myUid, myRecentTargets, now, skipped);
+  if (found) return found;
 
   // totalCandidatesSeen === 0 es el caso que reporta el jugador con más
   // frecuencia como confuso ("no dice por qué no hay nadie"): no es que
   // todos los candidatos se descartaran por escudo/cooldown/saldo, es
-  // que directamente no hay NINGÚN documento en invasion_targets con
-  // lvl <= myLvl — es decir, ningún otro jugador de nivel igual o menor
-  // ha entrado nunca al modo Invasión (o los que hay están todos en
-  // niveles superiores al del atacante, fuera del rango que se prueba
-  // aquí a propósito, ver comentario de findTargetByLevel más arriba).
+  // que directamente no hay NINGÚN documento en invasion_targets — es
+  // decir, ningún otro jugador ha entrado nunca al modo Invasión todavía.
   _lastSearchDiagnostic = {
-    levelsChecked, startLvl, totalCandidatesSeen, skipped,
+    totalCandidatesSeen, skipped,
     noPopulationAtAll: totalCandidatesSeen === 0,
   };
-  console.log('[DIAG] findTargetByLevel: sin candidato válido. Niveles probados:', levelsChecked, '(desde', startLvl, 'hasta 1). Candidatos vistos en total:', totalCandidatesSeen, '. Descartados por:', JSON.stringify(skipped));
-  return null; // no se encontró rival válido en ningún nivel de 1 a myLvl
+  console.log('[DIAG] findTargetByLevel: sin candidato válido. Candidatos vistos en total:', totalCandidatesSeen, '. Descartados por:', JSON.stringify(skipped));
+  return null; // no se encontró rival válido entre los candidatos leídos
 }
 
 // Traduce el diagnóstico de la última búsqueda sin resultado a un texto
@@ -620,18 +660,16 @@ function explainNoTargetFound() {
   if (!d) return 'No hay rivales disponibles en este momento.';
 
   if (d.noPopulationAtAll) {
-    return d.startLvl <= 1
-      ? 'Todavía no hay ningún otro jugador registrado en el modo Invasión. Vuelve a intentarlo cuando más gente haya entrado.'
-      : `No hay ningún jugador de nivel ${d.startLvl} o inferior registrado en el modo Invasión todavía. Vuelve a intentarlo más tarde, cuando haya más gente de tu nivel o menor.`;
+    return 'Todavía no hay ningún otro jugador registrado en el modo Invasión. Vuelve a intentarlo cuando más gente haya entrado.';
   }
 
   // Caso frecuente al probar en desarrollo con una sola cuenta: el único
   // documento visto en invasion_targets es el propio jugador (nadie más
-  // ha entrado nunca al modo con nivel <= el suyo). Merece un mensaje
-  // propio en vez de mezclarse con la lista de motivos de abajo, porque
-  // la solución (entrar con otra cuenta) es distinta a esperar/reintentar.
+  // ha entrado nunca al modo). Merece un mensaje propio en vez de
+  // mezclarse con la lista de motivos de abajo, porque la solución
+  // (entrar con otra cuenta) es distinta a esperar/reintentar.
   if (d.totalCandidatesSeen === d.skipped.self && d.skipped.self > 0) {
-    return 'El único jugador encontrado en tu rango de nivel eres tú mismo — necesitas que otra cuenta entre al modo Invasión (nivel 3 o más) para poder atacarla. Prueba con otra cuenta o espera a que otro jugador entre.';
+    return 'El único jugador encontrado eres tú mismo — necesitas que otra cuenta entre al modo Invasión (nivel 3 o más) para poder atacarla. Prueba con otra cuenta o espera a que otro jugador entre.';
   }
 
   const s = d.skipped;
@@ -647,15 +685,16 @@ function explainNoTargetFound() {
     // Se vieron candidatos (totalCandidatesSeen > 0) pero ninguno cayó
     // en ninguna de las categorías de descarte contadas arriba — caso
     // residual poco probable, mensaje genérico en vez de una lista vacía.
-    return `Se encontraron ${d.totalCandidatesSeen} jugador(es) de nivel ${d.startLvl} o inferior, pero ninguno es un objetivo válido ahora mismo. Vuelve a intentarlo en unos minutos.`;
+    return `Se encontraron ${d.totalCandidatesSeen} jugador(es), pero ninguno es un objetivo válido ahora mismo. Vuelve a intentarlo en unos minutos.`;
   }
 
-  return `Se encontraron ${d.totalCandidatesSeen} jugador(es) de nivel ${d.startLvl} o inferior, pero ninguno es un objetivo válido ahora mismo: ${motivos.join(', ')}.`;
+  return `Se encontraron ${d.totalCandidatesSeen} jugador(es), pero ninguno es un objetivo válido ahora mismo: ${motivos.join(', ')}.`;
 }
 
 // Alias retrocompatible: código o pantallas que todavía llamen a la
-// búsqueda "aleatoria" original obtienen la búsqueda por nivel, que es
-// su sustituta directa (misma firma salvo el nuevo parámetro myLvl).
+// búsqueda "aleatoria" original obtienen la misma búsqueda al azar entre
+// TODOS los jugadores (misma firma salvo el parámetro myLvl, que ya no
+// se usa para filtrar).
 async function findRandomTarget(myUid, myLvl, myRecentTargets) {
   return findTargetByLevel(myUid, myLvl, myRecentTargets);
 }
