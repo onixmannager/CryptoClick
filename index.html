@@ -2787,7 +2787,7 @@ function copyCode(){
     toast('📋 Copia manual: ' + text);
   }
 }
-function subRef(){const norm=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');const v=norm(document.getElementById('refinp').value);if(!v)return;const own=norm(S.refCode)||norm(document.getElementById('refcode').textContent);if(own&&v===own){toast('❌ No puedes usar tu propio código');SFX.buyFail();return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');SFX.buyFail();return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');SFX.refJoin();document.getElementById('refinp').value='';forceSave();}
+function subRef(){const norm=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');const v=norm(document.getElementById('refinp').value);if(!v)return;if(!/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{7}$/.test(v)){toast('❌ Código no válido');SFX.buyFail();return}const own=norm(S.refCode)||norm(document.getElementById('refcode').textContent);if(own&&v===own){toast('❌ No puedes usar tu propio código');SFX.buyFail();return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');SFX.buyFail();return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');SFX.refJoin();document.getElementById('refinp').value='';forceSave();}
 
 // Recompensa única (+50.000 $CLK) por seguir cada red social — una sola vez por
 // red, igual que el patrón anti-doble-cobro de subRef() (flag en localStorage,
