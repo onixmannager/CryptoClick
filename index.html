@@ -3506,6 +3506,16 @@ async function buyShieldFromMain(type, expectedCost){
     }else if((e.message||'').includes('Ya tienes un escudo')){
       toast(`❌ ${e.message}`);
       renderShieldModalContent();
+    }else if((e.message||'').includes('ataque pendiente de defender')){
+      // Mismo mensaje/patrón que la guarda de pendingDefenseFreeze de más
+      // arriba: si esto se dispara es porque el ataque pendiente llegó
+      // DESPUÉS de que el botón se pintara habilitado (carrera con el
+      // repintado, no un fallo del botón en sí) — el servidor es quien
+      // manda, así que se avisa igual y se refresca el panel para que el
+      // botón pase a bloqueado con el resto de la UI ya al día.
+      toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender');
+      pendingDefenseFreeze = true;
+      renderShieldModalContent();
     }else{
       toast('❌ No se pudo activar el escudo');
     }
