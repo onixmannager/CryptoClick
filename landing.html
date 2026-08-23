@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Alien — Minado tap-to-earn, arcade e invasión PvP</title>
-<meta name="description" content="Crypto Alien: minado tap-to-earn con Invasión PvP offline como modo estrella. Canjeá tu nivel por CLK en airdrops de proyectos colaboradores. Jugá ahora.">
+<title>Crypto Alien — Minado tap-to-earn, Invasión PvP y comunidad CLK</title>
+<meta name="description" content="Crypto Alien: minado tap-to-earn con minado offline, mejoras, niveles y rangos. Invasión PvP, Ruleta y Arcade como modos de juego. Canjeá tu nivel por CLK en airdrops de proyectos colaboradores. Todo lo que necesitás saber, en un solo lugar.">
 <meta name="theme-color" content="#0B0A12">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -159,9 +162,10 @@
   /* ============ Hero: móvil pinneado con secuencia de video-scrub ============ */
   .hero {
     position: relative;
-    /* 240 frames · alto de scroll por frame ajustado para que el gesto se sienta
-       "uno a uno" en desktop sin hacerse eterno. Ajustable vía --hero-vh. */
-    height: 900vh;
+    /* 5 fotos en cross-fade + 4 tarjetas laterales que se revelan en el
+       camino. Alto pensado para que el pin dure lo justo para leer cada
+       tarjeta sin dejar tramos de scroll "vacíos". Ajustable vía --hero-vh. */
+    height: 380vh;
     background: var(--bg);
   }
   .hero__pin {
@@ -235,12 +239,19 @@
     display: grid;
     place-items: center;
   }
+  /* 5 fotos apiladas en la misma celda del grid; cross-fade con opacity
+     controlado por JS según el progreso del scroll. Todas cargan de una,
+     así que nunca hay una imagen rota a mitad del gesto. */
   .hero__frame-img {
+    grid-area: 1 / 1;
     width: 100%;
     height: 100%;
-    object-fit: contain; /* NUNCA recorta: el video se ve completo, tal como pediste */
+    object-fit: contain;
     background: #000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
+  .hero__frame-img.is-active { opacity: 1; }
 
   /* Slots laterales donde entran las tarjetas de contenido durante el scroll.
      Reservan espacio siempre (evita saltos de layout); el contenido interno
@@ -318,7 +329,7 @@
 
   /* ---- Mobile real: sin marco de teléfono, video a pantalla completa ---- */
   @media (max-width: 760px) {
-    .hero { height: 700vh; }
+    .hero { height: 320vh; }
     .hero__pin { padding-top: 0; }
     .hero__stage {
       width: 100%;
@@ -449,6 +460,160 @@
   .footer__legal-links { display: flex; gap: 10px; font-size: 0.72rem; color: var(--text-dim); opacity: 0.85; }
   .footer__legal-links a:hover { color: var(--lime); }
 
+  /* ============ Bloques nuevos: whitepaper + landing ============ */
+
+  /* Layout de dos columnas texto/imagen (alien ilustrando cada sección) */
+  .split {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .split--reverse { grid-template-columns: 0.9fr 1.1fr; }
+  .split--reverse .split__media { order: -1; }
+  .split__media {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+  }
+  .split__media img {
+    max-width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5));
+  }
+  .split__media::before {
+    content: '';
+    position: absolute;
+    inset: 8%;
+    background: radial-gradient(ellipse 60% 55% at center, rgba(200,255,77,0.10), transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .split--violet .split__media::before { background: radial-gradient(ellipse 60% 55% at center, rgba(184,92,255,0.14), transparent 70%); }
+  .split--amber .split__media::before { background: radial-gradient(ellipse 60% 55% at center, rgba(255,195,105,0.14), transparent 70%); }
+
+  /* Pasos numerados (flujo real: tap -> mejora -> nivel) */
+  .steps { counter-reset: step; display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+  .step {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 18px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+  }
+  .step:first-child { border-top: none; }
+  .step__num {
+    counter-increment: step;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--lime);
+    padding-top: 2px;
+  }
+  .step__num::before { content: counter(step, decimal-leading-zero); }
+  .step h4 { font-family: var(--font-display); font-size: 1.02rem; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 0.92rem; }
+
+  /* Tabla de rangos */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+  .rank-table { width: 100%; border-collapse: collapse; min-width: 560px; font-size: 0.9rem; }
+  .rank-table th, .rank-table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .rank-table thead th { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); background: var(--surface); }
+  .rank-table tbody tr:last-child td { border-bottom: none; }
+  .rank-table tbody tr:hover { background: rgba(232,229,250,0.03); }
+  .rank-table td.rank-name { font-family: var(--font-display); font-weight: 600; color: var(--text); }
+  .rank-table .rank-emoji { margin-right: 8px; }
+  .rank-table td.rank-lvl { font-family: var(--font-mono); color: var(--lime); }
+
+  /* Grid de mejoras por categoría */
+  .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .cat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 20px; }
+  .cat__icon { font-family: var(--font-mono); font-size: 0.78rem; color: var(--violet); display: block; margin-bottom: 10px; }
+  .cat h4 { font-family: var(--font-display); font-size: 0.98rem; margin-bottom: 6px; }
+  .cat p { color: var(--text-dim); font-size: 0.85rem; }
+
+  /* Tiers de dificultad (Invasión) */
+  .tier-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .tier {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 22px;
+    background: var(--surface);
+  }
+  .tier__label { font-family: var(--font-display); font-size: 0.95rem; }
+  .tier__diff { font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-dim); }
+  .tier__pct { font-family: var(--font-mono); font-size: 1.1rem; color: var(--violet); font-weight: 700; min-width: 58px; text-align: right; }
+  .tier--mid .tier__pct { color: var(--lime); }
+
+  /* Escudos */
+  .shield-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 640px; }
+  .shield-card { background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 24px; text-align: center; }
+  .shield-card img { width: 72px; height: auto; margin: 0 auto 14px; display: block; }
+  .shield-card h4 { font-family: var(--font-display); font-size: 1rem; margin-bottom: 4px; }
+  .shield-card p { color: var(--text-dim); font-size: 0.82rem; }
+  .shield-card .shield-dur { font-family: var(--font-mono); color: var(--amber); font-size: 0.78rem; margin-top: 8px; display: block; }
+
+  /* Comunidad: métricas de misiones/racha/referidos */
+  .comm-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .comm-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 22px; }
+  .comm-card__icon { font-size: 1.6rem; display: block; margin-bottom: 14px; }
+  .comm-card h3 { font-family: var(--font-display); font-size: 1rem; margin-bottom: 8px; }
+  .comm-card p { color: var(--text-dim); font-size: 0.88rem; }
+
+  /* FAQ / acordeón tipo whitepaper */
+  .faq { max-width: 780px; }
+  .faq-item { border-top: 1px solid var(--border); }
+  .faq-item:last-child { border-bottom: 1px solid var(--border); }
+  .faq-item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 22px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+';
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    color: var(--lime);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+  .faq-item[open] summary::after { transform: rotate(45deg); }
+  .faq-item__body { padding: 0 4px 24px; color: var(--text-dim); font-size: 0.92rem; max-width: 640px; }
+  .faq-item__body p + p { margin-top: 10px; }
+  .faq-item__body strong { color: var(--text); }
+
+  /* Stat strip (numeritos rápidos tipo whitepaper) */
+  .stat-strip { display: flex; flex-wrap: wrap; gap: 40px; margin-top: 40px; }
+  .stat-strip__item { min-width: 140px; }
+  .stat-strip__num { font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; color: var(--lime); display: block; }
+  .stat-strip__label { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Pill de aviso legal, reutilizable */
+  .pill-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--amber);
+    border: 1px solid rgba(255,195,105,0.3);
+    background: var(--amber-dim);
+    padding: 8px 14px;
+    border-radius: 20px;
+  }
+
   /* Responsive */
   @media (max-width: 880px) {
     .nav__links { display: none; }
@@ -465,11 +630,36 @@
       border-bottom: 1px solid var(--border);
     }
   }
+  @media (max-width: 900px) {
+    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    .comm-grid { grid-template-columns: repeat(2, 1fr); }
+  }
   @media (max-width: 760px) {
     .cards--3, .cards--5, .cards--2 { grid-template-columns: 1fr; }
     .hero__signal { display: none; }
     .section { padding: 80px 0; }
     .footer__inner { flex-direction: column; }
+
+    .split, .split--reverse { grid-template-columns: 1fr; gap: 32px; }
+    .split--reverse .split__media { order: 0; }
+    .split__media { min-height: 200px; }
+    .split__media img { max-height: 280px; }
+
+    .cat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .comm-grid { grid-template-columns: 1fr; }
+    .shield-cards { grid-template-columns: 1fr; max-width: 320px; }
+
+    .tier { grid-template-columns: 1fr auto; grid-template-areas: "label pct" "diff pct"; padding: 14px 18px; }
+    .tier__label { grid-area: label; }
+    .tier__diff { grid-area: diff; }
+    .tier__pct { grid-area: pct; align-self: center; }
+
+    .rank-table { font-size: 0.82rem; min-width: 0; width: 100%; }
+    .rank-table th, .rank-table td { padding: 12px 10px; white-space: normal; }
+    .rank-table td.rank-lvl, .rank-table th:last-child { white-space: nowrap; text-align: right; }
+    .table-wrap { overflow-x: visible; }
+
+    .stat-strip { gap: 28px 32px; }
   }
 </style>
 </head>
@@ -479,9 +669,10 @@
   <div class="nav__inner">
     <a href="#top" class="nav__logo">CRYPTO<span>ALIEN</span></a>
     <div class="nav__links">
-      <a href="#invasion">Invasión PvP</a>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#modos">Modos de juego</a>
+      <a href="#comunidad">Comunidad</a>
       <a href="#token">Token CLK</a>
-      <a href="#colaboradores">Colaboradores</a>
     </div>
     <div class="nav__right">
       <a href="#top" class="btn btn--sm btn--primary">Jugar ahora</a>
@@ -507,11 +698,16 @@
         </div>
       </div>
 
-      <!-- El teléfono: video corriendo en su proporción nativa, nunca recortado -->
+      <!-- El "video": 5 fotos reales del alien en cross-fade, sincronizadas al scroll igual
+           que antes lo estaba el frame-scrub, pero sin depender de una carpeta de 240 webp. -->
       <div class="hero__phone">
         <div class="hero__phone-frame">
           <div class="hero__phone-screen">
-            <img id="frameImg" class="hero__frame-img" alt="Animación: la moneda CLK se rompe y revela al alien astronauta" src="frames/webp/alien_0001.webp">
+            <img class="hero__frame-img is-active" data-frame="0" alt="El alien astronauta de Crypto Alien, sentado, con el logo CLK en el pecho" src="images/aliensentado.png">
+            <img class="hero__frame-img" data-frame="1" alt="El alien saludando con una moneda CLK dorada en la mano" src="images/aliensaludamonedaarriba.png">
+            <img class="hero__frame-img" data-frame="2" alt="El alien astronauta flotando en el espacio" src="images/alienvolando.png">
+            <img class="hero__frame-img" data-frame="3" alt="El alien meditando: así se ve el minado en segundo plano" src="images/alienmeditacion.png">
+            <img class="hero__frame-img" data-frame="4" alt="Logo del modo Invasión: naves alienígenas invadiendo un planeta" src="images/invasion.png">
           </div>
         </div>
       </div>
@@ -570,11 +766,129 @@
   </div>
 </header>
 
+<section class="section" id="como-funciona">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_01 // Cómo funciona</p>
+    <h2 class="reveal">De un tap a una economía minera</h2>
+    <p class="section__lead reveal">Crypto Alien es un tap-to-earn: cada toque en la moneda genera CLK al instante. Pero el juego no termina ahí — hay un sistema completo de progresión detrás de cada tap.</p>
+
+    <div class="split reveal" style="margin-top: 56px;">
+      <div>
+        <div class="steps">
+          <div class="step">
+            <span class="step__num"></span>
+            <div>
+              <h4>Tocás la moneda</h4>
+              <p>Cada tap suma CLK a tu saldo en el momento, sin animaciones de espera ni cooldown entre toques.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step__num"></span>
+            <div>
+              <h4>Gastás energía, se regenera sola</h4>
+              <p>Cada tap consume energía. Cuando se agota, tenés que esperar a que se recargue — o mejorarla para que se recargue más rápido y aguante más toques seguidos.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step__num"></span>
+            <div>
+              <h4>Invertís CLK en mejoras</h4>
+              <p>Con el CLK que juntás, comprás mejoras que aumentan cuánto CLK generás por tap, cuánto minás por segundo estando offline, tu energía máxima y su velocidad de regeneración.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step__num"></span>
+            <div>
+              <h4>Subís de nivel y de rango</h4>
+              <p>Minar, mejorar y completar misiones te da experiencia. Al subir de nivel, tu rango público sube con vos — y ese rango es lo que después te habilita a canjear CLK con nuestros colaboradores.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="split__media">
+        <img src="images/aliensaludamonedaarriba.png" alt="El alien de Crypto Alien sosteniendo una moneda CLK dorada">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--minor" id="offline">
+  <div class="container">
+    <div class="split split--reverse split--violet reveal">
+      <div class="split__media">
+        <img src="images/alienmeditacion.png" alt="El alien en posición de meditación, representando el minado en segundo plano">
+      </div>
+      <div>
+        <p class="eyebrow">&gt; Señal_01.1 // Minado offline</p>
+        <h2>Tu alien no descansa</h2>
+        <p class="section__lead" style="margin-bottom: 28px;">Cerrás la app y tu alien se queda ahí, minando CLK a un ritmo constante por segundo. Cuando volvés a entrar, todo lo que se generó mientras no estabas te está esperando en tu saldo.</p>
+        <p style="color: var(--text-dim); font-size: 0.92rem;">La tasa de minado offline sube con las mejoras de producción — cuanto más inviertas en tu base, más rinde cada hora que pasás afuera del juego. Es, literalmente, la mitad del sentido de jugar: no hace falta estar mirando la pantalla para progresar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="mejoras">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_01.2 // Mejoras</p>
+    <h2 class="reveal">Cuatro formas de crecer</h2>
+    <p class="section__lead reveal">Todo lo que comprás con CLK cae en una de estas cuatro categorías. No hay una única build correcta — depende de si preferís jugar activo a puro tap, o dejar que tu base rinda sola.</p>
+    <div class="cat-grid reveal">
+      <div class="cat">
+        <span class="cat__icon">// 01</span>
+        <h4>Producción</h4>
+        <p>Aumenta cuánto CLK generás por segundo, tanto jugando como offline. El motor de tu economía.</p>
+      </div>
+      <div class="cat">
+        <span class="cat__icon">// 02</span>
+        <h4>Poder de tap</h4>
+        <p>Cada toque vale más CLK. Ideal si jugás sesiones activas y te gusta ver el número subir en tiempo real.</p>
+      </div>
+      <div class="cat">
+        <span class="cat__icon">// 03</span>
+        <h4>Energía máxima</h4>
+        <p>Estirás cuántos taps seguidos podés dar antes de quedarte sin combustible.</p>
+      </div>
+      <div class="cat">
+        <span class="cat__icon">// 04</span>
+        <h4>Regeneración</h4>
+        <p>Tu energía se recarga más rápido, así volvés a tapear antes entre sesiones.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--minor" id="rangos">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_01.3 // Progresión</p>
+    <h2 class="reveal">Del Crypto Noob al Blockchain God</h2>
+    <p class="section__lead reveal">Tu nivel define tu rango, y tu rango es tu identidad pública dentro del juego — se muestra en el ranking global y es la base de cómo se calcula el canje con colaboradores.</p>
+    <div class="table-wrap reveal">
+      <table class="rank-table">
+        <thead>
+          <tr><th>Rango</th><th>Nivel mínimo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank-name"><span class="rank-emoji">🌱</span>Crypto Noob</td><td class="rank-lvl">Nivel 1</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji">🪙</span>Token Trainee</td><td class="rank-lvl">Nivel 5</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji">⛏️</span>Miner Rookie</td><td class="rank-lvl">Nivel 10</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji">📈</span>Chart Hunter</td><td class="rank-lvl">Nivel 18</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji">💎</span>Diamond Hands</td><td class="rank-lvl">Nivel 28</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji">🚀</span>Moon Chaser</td><td class="rank-lvl">Nivel 40</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji">🐋</span>Crypto Whale</td><td class="rank-lvl">Nivel 55</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji">👑</span>Blockchain God</td><td class="rank-lvl">Nivel 75</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 18px;">Cada salto de rango tiene su propia animación de celebración dentro del juego. El ranking global se puede filtrar por semana, mes o histórico total.</p>
+  </div>
+</section>
+
 <section class="section section--violet section--featured" id="invasion">
   <div class="container">
     <p class="eyebrow">&gt; Señal_02 // Modo Invasión — PvP offline</p>
     <h2 class="reveal">Nadie está a salvo</h2>
-    <p class="section__lead reveal">El corazón competitivo de Crypto Alien. Invadís la base de otro jugador y le robás parte de lo que ya minó — 100% offline, sin esperar a que esté conectado. Tus propias monedas quedan igual de expuestas: nadie está a salvo, ni siquiera vos.</p>
+    <p class="section__lead reveal">El modo competitivo de Crypto Alien. Invadís la base de otro jugador y le robás parte de lo que ya minó — 100% offline, sin esperar a que esté conectado. Tus propias monedas quedan igual de expuestas: nadie está a salvo, ni siquiera vos.</p>
     <div class="cards cards--2">
       <div class="card card--violet reveal">
         <span class="card__tag">PVP</span>
@@ -587,27 +901,172 @@
         <p>Una parte de su CLK acumulado pasa a ser tuyo.</p>
       </div>
     </div>
+
+    <div class="split reveal" style="margin-top: 64px;">
+      <div>
+        <h3 style="font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 14px;">Cómo se pelea una invasión</h3>
+        <p style="color: var(--text-dim); font-size: 0.94rem; margin-bottom: 20px;">Cada invasión se resuelve con un minijuego de puntería en dos fases: primero cronometrás el golpe en el momento justo, después afinás la precisión sobre un blanco en movimiento. Cuanto mejor tu ejecución, mayor el porcentaje de CLK que te llevás del objetivo.</p>
+        <p style="color: var(--text-dim); font-size: 0.94rem;">El objetivo se elige entre otros jugadores activos en tu mismo rango de nivel, para que la pelea sea pareja. Perder no te quita nada — solo no ganás el robo.</p>
+      </div>
+      <div class="split__media">
+        <img src="images/invasion.png" alt="Logo del modo Invasión de Crypto Alien">
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top: 56px;">
+      <h3 style="font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 8px;">Tiers de dificultad</h3>
+      <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 22px;">A mayor dificultad del blanco, mayor el porcentaje de CLK que arriesgás ganar. Vos elegís cuánto riesgo tomar.</p>
+      <div class="tier-list">
+        <div class="tier">
+          <span class="tier__label">Muy fácil</span>
+          <span class="tier__diff">Blanco grande, casi sin movimiento</span>
+          <span class="tier__pct">10%</span>
+        </div>
+        <div class="tier">
+          <span class="tier__label">Fácil</span>
+          <span class="tier__diff">Blanco amplio, movimiento lento</span>
+          <span class="tier__pct">15%</span>
+        </div>
+        <div class="tier tier--mid">
+          <span class="tier__label">Medio</span>
+          <span class="tier__diff">Blanco estándar, velocidad moderada</span>
+          <span class="tier__pct">20%</span>
+        </div>
+        <div class="tier">
+          <span class="tier__label">Difícil</span>
+          <span class="tier__diff">Blanco chico, movimiento rápido</span>
+          <span class="tier__pct">25%</span>
+        </div>
+        <div class="tier">
+          <span class="tier__label">Muy difícil</span>
+          <span class="tier__diff">Blanco mínimo, patrón impredecible</span>
+          <span class="tier__pct">30%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top: 56px;">
+      <h3 style="font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 8px;">Escudos: tu forma de defenderte</h3>
+      <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px;">Si no querés quedar expuesto mientras estás offline, comprás un escudo con tu CLK. Mientras está activo, nadie puede invadirte.</p>
+      <div class="shield-cards">
+        <div class="shield-card">
+          <img src="images/escudoplateado.png" alt="Escudo plateado de Crypto Alien">
+          <h4>Escudo de 3 días</h4>
+          <p>Protección estándar, ideal para uso frecuente.</p>
+          <span class="shield-dur">72 HORAS</span>
+        </div>
+        <div class="shield-card">
+          <img src="images/escudodorado.png" alt="Escudo dorado de Crypto Alien">
+          <h4>Escudo de 7 días</h4>
+          <p>Protección extendida para cuando sabés que vas a estar afuera un buen rato.</p>
+          <span class="shield-dur">168 HORAS</span>
+        </div>
+      </div>
+      <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 22px;">Y si te invaden, tenés <strong style="color: var(--text);">venganza</strong>: podés contraatacar directamente a quien te robó, sin esperar a que el sistema te lo proponga al azar.</p>
+    </div>
   </div>
 </section>
 
-<section class="section section--minor" id="modos">
+<section class="section section--minor" id="ruleta">
   <div class="container">
-    <p class="eyebrow">&gt; Señal_03 // Modo Arcade</p>
-    <h2 class="reveal">Minijuegos arcade</h2>
-    <p class="section__lead reveal">Un extra para sumar CLK jugando, no solo tocando.</p>
-    <div class="card card--pending reveal" style="max-width: 420px;">
-      <span class="card__tag">ARCADE</span>
-      <h3>Próximamente</h3>
-      <p>Estamos puliendo el set completo de minijuegos.</p>
+    <div class="split split--reverse split--amber reveal">
+      <div class="split__media">
+        <img src="images/ruleta.png" alt="Ruleta de premios de Crypto Alien">
+      </div>
+      <div>
+        <p class="eyebrow">&gt; Señal_03 // Modo Ruleta</p>
+        <h2>Girá y sumá extra</h2>
+        <p class="section__lead" style="margin-bottom: 0;">Un modo aparte para conseguir CLK extra sin tapear ni invadir a nadie. Girás la ruleta y te llevás lo que caiga — un complemento rápido para las sesiones en las que solo tenés un par de minutos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="modos">
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <p class="eyebrow">&gt; Señal_04 // Modo Arcade</p>
+        <h2>Minijuegos arcade</h2>
+        <p class="section__lead" style="margin-bottom: 24px;">Un extra para sumar CLK jugando, no solo tocando. Estamos puliendo el set completo de minijuegos arcade — mecánicas cortas, pensadas para partidas rápidas entre sesión y sesión de minado.</p>
+        <div class="card card--pending" style="max-width: 420px;">
+          <span class="card__tag">ARCADE</span>
+          <h3>Próximamente</h3>
+          <p>Estamos puliendo el set completo de minijuegos.</p>
+        </div>
+      </div>
+      <div class="split__media">
+        <img src="images/arcade.png" alt="Máquina arcade retro de Crypto Alien" style="max-height: 260px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--minor" id="comunidad">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_05 // Comunidad</p>
+    <h2 class="reveal">Un juego que se juega entre todos</h2>
+    <p class="section__lead reveal">Crypto Alien no es solo vos y tu alien: el ranking, las misiones diarias y los referidos existen para que jugar con otros valga más que jugar solo.</p>
+    <div class="comm-grid reveal">
+      <div class="comm-card">
+        <span class="comm-card__icon">🎯</span>
+        <h3>Misiones</h3>
+        <p>Objetivos diarios y por hitos: taps totales, CLK acumulado, subir de nivel, comprar mejoras, mantener combo. Cada una te da recompensas extra al completarla.</p>
+      </div>
+      <div class="comm-card">
+        <span class="comm-card__icon">🔥</span>
+        <h3>Racha diaria</h3>
+        <p>Entrá todos los días y tu racha crece. Cuanto más larga, mejor la recompensa por mantenerte activo — perderla te vuelve a poner en cero.</p>
+      </div>
+      <div class="comm-card">
+        <span class="comm-card__icon">🤝</span>
+        <h3>Referidos</h3>
+        <p>Invitá a alguien con tu link y ganás un porcentaje extra de lo que esa persona mina. Cuanta más gente traigas, más crece tu propia economía.</p>
+      </div>
+      <div class="comm-card">
+        <span class="comm-card__icon">🏆</span>
+        <h3>Ranking global</h3>
+        <p>Tu posición se compara con la de todos los jugadores, filtrable por semana, mes o histórico. Ahí es donde se nota quién realmente juega en serio.</p>
+      </div>
     </div>
   </div>
 </section>
 
 <section class="section" id="token">
   <div class="container">
-    <p class="eyebrow">&gt; Señal_04 // Token CLK</p>
-    <h2 class="reveal">Cómo se canjea CLK</h2>
-    <p class="section__lead reveal">CLK es canjeable en proyectos de terceros que colaboran con Crypto Alien. El canje se hace por airdrops, anunciados en nuestras redes sociales.</p>
+    <p class="eyebrow">&gt; Señal_06 // Token CLK</p>
+    <h2 class="reveal">Qué es CLK, y qué no es</h2>
+    <p class="section__lead reveal">CLK es la moneda interna de Crypto Alien: la generás minando, la gastás en mejoras y escudos, y la arriesgás en Invasión. Es un token de utilidad del juego — no es una criptomoneda, no cotiza en ningún exchange y no tiene valor monetario por sí mismo.</p>
+    <div class="callout reveal">
+      <span class="callout__label">IMPORTANTE</span>
+      <p class="callout__text">CLK no se compra ni se vende. No es un instrumento de inversión ni una promesa de ganancia. Su único uso es dentro del ecosistema de Crypto Alien y de los proyectos colaboradores que decidan reconocerlo.</p>
+    </div>
+    <div class="stat-strip reveal">
+      <div class="stat-strip__item">
+        <span class="stat-strip__num">Tap</span>
+        <span class="stat-strip__label">Origen del CLK</span>
+      </div>
+      <div class="stat-strip__item">
+        <span class="stat-strip__num">Mejoras</span>
+        <span class="stat-strip__label">Uso del CLK</span>
+      </div>
+      <div class="stat-strip__item">
+        <span class="stat-strip__num">Nivel</span>
+        <span class="stat-strip__label">Base del canje</span>
+      </div>
+      <div class="stat-strip__item">
+        <span class="stat-strip__num">Airdrop</span>
+        <span class="stat-strip__label">Forma de canje</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--minor" id="canje">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_06.1 // Cómo se canjea CLK</p>
+    <h2 class="reveal">El canje se calcula por nivel, no por saldo</h2>
+    <p class="section__lead reveal">CLK es canjeable en proyectos de terceros que colaboran con Crypto Alien. El canje se hace por airdrops, anunciados en nuestras redes sociales — nunca dentro del juego, y nunca conectando una wallet a la app.</p>
     <div class="callout reveal">
       <span class="callout__label">IMPORTANTE</span>
       <p class="callout__text">El canje <strong>no</strong> depende de cuánto CLK minaste. Depende del <strong>nivel</strong> que alcanzaste en el juego.</p>
@@ -617,7 +1076,7 @@
 
 <section class="section" id="colaboradores">
   <div class="container">
-    <p class="eyebrow">&gt; Señal_04.1 // Colaboradores</p>
+    <p class="eyebrow">&gt; Señal_06.2 // Colaboradores</p>
     <h2 class="reveal">Proyectos que canjean CLK</h2>
     <p class="section__lead reveal">Estudios y proyectos aliados que reconocen tu nivel en Crypto Alien con airdrops dentro de los suyos.</p>
     <div class="cards cards--2">
@@ -635,9 +1094,55 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="faq">
   <div class="container">
-    <p class="eyebrow">&gt; Señal_05 // Airdrops</p>
+    <p class="eyebrow">&gt; Señal_07 // Preguntas frecuentes</p>
+    <h2 class="reveal">Antes de que preguntes</h2>
+    <p class="section__lead reveal">Lo que más se pregunta la comunidad, respondido sin vueltas.</p>
+    <div class="faq reveal">
+      <details class="faq-item" open>
+        <summary>¿Necesito invertir dinero real para jugar?</summary>
+        <div class="faq-item__body">
+          <p>No. Crypto Alien se juega gratis desde el primer tap. El CLK se genera jugando — no hace falta comprar nada para empezar a minar, mejorar tu base o participar en Invasión.</p>
+        </div>
+      </details>
+      <details class="faq-item">
+        <summary>¿CLK vale dinero real?</summary>
+        <div class="faq-item__body">
+          <p>No. CLK es un token de utilidad interno del juego: no cotiza, no se compra ni se vende, y no es una criptomoneda. Su función es habilitarte mejoras dentro del juego y, según tu nivel, airdrops de proyectos colaboradores.</p>
+        </div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Pierdo mi progreso si me invaden en Invasión?</summary>
+        <div class="faq-item__body">
+          <p>No perdés nivel, mejoras ni rango. Solo se transfiere una parte del CLK que ya tenías acumulado sin gastar, según el tier de dificultad que eligió quien te invadió. Podés protegerte comprando un escudo, o responder con venganza si ya te tocó.</p>
+        </div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Cómo sé qué nivel necesito para canjear con un colaborador?</summary>
+        <div class="faq-item__body">
+          <p>Cada colaborador anuncia su propio requisito de nivel y ventana de canje en sus redes y en las nuestras (Discord, Telegram y X). Seguinos ahí para no perderte el aviso cuando abra un airdrop.</p>
+        </div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Puedo jugar sin conexión?</summary>
+        <div class="faq-item__body">
+          <p>El minado offline sigue corriendo aunque cierres la app — eso es justamente lo que te genera CLK mientras no estás mirando la pantalla. Para tapear, mejorar, invadir o entrar al ranking sí necesitás conexión.</p>
+        </div>
+      </details>
+      <details class="faq-item">
+        <summary>¿En qué plataformas está disponible?</summary>
+        <div class="faq-item__body">
+          <p>Crypto Alien corre en desktop y móvil (Android e iOS) desde el navegador, sin necesidad de instalar nada.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_08 // Airdrops</p>
     <h2 class="reveal">Seguí la señal</h2>
     <p class="section__lead reveal" style="margin-bottom: 0;">Los airdrops se anuncian por redes sociales, no dentro del juego. Seguinos para no perderte ninguno.</p>
     <div class="social-row reveal">
@@ -669,9 +1174,10 @@
       <p class="footer__tag mono">Minado galáctico, en tus manos.</p>
     </div>
     <div class="footer__links">
+      <a href="#como-funciona">Cómo funciona</a>
       <a href="#invasion">Invasión PvP</a>
+      <a href="#comunidad">Comunidad</a>
       <a href="#token">Token CLK</a>
-      <a href="#colaboradores">Colaboradores</a>
     </div>
     <div class="social-row" style="margin-top: 0;">
       <a href="#" class="mono">DISCORD</a>
@@ -728,70 +1234,36 @@
   }
 
   /* =========================================================
-     MOTOR DE VIDEO-SCRUB: 240 fotogramas reales, uno por frame
-     del video original (24fps × 10s), atados 1:1 al scroll.
-     -----------------------------------------------------------
-     Carpeta: frames/webp/alien_0001.webp ... alien_0240.webp
-     Si una imagen no carga, se salta a la siguiente disponible
-     sin romper la secuencia ni tirar error visible al usuario.
+     MOTOR DEL HERO: progreso de scroll 0–239 (igual escala que
+     usan las tarjetas .hero__slot vía data-start/data-end), pero
+     en vez de 240 frames de video usa 5 fotos reales del alien
+     en cross-fade. Todas cargan al boot (son solo 5), así que
+     nunca hay una imagen a medio cargar durante el gesto.
      ========================================================= */
   var FRAME_COUNT = 240;
-  var FRAME_PATH = function (i) {
-    return 'frames/webp/alien_' + String(i + 1).padStart(4, '0') + '.webp';
-  };
-  // Cuántos frames precargar antes de habilitar el scroll-scrub. El resto
-  // se seguirá cargando en segundo plano mientras el usuario ya interactúa.
-  var PRELOAD_BEFORE_START = 24;
+  // A qué frame del rango 0–239 le corresponde cada foto real.
+  // Los puntos de corte están pensados para calzar con las tarjetas
+  // laterales existentes (ver data-start/data-end en el HTML).
+  var PHOTO_BREAKPOINTS = [0, 40, 100, 150, 200]; // frame en el que empieza cada foto (coincide con el inicio de cada tarjeta lateral)
 
   var heroEl = document.querySelector('.hero');
-  var frameImg = document.getElementById('frameImg');
+  var frameImgs = Array.prototype.slice.call(document.querySelectorAll('.hero__frame-img'));
   var signalReadout = document.getElementById('signalReadout');
   var scrollCue = document.getElementById('scrollCue');
   var slots = Array.prototype.slice.call(document.querySelectorAll('[data-slot]'));
 
-  var frameSrcs = [];
-  var frameLoadedOk = new Array(FRAME_COUNT).fill(false);
-  for (var i = 0; i < FRAME_COUNT; i++) frameSrcs.push(FRAME_PATH(i));
-
-  function preloadRange(start, end, onDone) {
-    var remaining = end - start;
-    if (remaining <= 0) { if (onDone) onDone(); return; }
-    for (var idx = start; idx < end; idx++) {
-      (function (n) {
-        var img = new Image();
-        img.onload = function () { frameLoadedOk[n] = true; done(); };
-        img.onerror = function () { frameLoadedOk[n] = false; done(); };
-        img.src = frameSrcs[n];
-      })(idx);
+  var activePhotoIdx = 0;
+  function showFrame(frameIdx) {
+    frameIdx = Math.min(FRAME_COUNT - 1, Math.max(0, frameIdx));
+    var target = 0;
+    for (var p = 0; p < PHOTO_BREAKPOINTS.length; p++) {
+      if (frameIdx >= PHOTO_BREAKPOINTS[p]) target = p;
     }
-    function done() {
-      remaining--;
-      if (remaining <= 0 && onDone) onDone();
-    }
-  }
-
-  var scrubReady = false;
-  preloadRange(0, Math.min(PRELOAD_BEFORE_START, FRAME_COUNT), function () {
-    scrubReady = true;
-    preloadRange(PRELOAD_BEFORE_START, FRAME_COUNT, null); // resto en segundo plano
-  });
-
-  // Si un frame puntual falló, retrocede al último frame válido conocido
-  // en vez de mostrar una imagen rota a mitad de la animación.
-  var lastGoodIdx = 0;
-  function showFrame(idx) {
-    idx = Math.min(FRAME_COUNT - 1, Math.max(0, idx));
-    var target = idx;
-    if (!frameLoadedOk[target]) {
-      // busca hacia atrás el frame válido más cercano
-      var back = target;
-      while (back > 0 && !frameLoadedOk[back]) back--;
-      target = frameLoadedOk[back] ? back : lastGoodIdx;
-    }
-    if (target !== lastGoodIdx || frameImg.getAttribute('data-idx') !== String(target)) {
-      frameImg.src = frameSrcs[target];
-      frameImg.setAttribute('data-idx', String(target));
-      lastGoodIdx = target;
+    if (target !== activePhotoIdx) {
+      frameImgs.forEach(function (img, i) {
+        img.classList.toggle('is-active', i === target);
+      });
+      activePhotoIdx = target;
     }
   }
 
@@ -819,7 +1291,7 @@
         var progress = getProgress();
         var frameIdx = Math.round(progress * (FRAME_COUNT - 1));
 
-        if (scrubReady) showFrame(frameIdx);
+        showFrame(frameIdx);
         updateSlots(frameIdx);
 
         signalReadout.textContent = 'SEÑAL: ' + Math.round(progress * 100) + '% DECODIFICADA';
