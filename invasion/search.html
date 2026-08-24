@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Buscando rival — Invasión</title>
-<meta name="theme-color" content="#0b0a14">
+<meta name="theme-color" content="#0B0A12">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.2/dist/mux-player.js"></script>
 <style>
 :root{
-  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;
-  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
-  --green:#10B981;--red:#EF4444;--text:#fff;--muted:#a9a6d6;--border:rgba(255,255,255,0.07);
+  --bg:#0B0A12;--card:#16141F;--card2:#1c1a29;
+  --yellow:#FFC369;--orange:#FFC369;--pink:#B85CFF;--purple:#B85CFF;
+  --green:#C8FF4D;--red:#EF4444;--text:#EDEBFA;--muted:#918EAA;--border:rgba(232, 229, 250, 0.10);
   --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
   --glass:rgba(10,12,22,.5);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
 }
@@ -65,16 +65,16 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 .rivalName{font-family:var(--fh);font-size:18px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rivalLvl{font-size:12px;color:var(--muted);font-weight:800;margin-top:1px}
 .diffBadge{flex-shrink:0;padding:6px 14px;border-radius:20px;font-family:var(--fh);font-size:12px;white-space:nowrap}
-.diffBadge.muy_facil{background:rgba(16,185,129,.22);color:var(--green)}
-.diffBadge.facil{background:rgba(16,185,129,.18);color:#6ee7b7}
-.diffBadge.normal{background:rgba(255,215,0,.18);color:var(--yellow)}
-.diffBadge.dificil{background:rgba(255,107,53,.18);color:var(--orange)}
+.diffBadge.muy_facil{background:rgba(200,255,77,.22);color:var(--green)}
+.diffBadge.facil{background:rgba(200,255,77,.18);color:#ddff9e}
+.diffBadge.normal{background:rgba(255,195,105,.14);color:var(--yellow)}
+.diffBadge.dificil{background:rgba(255,195,105,.28);color:var(--orange)}
 .diffBadge.muy_dificil{background:rgba(239,68,68,.18);color:var(--red)}
 .rivalClkRow{display:flex;align-items:baseline;justify-content:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
 .rivalClk{font-family:var(--fh);font-size:24px;color:var(--yellow)}
 .rivalClkLabel{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px}
 
-#attackBtn{width:100%;margin-top:14px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 20px rgba(139,92,246,.35)}
+#attackBtn{width:100%;margin-top:14px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 20px rgba(184,92,255,.35)}
 #attackBtn:active{transform:scale(.97)}
 #retryBtn{width:100%;margin-top:10px;padding:12px;border:none;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--text);font-weight:800;font-size:13px;cursor:pointer}
 
