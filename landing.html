@@ -863,6 +863,199 @@
 
     .stat-strip { gap: 28px 32px; }
   }
+
+  /* ============================================================
+     Iconografía de línea — sustituye emojis de sistema por trazos
+     coherentes con el resto de la interfaz (mismo grosor que los
+     bordes de tarjeta, mismos 3 colores de acento). Cada <svg> usa
+     currentColor, así que el color se fija desde el contenedor.
+     ============================================================ */
+  .icon-line {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: -0.15em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---------- Íconos de rango: cada uno insinúa el rango sin
+     copiar un pictograma de stock. Trazo fino, un solo color. ---------- */
+  .rank-emoji {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-right: 12px;
+    color: var(--text-dim);
+    opacity: 0.85;
+    transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  }
+  .rank-table tbody tr:hover .rank-emoji { color: var(--lime); opacity: 1; transform: scale(1.08); }
+  .rank-emoji .icon-line { width: 20px; height: 20px; }
+  /* El rango tope brilla en ámbar en reposo: es la meta visible de la tabla */
+  .rank-table tbody tr:last-child .rank-emoji { color: var(--amber); opacity: 1; }
+
+  /* Filas de la tabla entran escalonadas cuando la sección aparece */
+  .rank-table tbody tr {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .table-wrap.is-visible .rank-table tbody tr { opacity: 1; transform: translateX(0); }
+  .table-wrap.is-visible .rank-table tbody tr:nth-child(1) { transition-delay: 0.02s; }
+  .table-wrap.is-visible .rank-table tbody tr:nth-child(2) { transition-delay: 0.08s; }
+  .table-wrap.is-visible .rank-table tbody tr:nth-child(3) { transition-delay: 0.14s; }
+  .table-wrap.is-visible .rank-table tbody tr:nth-child(4) { transition-delay: 0.20s; }
+  .table-wrap.is-visible .rank-table tbody tr:nth-child(5) { transition-delay: 0.26s; }
+  .table-wrap.is-visible .rank-table tbody tr:nth-child(6) { transition-delay: 0.32s; }
+  .table-wrap.is-visible .rank-table tbody tr:nth-child(7) { transition-delay: 0.38s; }
+  .table-wrap.is-visible .rank-table tbody tr:nth-child(8) { transition-delay: 0.44s; }
+
+  /* ---------- Ícono del star-block: constelación que respira,
+     no una estrella de emoji plana. ---------- */
+  .star-block__icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--amber);
+    flex-shrink: 0;
+  }
+  .star-block__icon .icon-line {
+    width: 100%;
+    height: 100%;
+    animation: constellation-pulse 3.6s ease-in-out infinite;
+  }
+  .star-block__icon .icon-line circle:nth-child(2) { animation: dot-twinkle 2.4s ease-in-out infinite; }
+  .star-block__icon .icon-line circle:nth-child(3) { animation: dot-twinkle 2.4s ease-in-out infinite 0.6s; }
+  .star-block__icon .icon-line circle:nth-child(4) { animation: dot-twinkle 2.4s ease-in-out infinite 1.2s; }
+  @keyframes constellation-pulse {
+    0%, 100% { filter: drop-shadow(0 0 0px rgba(255,195,105,0)); }
+    50% { filter: drop-shadow(0 0 6px rgba(255,195,105,0.55)); }
+  }
+  @keyframes dot-twinkle {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* ---------- Íconos comm-card: reemplazan 🎯🔥🤝🏆. Aparecen en
+     un chip circular, mismo lenguaje que .card__tag / .eyebrow. ---------- */
+  .comm-card__icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: var(--lime-dim);
+    color: var(--lime);
+    margin-bottom: 18px;
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+  }
+  .comm-card__icon .icon-line { width: 20px; height: 20px; }
+  .comm-card:hover .comm-card__icon { transform: scale(1.08) rotate(-4deg); border-color: var(--lime); }
+
+  /* Rota el color por tarjeta para que no sea un muro monocromo */
+  .comm-card:nth-child(2) .comm-card__icon { background: var(--amber-dim); color: var(--amber); }
+  .comm-card:nth-child(3) .comm-card__icon { background: var(--violet-dim); color: var(--violet); }
+  .comm-card:nth-child(4) .comm-card__icon { background: var(--lime-dim); color: var(--lime); }
+  .comm-card:nth-child(2):hover .comm-card__icon { border-color: var(--amber); }
+  .comm-card:nth-child(3):hover .comm-card__icon { border-color: var(--violet); }
+
+  /* comm-card entera gana elevación premium al pasar el mouse —
+     hoy son bloques estáticos, esto les da la misma vida que .btn */
+  .comm-card {
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .comm-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  }
+
+  /* ============================================================
+     Imágenes del producto — llegan con intención, no con un
+     fade genérico: escalan levemente desde adentro del glow que
+     ya define .split__media::before, y el propio glow respira.
+     ============================================================ */
+  .split__media img,
+  .shield-card img,
+  .comm-card__icon {
+    will-change: transform;
+  }
+  .split__media img {
+    opacity: 0;
+    transform: scale(0.92) translateY(14px);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .split.is-visible .split__media img,
+  .split__media.is-visible img {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  /* El glow radial detrás de la imagen respira muy lento — ambiente,
+     no distracción, igual de sutil que el starfield del hero */
+  .split__media::before {
+    animation: media-glow-breathe 6s ease-in-out infinite;
+  }
+  @keyframes media-glow-breathe {
+    0%, 100% { opacity: 0.75; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.06); }
+  }
+  /* Hover: la imagen del producto responde igual que un botón —
+     leve elevación, nunca un giro ni un rebote infantil */
+  .split__media img { transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease; }
+  .split__media:hover img {
+    transform: scale(1.03) translateY(-4px);
+    filter: drop-shadow(0 28px 70px rgba(0,0,0,0.55));
+  }
+
+  /* Tarjetas de escudo: entran con estagger + la imagen del escudo
+     tiene una rotación de luz sutil, coherente con "objeto activo" */
+  .shield-card {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .shield-cards.is-visible .shield-card { opacity: 1; transform: translateY(0); }
+  .shield-cards.is-visible .shield-card:nth-child(2) { transition-delay: 0.12s; }
+  .shield-card:hover {
+    border-color: var(--amber);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  }
+  .shield-card img {
+    transition: transform 0.4s ease, filter 0.4s ease;
+    filter: drop-shadow(0 8px 20px rgba(255,195,105,0.15));
+  }
+  .shield-card:hover img {
+    transform: scale(1.08) rotate(-3deg);
+    filter: drop-shadow(0 10px 26px rgba(255,195,105,0.35));
+  }
+
+  /* Genérico .card: la misma elevación premium que ya usa .btn,
+     aplicada a cards--2 / cards--3 / cards--5 que hoy son estáticas */
+  .card { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+  .card:hover:not(.card--pending) {
+    transform: translateY(-3px);
+    border-color: var(--border-strong);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.3);
+  }
+  .card--violet:hover:not(.card--pending) { border-color: rgba(184,92,255,0.4); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .star-block__icon .icon-line,
+    .star-block__icon .icon-line circle,
+    .split__media::before {
+      animation: none !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1082,21 +1275,29 @@
           <tr><th>Rango</th><th>Nivel mínimo</th></tr>
         </thead>
         <tbody>
-          <tr><td class="rank-name"><span class="rank-emoji">🌱</span>Crypto Noob</td><td class="rank-lvl">Nivel 1</td></tr>
-          <tr><td class="rank-name"><span class="rank-emoji">🪙</span>Token Trainee</td><td class="rank-lvl">Nivel 5</td></tr>
-          <tr><td class="rank-name"><span class="rank-emoji">⛏️</span>Miner Rookie</td><td class="rank-lvl">Nivel 10</td></tr>
-          <tr><td class="rank-name"><span class="rank-emoji">📈</span>Chart Hunter</td><td class="rank-lvl">Nivel 18</td></tr>
-          <tr><td class="rank-name"><span class="rank-emoji">💎</span>Diamond Hands</td><td class="rank-lvl">Nivel 28</td></tr>
-          <tr><td class="rank-name"><span class="rank-emoji">🚀</span>Moon Chaser</td><td class="rank-lvl">Nivel 40</td></tr>
-          <tr><td class="rank-name"><span class="rank-emoji">🐋</span>Crypto Whale</td><td class="rank-lvl">Nivel 55</td></tr>
-          <tr><td class="rank-name"><span class="rank-emoji">👑</span>Blockchain God</td><td class="rank-lvl">Nivel 75</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji" aria-hidden="true"><svg class="icon-line" viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M12 10c0-3.5-2.5-6-7-6 0 4.5 2.5 7 7 7"/><path d="M12 13c0-3.2 2.3-5.5 6.4-5.5 0 4.1-2.3 6.4-6.4 6.4"/></svg></span>Crypto Noob</td><td class="rank-lvl">Nivel 1</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji" aria-hidden="true"><svg class="icon-line" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.3 14.6c.4.9 1.4 1.4 2.7 1.4 1.6 0 2.7-.7 2.7-1.9 0-2.6-5.4-1.2-5.4-3.8 0-1.2 1.1-1.9 2.7-1.9 1.3 0 2.3.5 2.7 1.4M12 7.3v1.2M12 15.5v1.2"/></svg></span>Token Trainee</td><td class="rank-lvl">Nivel 5</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji" aria-hidden="true"><svg class="icon-line" viewBox="0 0 24 24"><path d="M4 15 15 4l5 5-11 11z"/><path d="M13 6l5 5"/><path d="M4 20l4.5-4.5"/></svg></span>Miner Rookie</td><td class="rank-lvl">Nivel 10</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji" aria-hidden="true"><svg class="icon-line" viewBox="0 0 24 24"><path d="M3 18l5.5-6 4 3L20 6"/><path d="M14 6h6v6"/></svg></span>Chart Hunter</td><td class="rank-lvl">Nivel 18</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji" aria-hidden="true"><svg class="icon-line" viewBox="0 0 24 24"><path d="M4.5 9L12 3l7.5 6-7.5 12z"/><path d="M4.5 9h15M9 9l3 12M15 9l-3 12M8 3.5L4.5 9M16 3.5L19.5 9"/></svg></span>Diamond Hands</td><td class="rank-lvl">Nivel 28</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji" aria-hidden="true"><svg class="icon-line" viewBox="0 0 24 24"><path d="M12 2.5c2.5 2.3 4 5.7 4 9.3 0 2.8-.9 5.2-2.4 7.2h-3.2C8.9 17 8 14.6 8 11.8c0-3.6 1.5-7 4-9.3z"/><circle cx="12" cy="10.5" r="1.6"/><path d="M9 17.5l-2.5 3M15 17.5l2.5 3M10 20.5h4"/></svg></span>Moon Chaser</td><td class="rank-lvl">Nivel 40</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji" aria-hidden="true"><svg class="icon-line" viewBox="0 0 24 24"><path d="M3 13c1.5-3 4.5-5 8-5 5 0 9 3 10 5.5-2 .8-4 1-6 .5-1.5 3-4 4-7 3.5"/><circle cx="8" cy="11" r=".6" fill="currentColor" stroke="none"/><path d="M14 8.5c1-1 2.3-1.3 3.5-1"/></svg></span>Crypto Whale</td><td class="rank-lvl">Nivel 55</td></tr>
+          <tr><td class="rank-name"><span class="rank-emoji" aria-hidden="true"><svg class="icon-line" viewBox="0 0 24 24"><path d="M4 9l3 2 5-6 5 6 3-2-1.5 9h-13z"/><path d="M6.5 18h11"/></svg></span>Blockchain God</td><td class="rank-lvl">Nivel 75</td></tr>
         </tbody>
       </table>
     </div>
     <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 18px;">Cada salto de rango tiene su propia animación de celebración dentro del juego. El ranking global se puede filtrar por semana, mes o histórico total.</p>
 
     <div class="star-block reveal">
-      <span class="star-block__icon" aria-hidden="true">🌟</span>
+      <span class="star-block__icon" aria-hidden="true">
+        <svg class="icon-line" viewBox="0 0 46 46">
+          <path d="M23 6l4.5 12.5L40 23l-12.5 4.5L23 40l-4.5-12.5L6 23l12.5-4.5z"/>
+          <circle cx="23" cy="23" r="1.4" fill="currentColor" stroke="none"/>
+          <circle cx="35" cy="10" r="1.1" fill="currentColor" stroke="none"/>
+          <circle cx="10" cy="34" r="1.1" fill="currentColor" stroke="none"/>
+          <circle cx="36" cy="34" r="1.1" fill="currentColor" stroke="none"/>
+        </svg>
+      </span>
       <div>
         <h3>Nivel 50: tu progreso se convierte en una estrella</h3>
         <p>Cuando tu alien llega al <strong>nivel 50</strong>, no es un rango más: es una ronda completa. Tu partida vuelve a empezar de cero — conservás tu alias — y a cambio ganás <strong>1 estrella</strong>, permanente, que ya nadie te quita: es la prueba de que completaste el recorrido entero una vez.</p>
@@ -1174,18 +1375,18 @@
     <div class="reveal" style="margin-top: 56px;">
       <h3 style="font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 8px;">Escudos: tu forma de defenderte</h3>
       <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px;">Si no querés quedar expuesto mientras estás offline, comprás un escudo con tu CLK. Mientras está activo, nadie puede invadirte.</p>
-      <div class="shield-cards">
+      <div class="shield-cards reveal">
         <div class="shield-card">
           <img src="images/escudoplateado.png" alt="Escudo plateado de Crypto Alien">
-          <h4>Escudo de 3 días</h4>
+          <h4>Escudo de 12 horas</h4>
           <p>Protección estándar, ideal para uso frecuente.</p>
-          <span class="shield-dur">72 HORAS</span>
+          <span class="shield-dur">12 HORAS</span>
         </div>
         <div class="shield-card">
           <img src="images/escudodorado.png" alt="Escudo dorado de Crypto Alien">
-          <h4>Escudo de 7 días</h4>
+          <h4>Escudo de 24 horas</h4>
           <p>Protección extendida para cuando sabés que vas a estar afuera un buen rato.</p>
-          <span class="shield-dur">168 HORAS</span>
+          <span class="shield-dur">24 HORAS</span>
         </div>
       </div>
       <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 22px;">Y si te invaden, tenés <strong style="color: var(--text);">venganza</strong>: podés contraatacar directamente a quien te robó, sin esperar a que el sistema te lo proponga al azar.</p>
@@ -1235,22 +1436,30 @@
     <p class="section__lead reveal">Crypto Alien no es solo vos y tu alien: el ranking, las misiones diarias y los referidos existen para que jugar con otros valga más que jugar solo.</p>
     <div class="comm-grid reveal">
       <div class="comm-card">
-        <span class="comm-card__icon">🎯</span>
+        <span class="comm-card__icon" aria-hidden="true">
+          <svg class="icon-line" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none"/></svg>
+        </span>
         <h3>Misiones</h3>
         <p>Objetivos diarios y por hitos: taps totales, CLK acumulado, subir de nivel, comprar mejoras, mantener combo. Cada una te da recompensas extra al completarla.</p>
       </div>
       <div class="comm-card">
-        <span class="comm-card__icon">🔥</span>
+        <span class="comm-card__icon" aria-hidden="true">
+          <svg class="icon-line" viewBox="0 0 24 24"><path d="M12 3c2 3-1 4-1 6.5 0 1.4 1 2.5 2 2.5 1.3 0 2-1.2 2-2.3 2 1.4 3 3.5 3 5.5 0 3.5-2.7 6.3-6 6.3S6 18.7 6 15.2c0-3.4 2-6 4-9 .8 1.5 1 3 1.5 3.8.3-1.7.3-4.4.5-7z"/></svg>
+        </span>
         <h3>Racha diaria</h3>
         <p>Entrá todos los días y tu racha crece. Cuanto más larga, mejor la recompensa por mantenerte activo — perderla te vuelve a poner en cero.</p>
       </div>
       <div class="comm-card">
-        <span class="comm-card__icon">🤝</span>
+        <span class="comm-card__icon" aria-hidden="true">
+          <svg class="icon-line" viewBox="0 0 24 24"><path d="M8 12l-4 4a2.3 2.3 0 003.2 3.2l1.6-1.6"/><path d="M16 12l4-4a2.3 2.3 0 00-3.2-3.2l-1.6 1.6"/><path d="M9 15L15 9"/></svg>
+        </span>
         <h3>Referidos</h3>
         <p>Invitá a alguien con tu link y ganás un porcentaje extra de lo que esa persona mina. Cuanta más gente traigas, más crece tu propia economía.</p>
       </div>
       <div class="comm-card">
-        <span class="comm-card__icon">🏆</span>
+        <span class="comm-card__icon" aria-hidden="true">
+          <svg class="icon-line" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 01-10 0z"/><path d="M7 5.5H4.5A2.5 2.5 0 007 9M17 5.5h2.5A2.5 2.5 0 0117 9"/><path d="M12 14v3.5M9 20.5h6M9.5 20.5c0-1.8.8-2.6 2.5-3 1.7.4 2.5 1.2 2.5 3"/></svg>
+        </span>
         <h3>Ranking global</h3>
         <p>Tu posición se compara con la de todos los jugadores, filtrable por semana, mes o histórico. Ahí es donde se nota quién realmente juega en serio.</p>
       </div>
