@@ -58,7 +58,9 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 #resultDetail{font-size:13px;color:var(--muted);font-weight:700;max-width:300px;margin-bottom:6px}
 #resultAmount{font-family:var(--fh);font-size:26px;color:var(--red);margin-top:6px;display:none}
 
-#continueBtn{width:100%;max-width:280px;margin-top:22px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#06B6D4,var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 22px rgba(6,182,212,.35)}
+/* Mismo lenguaje visual que .claimall/.mcbtn de misiones en el
+   index.html padre (gradiente verde, texto oscuro, sombra suave). */
+#continueBtn{width:100%;max-width:280px;margin-top:22px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--green),#059669);color:#001a0a;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.25)}
 #continueBtn:active{transform:scale(.96)}
 
 #rulesOverlay{position:fixed;inset:0;background:rgba(11,10,20,.96);backdrop-filter:blur(8px);z-index:70;display:none;align-items:center;justify-content:center;padding:24px}
@@ -69,7 +71,7 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 .ruleIcon{font-size:24px;width:28px;text-align:center;flex-shrink:0}
 .ruleText{font-size:12.5px;font-weight:700;color:var(--text);line-height:1.35}
 .ruleText b{color:#06B6D4}
-#rulesOkBtn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#06B6D4,var(--purple));color:#fff;font-family:var(--fh);font-size:15px;cursor:pointer}
+#rulesOkBtn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--green),#059669);color:#001a0a;font-family:var(--fh);font-size:15px;cursor:pointer}
 #rulesOkBtn:active{transform:scale(.96)}
 
 #loadingScreen{position:fixed;inset:0;background:var(--bg);z-index:80;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:24px}
