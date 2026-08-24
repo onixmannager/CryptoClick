@@ -286,7 +286,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
 /* COMBO */
 #comboa{height:28px;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px}
-#combopill{background:linear-gradient(135deg,var(--orange),var(--pink));border-radius:20px;padding:4px 14px;font-family:var(--fh);font-size:15px;color:white;opacity:0;transform:scale(.8);transition:opacity .2s,transform .2s;box-shadow:0 0 16px rgba(255,195,105,.5)}
+#combopill{background:linear-gradient(135deg,#10B981,var(--pink));border-radius:20px;padding:4px 14px;font-family:var(--fh);font-size:15px;color:white;opacity:0;transform:scale(.8);transition:opacity .2s,transform .2s;box-shadow:0 0 16px rgba(16,185,129,.5)}
 #combopill.show{opacity:1;transform:scale(1)}
 #boostpill{background:linear-gradient(135deg,#C8FF4D,#FFC369);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:800;color:#1a0a00;opacity:0;transition:opacity .3s}
 #boostpill.show{opacity:1}
@@ -310,7 +310,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .dbinfo{flex:1;text-align:left}
 .dbtitle{font-size:13px;font-weight:800;color:var(--yellow)}
 .dbsub{font-size:11px;color:var(--muted);font-weight:700}
-.dbbadge{background:linear-gradient(135deg,var(--yellow),var(--orange));border-radius:10px;padding:6px 12px;font-size:12px;font-weight:800;color:#1a0a00;flex-shrink:0}
+.dbbadge{background:linear-gradient(135deg,var(--yellow),#059669);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:800;color:#001a0a;flex-shrink:0}
 
 /* SCREENS */
 .screen{display:none;padding:0 16px 16px}
@@ -339,14 +339,14 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #screen-mine #miningsec{flex-shrink:1;min-height:0}
 #screen-mine #ensec{flex:0 1 auto;min-height:0}
 #screen-mine #dailysec{flex:0 1 auto;min-height:0}
-.sh{font-family:var(--fh);font-size:24px;background:linear-gradient(135deg,var(--yellow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px}
+.sh{font-family:var(--fh);font-size:24px;background:linear-gradient(135deg,var(--yellow),#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px}
 .ss{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:14px}
 
 /* CLAIM ALL / BUY ALL */
 .claimall{width:100%;background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:12px;padding:11px 14px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:13px;color:#001a0a;margin-bottom:12px;transition:opacity .2s,transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .claimall:disabled{opacity:.35;cursor:not-allowed;background:var(--card2);color:var(--muted);box-shadow:none}
 .claimall:not(:disabled):active{transform:scale(.97)}
-#upslist .claimall{background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a0a00}
+#upslist .claimall{background:linear-gradient(135deg,var(--yellow),#059669);color:#001a0a}
 
 /* UPGRADES */
 .uc{background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:16px;padding:12px 13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;transition:border-color .25s,transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.25),0 1px 0 rgba(255,255,255,.1) inset}
@@ -360,7 +360,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .ulvl{font-size:10px;color:var(--cyan);font-weight:700}
 .ulvlb{height:3px;background:var(--card2);border-radius:3px;margin-top:4px;overflow:hidden}
 .ulvlf{height:100%;background:linear-gradient(90deg,var(--purple),var(--pink));border-radius:3px;transition:width .4s}
-.ubtn{background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;color:#1a0a00;flex-shrink:0;transition:opacity .2s,transform .1s;white-space:nowrap}
+.ubtn{background:linear-gradient(135deg,var(--yellow),#059669);border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;color:#001a0a;flex-shrink:0;transition:opacity .2s,transform .1s;white-space:nowrap}
 .ubtn:disabled{opacity:.35;cursor:not-allowed;background:var(--card2);color:var(--muted)}
 .ubtn:not(:disabled):active{transform:scale(.93)}
 
@@ -428,7 +428,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #noeov.show{display:flex}
 #noebox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease}
 @keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
-#noebox h3{font-family:var(--fh);font-size:22px;color:var(--orange);margin-bottom:8px}
+#noebox h3{font-family:var(--fh);font-size:22px;color:#10B981;margin-bottom:8px}
 #noebox p{color:var(--muted);font-size:13px;margin-bottom:16px}
 .obbtn{width:100%;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
 
@@ -498,7 +498,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #rutitle{font-family:var(--fh);font-size:32px;color:var(--yellow);margin-bottom:4px}
 #runame{font-family:var(--fh);font-size:20px;color:var(--cyan);margin-bottom:6px}
 #rubonus{font-size:13px;color:var(--muted);margin-bottom:22px}
-#ruclose{background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;padding:14px 44px;cursor:pointer;font-family:var(--fh);font-size:20px;color:#1a0a00;box-shadow:0 4px 20px rgba(255,195,105,.4)}
+#ruclose{background:linear-gradient(135deg,var(--yellow),#059669);border:none;border-radius:14px;padding:14px 44px;cursor:pointer;font-family:var(--fh);font-size:20px;color:#001a0a;box-shadow:0 4px 20px rgba(5,150,105,.4)}
 #ruskip{display:none}
 #rubox.has-video #ruskip{
   display:block;
@@ -531,7 +531,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #starmaxbox .aic{font-size:44px;margin-bottom:8px}
 #starmaxbox h3{font-family:var(--fh);font-size:22px;color:var(--yellow);margin-bottom:8px}
 #starmaxbox p{color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.5}
-#starmaxclose{width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:12px;color:#1a0a00;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
+#starmaxclose{width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),#059669);border:none;border-radius:12px;color:#001a0a;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
 
 
 #dailyov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;align-items:flex-end;justify-content:center}
@@ -544,7 +544,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .dday.done{border-color:var(--green);color:var(--green);background:rgba(200,255,77,.1)}
 .dday.today{border-color:var(--yellow);color:var(--yellow);background:rgba(255,195,105,.1);animation:pulse .8s ease-in-out infinite}
 .dday .ddv{font-family:var(--fh);font-size:13px;color:inherit;margin-bottom:1px}
-#dailyclaim{width:100%;padding:14px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:20px;color:#1a0a00;cursor:pointer;box-shadow:0 4px 20px rgba(255,195,105,.3)}
+#dailyclaim{width:100%;padding:14px;background:linear-gradient(135deg,var(--yellow),#059669);border:none;border-radius:14px;font-family:var(--fh);font-size:20px;color:#001a0a;cursor:pointer;box-shadow:0 4px 20px rgba(5,150,105,.3)}
 #dailyclaim:disabled{opacity:.4;cursor:not-allowed}
 #dailyclose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
 
@@ -607,7 +607,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #aliasinp{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;color:white;font-family:var(--fb);font-weight:800;font-size:15px;text-align:center;outline:none;margin-bottom:6px}
 #aliasinp:focus{border-color:rgba(255,195,105,.5)}
 #aliaserr{font-size:11px;color:var(--red);font-weight:800;min-height:14px;margin-bottom:10px}
-#aliasgo{width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:17px;color:#1a0a00;cursor:pointer}
+#aliasgo{width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),#059669);border:none;border-radius:14px;font-family:var(--fh);font-size:17px;color:#001a0a;cursor:pointer}
 #aliasskip{width:100%;padding:10px;background:none;border:none;font-family:var(--fb);font-weight:700;font-size:11px;color:var(--muted);text-decoration:underline;cursor:pointer;margin-top:8px}
 
 /* STREAK FIRE */
@@ -631,7 +631,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #updateBanner .ubIcon{font-size:44px;display:block;margin-bottom:8px}
 #updateBanner h3{font-family:var(--fh);font-size:24px;color:var(--yellow);margin-bottom:6px}
 #updateBanner .ubText{color:var(--muted);font-size:13px;font-weight:700;margin-bottom:18px;line-height:1.4}
-#updateBanner .ubBtn{width:100%;padding:14px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:14px;font-family:var(--fh);font-size:18px;color:#1a0a00;cursor:pointer;box-shadow:0 4px 20px rgba(255,195,105,.3)}
+#updateBanner .ubBtn{width:100%;padding:14px;background:linear-gradient(135deg,var(--yellow),#059669);border:none;border-radius:14px;font-family:var(--fh);font-size:18px;color:#001a0a;cursor:pointer;box-shadow:0 4px 20px rgba(5,150,105,.3)}
 #updateBanner .ubBtn:disabled{opacity:.6;cursor:not-allowed}
 #updateBanner .ubClose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:8px}
 
@@ -1156,7 +1156,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
       <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:2px;margin-bottom:12px">🗺️ CÓMO MANTENERTE AL DÍA</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--orange));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#1a0a00;flex-shrink:0">1</div>
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#059669);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#001a0a;flex-shrink:0">1</div>
           <div style="font-size:12px;color:rgba(255,255,255,.8)">Sigue minando $CLK en el juego</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
