@@ -839,7 +839,6 @@
   @media (max-width: 760px) {
     .cards--3, .cards--5, .cards--2 { grid-template-columns: 1fr; }
     .hero__signal { display: none; }
-    .frame__hud { display: none; }
     .section { padding: 80px 0; }
     .footer__inner { flex-direction: column; }
 
@@ -1050,123 +1049,12 @@
   }
   .card--violet:hover:not(.card--pending) { border-color: rgba(184,92,255,0.4); }
 
-  /* ============================================================
-     FOTOGRAMAS FUERA DEL HERO
-     Cada imagen suelta de la página (cómo funciona, offline,
-     invasión, escudos, ruleta, arcade) deja de ser una foto fija:
-     se comporta como un fotograma de video que hace scrub con el
-     scroll, igual que el hero, pero cada una con su propio
-     recorrido — no hay time-based animation, todo se deriva de
-     --p (0→1), que el <script> escribe según cuánto cruzó ESA
-     imagen en particular por el viewport.
-     En --p:0 (estado inicial, sin JS o con prefers-reduced-motion)
-     el resultado es idéntico a la imagen de siempre: no se rompe
-     nada, solo no hay movimiento.
-     ============================================================ */
-  .frame {
-    position: relative;
-    display: inline-block;
-    max-width: 100%;
-    line-height: 0;
-    --p: 0;
-    --frame-accent: var(--lime);
-  }
-  .frame--violet { --frame-accent: var(--violet); }
-  .frame--amber  { --frame-accent: var(--amber); }
-
-  .frame__stage {
-    display: inline-block;
-    max-width: 100%;
-    line-height: 0;
-    transform:
-      scale(calc(1 + 0.05 * var(--p)))
-      translate(calc(var(--p) * -14px), calc(var(--p) * -10px));
-    will-change: transform;
-  }
-
-  /* Visor tipo cámara: cuatro esquinas sueltas justo afuera del
-     borde de la imagen, como un marco apuntando al sujeto */
-  .frame__hud {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 2;
-    opacity: 0;
-    transition: opacity 0.5s ease 0.25s;
-  }
-  .split.is-visible .frame__hud { opacity: 1; }
-  .frame__corner {
-    position: absolute;
-    width: 16px; height: 16px;
-    border: 2px solid var(--frame-accent);
-    opacity: 0.5;
-  }
-  .frame__corner--tl { top: -7px; left: -7px; border-right: none; border-bottom: none; }
-  .frame__corner--tr { top: -7px; right: -7px; border-left: none; border-bottom: none; }
-  .frame__corner--bl { bottom: -7px; left: -7px; border-right: none; border-top: none; }
-  .frame__corner--br { bottom: -7px; right: -7px; border-left: none; border-top: none; }
-
-  /* Badge tipo OSD de reproductor: punto "grabando" + avance de
-     ESTE fotograma en particular (no del scroll general) */
-  .frame__badge {
-    position: absolute;
-    top: 10px; left: 10px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 9px;
-    font-size: 0.62rem;
-    letter-spacing: 0.05em;
-    color: var(--frame-accent);
-    background: rgba(11,10,18,0.65);
-    border: 1px solid rgba(232,229,250,0.14);
-    border-radius: 2px;
-    backdrop-filter: blur(4px);
-    white-space: nowrap;
-  }
-  .frame__dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--frame-accent);
-    animation: pulse 2.4s ease-in-out infinite;
-  }
-
-  /* Barra inferior tipo seekbar de video */
-  .frame__bar {
-    position: absolute;
-    left: 10px; right: 10px; bottom: 10px;
-    height: 3px;
-    background: rgba(232,229,250,0.14);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .frame__bar-fill {
-    display: block;
-    height: 100%;
-    width: 100%;
-    background: var(--frame-accent);
-    transform: scaleX(var(--p));
-    transform-origin: left;
-  }
-
-  /* Compacto: para los escudos (72px). Sin HUD — solo un giro
-     sutil, alternado entre los dos, para no saturar una tarjeta
-     tan chica con marcos y contadores */
-  .frame--compact { --dir: 1; margin-bottom: 14px; }
-  .shield-card:nth-child(2) .frame--compact { --dir: -1; }
-  .frame--compact .frame__stage {
-    transform:
-      scale(calc(1 + 0.06 * var(--p)))
-      rotate(calc(var(--dir) * var(--p) * 8deg));
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .star-block__icon .icon-line,
     .star-block__icon .icon-line circle,
     .split__media::before {
       animation: none !important;
     }
-    .frame__hud { display: none; }
   }
 </style>
 </head>
@@ -1324,19 +1212,7 @@
         </div>
       </div>
       <div class="split__media">
-        <div class="frame">
-          <div class="frame__stage">
-            <img src="images/aliensaludamonedaarriba.png" alt="El alien de Crypto Alien sosteniendo una moneda CLK dorada">
-          </div>
-          <div class="frame__hud" aria-hidden="true">
-            <span class="frame__corner frame__corner--tl"></span>
-            <span class="frame__corner frame__corner--tr"></span>
-            <span class="frame__corner frame__corner--bl"></span>
-            <span class="frame__corner frame__corner--br"></span>
-            <span class="frame__badge mono"><span class="frame__dot"></span>FOTOGRAMA · <span class="frame__pct">00</span>%</span>
-            <span class="frame__bar"><span class="frame__bar-fill"></span></span>
-          </div>
-        </div>
+        <img src="images/aliensaludamonedaarriba.png" alt="El alien de Crypto Alien sosteniendo una moneda CLK dorada">
       </div>
     </div>
   </div>
@@ -1346,19 +1222,7 @@
   <div class="container">
     <div class="split split--reverse split--violet reveal">
       <div class="split__media">
-        <div class="frame frame--violet">
-          <div class="frame__stage">
-            <img src="images/alienmeditacion.png" alt="El alien en posición de meditación, representando el minado en segundo plano">
-          </div>
-          <div class="frame__hud" aria-hidden="true">
-            <span class="frame__corner frame__corner--tl"></span>
-            <span class="frame__corner frame__corner--tr"></span>
-            <span class="frame__corner frame__corner--bl"></span>
-            <span class="frame__corner frame__corner--br"></span>
-            <span class="frame__badge mono"><span class="frame__dot"></span>FOTOGRAMA · <span class="frame__pct">00</span>%</span>
-            <span class="frame__bar"><span class="frame__bar-fill"></span></span>
-          </div>
-        </div>
+        <img src="images/alienmeditacion.png" alt="El alien en posición de meditación, representando el minado en segundo plano">
       </div>
       <div>
         <p class="eyebrow">&gt; Señal_01.1 // Minado offline</p>
@@ -1472,19 +1336,7 @@
         <p style="color: var(--text-dim); font-size: 0.94rem;">El objetivo se elige entre otros jugadores activos en tu mismo rango de nivel, para que la pelea sea pareja. Perder no te quita nada — solo no ganás el robo.</p>
       </div>
       <div class="split__media">
-        <div class="frame frame--violet">
-          <div class="frame__stage">
-            <img src="images/invasion.png" alt="Logo del modo Invasión de Crypto Alien">
-          </div>
-          <div class="frame__hud" aria-hidden="true">
-            <span class="frame__corner frame__corner--tl"></span>
-            <span class="frame__corner frame__corner--tr"></span>
-            <span class="frame__corner frame__corner--bl"></span>
-            <span class="frame__corner frame__corner--br"></span>
-            <span class="frame__badge mono"><span class="frame__dot"></span>FOTOGRAMA · <span class="frame__pct">00</span>%</span>
-            <span class="frame__bar"><span class="frame__bar-fill"></span></span>
-          </div>
-        </div>
+        <img src="images/invasion.png" alt="Logo del modo Invasión de Crypto Alien">
       </div>
     </div>
 
@@ -1525,21 +1377,13 @@
       <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px;">Si no querés quedar expuesto mientras estás offline, comprás un escudo con tu CLK. Mientras está activo, nadie puede invadirte.</p>
       <div class="shield-cards reveal">
         <div class="shield-card">
-          <div class="frame frame--compact">
-            <div class="frame__stage">
-              <img src="images/escudoplateado.png" alt="Escudo plateado de Crypto Alien">
-            </div>
-          </div>
+          <img src="images/escudoplateado.png" alt="Escudo plateado de Crypto Alien">
           <h4>Escudo de 12 horas</h4>
           <p>Protección estándar, ideal para uso frecuente.</p>
           <span class="shield-dur">12 HORAS</span>
         </div>
         <div class="shield-card">
-          <div class="frame frame--compact">
-            <div class="frame__stage">
-              <img src="images/escudodorado.png" alt="Escudo dorado de Crypto Alien">
-            </div>
-          </div>
+          <img src="images/escudodorado.png" alt="Escudo dorado de Crypto Alien">
           <h4>Escudo de 24 horas</h4>
           <p>Protección extendida para cuando sabés que vas a estar afuera un buen rato.</p>
           <span class="shield-dur">24 HORAS</span>
@@ -1554,19 +1398,7 @@
   <div class="container">
     <div class="split split--reverse split--amber reveal">
       <div class="split__media">
-        <div class="frame frame--amber">
-          <div class="frame__stage">
-            <img src="images/ruleta.png" alt="Ruleta de premios de Crypto Alien">
-          </div>
-          <div class="frame__hud" aria-hidden="true">
-            <span class="frame__corner frame__corner--tl"></span>
-            <span class="frame__corner frame__corner--tr"></span>
-            <span class="frame__corner frame__corner--bl"></span>
-            <span class="frame__corner frame__corner--br"></span>
-            <span class="frame__badge mono"><span class="frame__dot"></span>FOTOGRAMA · <span class="frame__pct">00</span>%</span>
-            <span class="frame__bar"><span class="frame__bar-fill"></span></span>
-          </div>
-        </div>
+        <img src="images/ruleta.png" alt="Ruleta de premios de Crypto Alien">
       </div>
       <div>
         <p class="eyebrow">&gt; Señal_03 // Modo Ruleta</p>
@@ -1589,19 +1421,7 @@
         </div>
       </div>
       <div class="split__media">
-        <div class="frame">
-          <div class="frame__stage">
-            <img src="images/arcade.png" alt="Máquina arcade retro de Crypto Alien" style="max-height: 260px;">
-          </div>
-          <div class="frame__hud" aria-hidden="true">
-            <span class="frame__corner frame__corner--tl"></span>
-            <span class="frame__corner frame__corner--tr"></span>
-            <span class="frame__corner frame__corner--bl"></span>
-            <span class="frame__corner frame__corner--br"></span>
-            <span class="frame__badge mono"><span class="frame__dot"></span>FOTOGRAMA · <span class="frame__pct">00</span>%</span>
-            <span class="frame__bar"><span class="frame__bar-fill"></span></span>
-          </div>
-        </div>
+        <img src="images/arcade.png" alt="Máquina arcade retro de Crypto Alien" style="max-height: 260px;">
       </div>
     </div>
   </div>
@@ -1949,7 +1769,6 @@
   var signalReadout = document.getElementById('signalReadout');
   var scrollCue = document.getElementById('scrollCue');
   var slots = Array.prototype.slice.call(document.querySelectorAll('[data-slot]'));
-  var sceneFrames = Array.prototype.slice.call(document.querySelectorAll('.frame'));
 
   var activePhotoIdx = 0;
   function showFrame(frameIdx) {
@@ -1983,29 +1802,6 @@
     });
   }
 
-  /* ---------- Fotogramas de scroll fuera del hero ---------- */
-  // Progreso propio de CADA fotograma (0→1): 0 cuando recién asoma
-  // por abajo del viewport, 1 cuando ya salió por completo arriba.
-  // Es independiente del progreso del hero — cada imagen "reproduce"
-  // su propio recorrido a medida que cruza la pantalla, y da 0.5
-  // justo cuando queda centrada, así el movimiento se siente
-  // intencional y no un cálculo arbitrario.
-  function frameProgress(el) {
-    var rect = el.getBoundingClientRect();
-    var vh = window.innerHeight;
-    var raw = (vh - rect.top) / (vh + rect.height);
-    return Math.min(Math.max(raw, 0), 1);
-  }
-
-  function updateSceneFrames() {
-    sceneFrames.forEach(function (el) {
-      var p = frameProgress(el);
-      el.style.setProperty('--p', p.toFixed(4));
-      var pct = el.querySelector('.frame__pct');
-      if (pct) pct.textContent = String(Math.round(p * 100)).padStart(2, '0');
-    });
-  }
-
   var ticking = false;
   function onScroll() {
     if (!ticking) {
@@ -2015,7 +1811,6 @@
 
         showFrame(frameIdx);
         updateSlots(frameIdx);
-        if (!prefersReducedMotion) { updateSceneFrames(); }
 
         signalReadout.textContent = 'SEÑAL: ' + Math.round(progress * 100) + '% DECODIFICADA';
         scrollCue.classList.toggle('is-hidden', progress > 0.03);
@@ -2028,7 +1823,6 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll, { passive: true });
   updateSlots(0);
-  if (!prefersReducedMotion) { updateSceneFrames(); }
 })();
 </script>
 
