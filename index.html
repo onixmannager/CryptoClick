@@ -1863,25 +1863,44 @@ function warnFirestoreSetup(e){
 function saveKeyForUid(uid){return uid?SAVE_KEY_PREFIX+uid:SAVE_KEY;}
 function parseSave(raw){if(!raw)return null;try{return sanitize(JSON.parse(raw));}catch(e){return null;}}
 function hasRealProgress(d){return !!d&&((d.totalClk||0)>0||(d.totalTaps||0)>0||(d.upsCount||0)>0||(d.lvl||1)>1);}
+// Marca "ya hubo un login en este dispositivo/navegador". Se planta la
+// primera vez (y solo la primera vez) que readLocalCandidate() resuelve
+// con éxito para CUALQUIER uid, sea por su propio save o por la migración
+// legacy de abajo. Ver el porqué en el comentario de DEVICE_CLAIMED_KEY.
+const DEVICE_CLAIMED_KEY='cck4_device_claimed';
 function readLocalCandidate(uid,allowLegacy){
   try{
+    const deviceAlreadyClaimed=(()=>{try{return localStorage.getItem(DEVICE_CLAIMED_KEY)==='1';}catch(e){return false;}})();
     if(uid){
       const userRaw=localStorage.getItem(saveKeyForUid(uid));
       const userData=parseSave(userRaw);
-      if(userData)return{raw:userRaw,data:userData,key:saveKeyForUid(uid),legacy:false};
+      if(userData){
+        try{localStorage.setItem(DEVICE_CLAIMED_KEY,'1');}catch(e){}
+        return{raw:userRaw,data:userData,key:saveKeyForUid(uid),legacy:false};
+      }
     }
-    if(allowLegacy){
+    // BUGFIX (regresión): la migración legacy de abajo (clave 'cck4' sin uid,
+    // de versiones anteriores a que existiera saveKeyForUid()) se consumía
+    // "una sola vez", pero esa única vez la reclamaba SIEMPRE la primera
+    // cuenta que iniciara sesión después de guardarse ahí -sin importar de
+    // quién fueran realmente esos datos-. En un dispositivo compartido (o
+    // simplemente al cambiar de cuenta de Google en el mismo navegador),
+    // eso significaba que una cuenta B totalmente nueva, sin relación
+    // alguna con A, heredaba el nivel y los $CLK minados de A: es
+    // exactamente el bug de "entro con una cuenta nueva y carga los datos
+    // de la anterior" que se reportó de nuevo.
+    // Fix real: la migración legacy solo puede ocurrir mientras el
+    // dispositivo nunca haya visto un login completado antes (deviceAlreadyClaimed
+    // === false). Así el progreso legítimo de quien viene de una versión
+    // vieja SÍ se migra la primera vez que entra tras la actualización,
+    // pero cualquier cuenta que inicie sesión después -en ese mismo
+    // dispositivo- ya no encuentra la puerta abierta para apropiárselo.
+    if(allowLegacy&&!deviceAlreadyClaimed){
       const legacyRaw=localStorage.getItem(SAVE_KEY);
       const legacyData=parseSave(legacyRaw);
       if(legacyData){
-        // La clave legacy 'cck4' (sin uid) es de una versión anterior a que existiera
-        // saveKeyForUid(). Se consume una sola vez para migrar su progreso al uid que
-        // la reclama aquí. Si no se borra, se queda flotando en el navegador para
-        // siempre y el PRÓXIMO usuario "nuevo" (sin datos propios en cck4_user_<uid>
-        // ni en Firestore) que inicie sesión en ese mismo dispositivo la hereda sin
-        // ninguna relación con esa cuenta: eso es lo que se percibía como "entro con
-        // una cuenta nueva y carga datos de otra persona".
         try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+        try{localStorage.setItem(DEVICE_CLAIMED_KEY,'1');}catch(e){}
         return{raw:legacyRaw,data:legacyData,key:SAVE_KEY,legacy:true};
       }
     }
@@ -2788,13 +2807,16 @@ function resetGameKeepingAliasAndStars(newStars){
   // 1) Limpieza de localStorage: TODAS las claves de este juego (prefijo
   //    cck4), no solo el save principal, para que no quede ningún resto
   //    de progreso viejo (referidos usados, misiones sociales, etc). No se
-  //    toca 'cck4_muted' porque es una preferencia de audio del
-  //    dispositivo, no progreso del jugador.
+  //    tocan 'cck4_muted' (preferencia de audio del dispositivo, no
+  //    progreso del jugador) ni 'cck4_device_claimed' (marca anti-robo-de-
+  //    cuenta de readLocalCandidate(): borrarla aquí reabriría la puerta a
+  //    que la migración legacy le regale este mismo progreso reiniciado a
+  //    la siguiente cuenta que entre en este dispositivo).
   try{
     const toRemove=[];
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
-      if(k&&k.indexOf('cck4')===0&&k!=='cck4_muted')toRemove.push(k);
+      if(k&&k.indexOf('cck4')===0&&k!=='cck4_muted'&&k!==DEVICE_CLAIMED_KEY)toRemove.push(k);
     }
     toRemove.forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});
   }catch(e){ console.error('No se pudo limpiar localStorage en el reinicio por estrella:',e); }
@@ -3343,6 +3365,7 @@ function playIntroVideo(onDone){
 function skipIntroVideo(){ if(window.__skipIntroVideo)window.__skipIntroVideo(); }
 
 let _gameStarted=false;
+let _gameStartedUid=null; // uid para el que _gameStarted=true realmente cargó datos (ver startGameForUser)
 // ─────────────────────────────────────────────────────────────────────
 // ESCUDO DE INVASIÓN — comprado y consultado desde el index padre.
 // Toda la regla de negocio real (coste por nivel, duración, qué tipo se
@@ -3765,8 +3788,28 @@ function fmtShieldCountdown(ms){
 }
 
 window.startGameForUser=async function(user){
-  if(_gameStarted)return; // evita doble init si onAuthStateChanged dispara más de una vez
+  if(_gameStarted){
+    if(_gameStartedUid===user.uid)return; // mismo usuario, onAuthStateChanged repitió el disparo: se ignora, como siempre
+    // BUGFIX (bug reportado de nuevo: "inicio sesión con otra cuenta y carga
+    // los datos de la anterior, con su nivel y sus tokens minados"). Antes
+    // _gameStarted era un simple true/false: una vez puesto a true para la
+    // primera cuenta, CUALQUIER disparo posterior de onAuthStateChanged
+    // -incluido el de una cuenta REALMENTE DISTINTA que el usuario elige sin
+    // pasar por logoutUser() (p.ej. cambiar de cuenta de Google en la misma
+    // pestaña, sin cerrar sesión primero)- hacía return aquí mismo, sin
+    // cargar nada nuevo. El jugador quedaba viendo (y, peor, guardando bajo
+    // el uid de la cuenta VIEJA) el nivel y los $CLK de la sesión anterior,
+    // mientras Firebase Auth ya reportaba estar autenticado como la cuenta
+    // nueva. Recargar la página entera -mismo mecanismo que ya usa
+    // logoutUser()- es la forma segura de garantizar que TODO el estado en
+    // memoria (S, timers, listeners, _gameStarted mismo) arranca limpio
+    // para el uid correcto, en vez de intentar remendarlo en caliente.
+    console.warn('[auth] Cambio de cuenta detectado en caliente (de',_gameStartedUid,'a',user.uid,'): recargando para evitar mezclar progreso entre cuentas.');
+    window.location.reload();
+    return;
+  }
   _gameStarted=true;
+  _gameStartedUid=user.uid;
   await loadCloud(user.uid);
   window.__fbUser=user;
   // BUGFIX: antes esta llamada era "fire-and-forget" (sin await) para no retrasar
