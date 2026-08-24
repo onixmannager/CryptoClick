@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Invasión — Crypto Alien Click</title>
 
-<meta name="theme-color" content="#0b0a14">
+<meta name="theme-color" content="#0B0A12">
 
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16.png">
@@ -16,23 +16,23 @@
 <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.2/dist/mux-player.js"></script>
 <style>
 :root{
-  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;--card3:#252342;
-  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
-  --blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--red:#EF4444;
-  --text:#fff;--muted:#6B68A0;--border:rgba(255,255,255,0.07);
+  --bg:#0B0A12;--card:#16141F;--card2:#1c1a29;--card3:#252342;
+  --yellow:#FFC369;--orange:#FFC369;--pink:#B85CFF;--purple:#B85CFF;
+  --blue:#3B82F6;--cyan:#06B6D4;--green:#C8FF4D;--red:#EF4444;
+  --text:#EDEBFA;--muted:#918EAA;--border:rgba(232, 229, 250, 0.10);
   --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
   --glass:rgba(10,12,22,.42);--glass2:rgba(12,14,26,.5);
   --glass-border:rgba(255,255,255,.14);--glass-blur:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{width:100%;min-height:100vh;background-color:#0b0a14;background-image:linear-gradient(180deg,rgba(6,6,14,.275) 0%,rgba(8,7,18,.36) 45%,rgba(9,8,20,.46) 100%),url('images/fondoinvasion.jpg');background-position:center top;background-size:contain;background-repeat:no-repeat;background-attachment:fixed}
+html{width:100%;min-height:100vh;background-color:#0B0A12;background-image:linear-gradient(180deg,rgba(6,6,14,.275) 0%,rgba(8,7,18,.36) 45%,rgba(9,8,20,.46) 100%),url('images/fondoinvasion.jpg');background-position:center top;background-size:contain;background-repeat:no-repeat;background-attachment:fixed}
 body{width:100%;min-height:100vh;background:transparent;color:var(--text);font-family:var(--fb);overflow-x:hidden;overflow-y:auto;scrollbar-width:none;display:flex;justify-content:center}
 html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
 
 #blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.1;animation:blobF 10s ease-in-out infinite alternate}
-.b1{width:500px;height:500px;background:#8B5CF6;top:-150px;left:-150px}
-.b2{width:400px;height:400px;background:#FF3CAC;bottom:-100px;right:-100px;animation-delay:-4s}
+.b1{width:500px;height:500px;background:#B85CFF;top:-150px;left:-150px}
+.b2{width:400px;height:400px;background:#FFC369;bottom:-100px;right:-100px;animation-delay:-4s}
 .b3{width:300px;height:300px;background:#06B6D4;top:40%;left:60%;animation-delay:-7s}
 @keyframes blobF{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,30px) scale(1.1)}}
 
@@ -54,7 +54,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 .panel{background:var(--glass);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:18px;padding:18px}
 
 /* ESCUDO */
-#shieldPanel.active{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.08)}
+#shieldPanel.active{border-color:rgba(200,255,77,.5);background:rgba(200,255,77,.08)}
 #shieldPanel.inactive{border-color:rgba(239,68,68,.35)}
 .shieldRow{display:flex;align-items:center;gap:12px}
 .shieldIcon{font-size:32px}
@@ -72,13 +72,13 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 .shieldBuyBtnImg{display:block;width:28px;height:28px;object-fit:contain;margin:0 auto 4px}
 
 /* BOTÓN INVASIÓN */
-#invadeBtn{width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:18px;cursor:pointer;box-shadow:0 8px 24px rgba(255,60,172,.35)}
+#invadeBtn{width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:18px;cursor:pointer;box-shadow:0 8px 24px rgba(184,92,255,.35)}
 #invadeBtn:active{transform:scale(.97)}
 #invadeBtn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
 #invadeHint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;font-weight:700}
 
 /* VENGANZA */
-#revengePanel{display:none;border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.08)}
+#revengePanel{display:none;border-color:rgba(255,195,105,.5);background:rgba(255,195,105,.08)}
 #revengePanel.show{display:block}
 .revengeRow{display:flex;align-items:center;gap:12px}
 .revengeIcon{font-size:28px}
@@ -141,7 +141,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center}
 #toast.show{opacity:1}
 
-#loading{position:fixed;inset:0;background:#0b0a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s}
+#loading{position:fixed;inset:0;background:#0B0A12;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s}
 #loading.hide{opacity:0;pointer-events:none}
 /* ── Imagen de carga de Invasión — reemplaza por completo al antiguo
    texto/icono "👾 INVASIÓN" de #loading (eliminado a propósito, sin
@@ -154,7 +154,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
    object-fit:contain -misma proporción 9:16 sin recortar, centrada
    con barras a los lados- igual que #introvideo. Si la imagen no
    llega a cargar (ver JS), #loading se ve vacío sobre el fondo
-   #0b0a14 — es el comportamiento pedido explícitamente, sin texto de
+   #0B0A12 — es el comportamiento pedido explícitamente, sin texto de
    respaldo. ── */
 #loadingimg{display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:99999}
 #loadingimg.show{display:block}
@@ -186,7 +186,7 @@ main{padding:12px 16px 24px;display:flex;flex-direction:column;gap:14px}
   #introvideo{width:100%;height:100%;object-fit:contain}
   /* Misma lógica que el video: en ESCRITORIO se mantiene la proporción
      vertical 9:16 completa de la imagen sin recortarla -object-fit:contain-,
-     centrada sobre el fondo #0b0a14 de #loading con barras a los lados,
+     centrada sobre el fondo #0B0A12 de #loading con barras a los lados,
      en vez de cover (que recortaría los laterales en pantallas anchas). */
   #loadingimg{object-fit:contain}
 }
