@@ -614,6 +614,102 @@
     border-radius: 20px;
   }
 
+  /* Sistema de estrellas (nivel 50) */
+  .star-block {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    align-items: flex-start;
+    border: 1px solid rgba(255,195,105,0.28);
+    background: linear-gradient(135deg, var(--amber-dim), transparent 70%);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+    margin-top: 40px;
+  }
+  .star-block__icon {
+    font-size: 2.1rem;
+    line-height: 1;
+    padding-top: 2px;
+  }
+  .star-block h3 { font-family: var(--font-display); font-size: 1.15rem; margin-bottom: 10px; color: var(--amber); }
+  .star-block p { color: var(--text-dim); font-size: 0.92rem; }
+  .star-block p + p { margin-top: 10px; }
+  .star-block strong { color: var(--text); }
+  .star-progress { display: flex; gap: 6px; margin-top: 18px; flex-wrap: wrap; }
+  .star-progress span {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,195,105,0.35);
+    border-radius: 50%;
+    color: var(--amber);
+    opacity: 0.55;
+  }
+  .star-progress span.filled { opacity: 1; background: var(--amber-dim); }
+  .star-progress-label { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim); margin-top: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Roadmap / hoja de ruta */
+  .roadmap { position: relative; max-width: 900px; margin-top: 56px; }
+  .roadmap::before {
+    content: '';
+    position: absolute;
+    left: 21px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: linear-gradient(180deg, var(--lime), var(--violet) 55%, var(--amber) 85%, var(--border) 100%);
+  }
+  .rm-phase { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 22px; padding-bottom: 44px; }
+  .rm-phase:last-child { padding-bottom: 0; }
+  .rm-phase__dot {
+    position: relative;
+    z-index: 1;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .rm-phase--done .rm-phase__dot { border-color: var(--lime); color: var(--lime); background: var(--lime-dim); }
+  .rm-phase--now .rm-phase__dot { border-color: var(--lime); color: var(--lime); background: var(--lime-dim); box-shadow: 0 0 0 4px rgba(200,255,77,0.12); }
+  .rm-phase--future .rm-phase__dot { color: var(--violet); border-color: rgba(184,92,255,0.4); }
+  .rm-phase--airdrop .rm-phase__dot { color: var(--amber); border-color: rgba(255,195,105,0.5); }
+  .rm-phase--web3 .rm-phase__dot { color: var(--text-dim); border-style: dashed; }
+  .rm-phase__body { padding-top: 4px; }
+  .rm-phase__meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .rm-phase__when { font-family: var(--font-mono); font-size: 0.74rem; color: var(--lime); text-transform: uppercase; letter-spacing: 0.05em; }
+  .rm-phase--web3 .rm-phase__when { color: var(--text-dim); }
+  .rm-phase__badge {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid var(--border-strong);
+    color: var(--text-dim);
+  }
+  .rm-phase--now .rm-phase__badge { color: var(--lime); border-color: rgba(200,255,77,0.4); background: var(--lime-dim); }
+  .rm-phase h3 { font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 8px; }
+  .rm-phase p { color: var(--text-dim); font-size: 0.92rem; max-width: 620px; }
+  .rm-phase__divider {
+    grid-column: 1 / -1;
+    margin: 8px 0 28px;
+    padding-top: 26px;
+    border-top: 1px dashed var(--border-strong);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
   /* Responsive */
   @media (max-width: 880px) {
     .nav__links { display: none; }
@@ -673,6 +769,7 @@
       <a href="#modos">Modos de juego</a>
       <a href="#comunidad">Comunidad</a>
       <a href="#token">Token CLK</a>
+      <a href="#roadmap">Roadmap</a>
     </div>
     <div class="nav__right">
       <a href="#top" class="btn btn--sm btn--primary">Jugar ahora</a>
@@ -881,6 +978,19 @@
       </table>
     </div>
     <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 18px;">Cada salto de rango tiene su propia animación de celebración dentro del juego. El ranking global se puede filtrar por semana, mes o histórico total.</p>
+
+    <div class="star-block reveal">
+      <span class="star-block__icon" aria-hidden="true">🌟</span>
+      <div>
+        <h3>Nivel 50: tu progreso se convierte en una estrella</h3>
+        <p>Cuando tu alien llega al <strong>nivel 50</strong>, no es un rango más: es un reinicio con recompensa. Tu partida vuelve a empezar de cero — conservás tu alias, pero perdés CLK, mejoras y nivel — y a cambio ganás <strong>1 estrella</strong>, tu prueba permanente de que ya hiciste ese camino una vez.</p>
+        <p>Cada estrella que juntás reemplaza, en la órbita que gira alrededor de tu alien, uno de los cuerpos celestes por un astro dorado — así tu perfil muestra a simple vista cuántas veces ya llegaste a la cima. Podés repetir el ciclo hasta acumular un máximo de <strong>10 estrellas</strong>. Al llegar a la décima, el reinicio se detiene: ahí contactás a nuestro equipo de soporte para canjear todo ese recorrido por $CLK.</p>
+        <div class="star-progress" aria-hidden="true">
+          <span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+        </div>
+        <p class="star-progress-label">0 a 10 estrellas · una por cada nivel 50 alcanzado</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1140,9 +1250,95 @@
   </div>
 </section>
 
+<section class="section" id="roadmap">
+  <div class="container">
+    <p class="eyebrow">&gt; Señal_08 // Hoja de ruta</p>
+    <h2 class="reveal">A dónde va Crypto Alien</h2>
+    <p class="section__lead reveal">Siete fases, desde el juego que ya estás jugando hoy hasta la entrada de Crypto Alien a Web3. Las primeras seis se cumplen en los próximos dos años; la séptima abre el siguiente capítulo del proyecto.</p>
+
+    <div class="roadmap">
+
+      <div class="rm-phase rm-phase--now reveal">
+        <span class="rm-phase__dot">01</span>
+        <div class="rm-phase__body">
+          <div class="rm-phase__meta">
+            <span class="rm-phase__when">Agosto 2026</span>
+            <span class="rm-phase__badge">En curso</span>
+          </div>
+          <h3>Lanzamiento del primer juego</h3>
+          <p>Crypto Alien sale al aire: minado tap-to-earn, minado offline, mejoras, niveles, rangos e Invasión PvP, disponible en desktop y móvil. Todo lo que ya podés jugar hoy es el punto de partida de esta hoja de ruta.</p>
+        </div>
+      </div>
+
+      <div class="rm-phase reveal">
+        <span class="rm-phase__dot">02</span>
+        <div class="rm-phase__body">
+          <div class="rm-phase__meta"><span class="rm-phase__when">Ago 2026 — Feb 2027</span></div>
+          <h3>Expansión de comunidad</h3>
+          <p>Foco en Discord, Telegram y X: crecimiento de jugadores activos, ranking global, misiones, rachas y programa de referidos como motor de crecimiento orgánico.</p>
+        </div>
+      </div>
+
+      <div class="rm-phase reveal">
+        <span class="rm-phase__dot">03</span>
+        <div class="rm-phase__body">
+          <div class="rm-phase__meta"><span class="rm-phase__when">Dic 2026 — Jun 2027</span></div>
+          <h3>Monetización publicitaria</h3>
+          <p>Con una base de jugadores activa, se activan los primeros ingresos por publicidad dentro del juego — el combustible para financiar el desarrollo de las siguientes fases sin depender solo de inversión externa.</p>
+        </div>
+      </div>
+
+      <div class="rm-phase reveal">
+        <span class="rm-phase__dot">04</span>
+        <div class="rm-phase__body">
+          <div class="rm-phase__meta"><span class="rm-phase__when">May 2027 — Dic 2027</span></div>
+          <h3>Ronda de inversión</h3>
+          <p>Con comunidad e ingresos ya demostrados, se abre la captación de inversores para acelerar el desarrollo de nuevos modos de juego y la infraestructura de la fase Web3.</p>
+        </div>
+      </div>
+
+      <div class="rm-phase reveal">
+        <span class="rm-phase__dot">05</span>
+        <div class="rm-phase__body">
+          <div class="rm-phase__meta"><span class="rm-phase__when">Nov 2027 — Jun 2028</span></div>
+          <h3>Preparación del airdrop</h3>
+          <p>Auditoría del criterio de canje por nivel, cierre de nuevos colaboradores y comunicación anticipada por redes sociales para que ningún jugador llegue a la siguiente fase sin saber qué hacer.</p>
+        </div>
+      </div>
+
+      <div class="rm-phase rm-phase--airdrop reveal">
+        <span class="rm-phase__dot">06</span>
+        <div class="rm-phase__body">
+          <div class="rm-phase__meta">
+            <span class="rm-phase__when">Agosto 2028</span>
+            <span class="rm-phase__badge">Hito de cierre · 2 años</span>
+          </div>
+          <h3>Airdrop $CLK</h3>
+          <p>El cierre de esta primera etapa: el nivel alcanzado por cada jugador se canjea por $CLK vía airdrop, exactamente dos años después del lanzamiento. El punto de partida para todo lo que viene después.</p>
+        </div>
+      </div>
+
+      <div class="rm-phase__divider">— Siguiente horizonte, más allá de los 2 años —</div>
+
+      <div class="rm-phase rm-phase--web3 reveal">
+        <span class="rm-phase__dot">07</span>
+        <div class="rm-phase__body">
+          <div class="rm-phase__meta">
+            <span class="rm-phase__when">Después de 2028</span>
+            <span class="rm-phase__badge">Próximamente</span>
+          </div>
+          <h3>Expansión a Web3</h3>
+          <p>Con $CLK ya distribuido, Crypto Alien entra de lleno en Web3: pool de liquidez, staking y presencia en exchange. Los detalles y fechas de esta fase se anunciarán más adelante en nuestras redes.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <section class="section" style="padding-top: 0;">
   <div class="container">
-    <p class="eyebrow">&gt; Señal_08 // Airdrops</p>
+    <p class="eyebrow">&gt; Señal_09 // Airdrops</p>
     <h2 class="reveal">Seguí la señal</h2>
     <p class="section__lead reveal" style="margin-bottom: 0;">Los airdrops se anuncian por redes sociales, no dentro del juego. Seguinos para no perderte ninguno.</p>
     <div class="social-row reveal">
@@ -1178,6 +1374,7 @@
       <a href="#invasion">Invasión PvP</a>
       <a href="#comunidad">Comunidad</a>
       <a href="#token">Token CLK</a>
+      <a href="#roadmap">Roadmap</a>
     </div>
     <div class="social-row" style="margin-top: 0;">
       <a href="#" class="mono">DISCORD</a>
