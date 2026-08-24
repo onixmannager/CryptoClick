@@ -343,21 +343,21 @@
       radial-gradient(ellipse 70% 55% at 70% 80%, rgba(200,255,77,0.10), transparent 65%);
     z-index: 0;
   }
-  /* 5 fotos apiladas en la misma celda del grid; cross-fade con opacity
-     controlado por JS según el progreso del scroll. Todas cargan de una,
-     así que nunca hay una imagen rota a mitad del gesto. Sin fondo propio:
-     dejan ver el starfield de .hero__phone-screen a través de su alpha. */
+  /* Única imagen del scrub: su src cambia por JS entre los 67 fotogramas
+     reales (images/fotogramaslanding/) según el progreso del scroll. Al
+     no ser capas apiladas ya no hace falta cross-fade por opacity — el
+     cambio de frame es instantáneo, como en un scroll-scrub de video.
+     Sin fondo propio: deja ver el starfield de .hero__phone-screen a
+     través de su alpha. */
   .hero__frame-img {
     grid-area: 1 / 1;
     width: 100%;
     height: 100%;
     object-fit: contain;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    opacity: 1;
     position: relative;
     z-index: 1;
   }
-  .hero__frame-img.is-active { opacity: 1; }
 
   /* Slots laterales donde entran las tarjetas de contenido durante el scroll.
      Reservan espacio siempre (evita saltos de layout); el contenido interno
@@ -1100,8 +1100,10 @@
         </div>
       </div>
 
-      <!-- El "video": 5 fotos reales del alien en cross-fade, sincronizadas al scroll igual
-           que antes lo estaba el frame-scrub, pero sin depender de una carpeta de 240 webp. -->
+      <!-- El "video": secuencia real de 67 fotogramas (images/fotogramaslanding/),
+           sincronizada al scroll frame a frame. Una sola img cuyo src cambia por JS
+           según el progreso del gesto — misma técnica que un scroll-scrub de video,
+           pero con imágenes sueltas en vez de un <video>. -->
       <div class="hero__phone">
         <div class="hero__phone-frame">
           <div class="hero__phone-screen">
@@ -1110,11 +1112,7 @@
               <div class="hero__stars-layer--phone hero__stars-layer--phone-medium"></div>
               <div class="hero__stars-layer--phone hero__stars-layer--phone-large"></div>
             </div>
-            <img class="hero__frame-img is-active" data-frame="0" alt="El alien astronauta de Crypto Alien, sentado, con el logo CLK en el pecho" src="images/aliensentado.png">
-            <img class="hero__frame-img" data-frame="1" alt="El alien saludando con una moneda CLK dorada en la mano" src="images/aliensaludamonedaarriba.png">
-            <img class="hero__frame-img" data-frame="2" alt="El alien astronauta flotando en el espacio" src="images/alienvolando.png">
-            <img class="hero__frame-img" data-frame="3" alt="El alien meditando: así se ve el minado en segundo plano" src="images/alienmeditacion.png">
-            <img class="hero__frame-img" data-frame="4" alt="Logo del modo Invasión: naves alienígenas invadiendo un planeta" src="images/invasion.png">
+            <img class="hero__frame-img" id="heroFrameImg" alt="Secuencia animada del alien astronauta de Crypto Alien" src="images/fotogramaslanding/frame_001.webp">
           </div>
         </div>
       </div>
@@ -1754,35 +1752,50 @@
 
   /* =========================================================
      MOTOR DEL HERO: progreso de scroll 0–239 (igual escala que
-     usan las tarjetas .hero__slot vía data-start/data-end), pero
-     en vez de 240 frames de video usa 5 fotos reales del alien
-     en cross-fade. Todas cargan al boot (son solo 5), así que
-     nunca hay una imagen a medio cargar durante el gesto.
+     usan las tarjetas .hero__slot vía data-start/data-end), mapeado
+     a una secuencia real de 67 fotogramas (images/fotogramaslanding/
+     frame_001.webp … frame_067.webp). El progreso 0–1 del gesto de
+     scroll se reparte proporcionalmente entre los 67 frames, así el
+     scrub se siente fluido en vez de saltar entre 5 fotos sueltas.
+     Se precargan todos antes de arrancar, para que nunca aparezca
+     un frame a medio cargar durante el scroll.
      ========================================================= */
   var FRAME_COUNT = 240;
-  // A qué frame del rango 0–239 le corresponde cada foto real.
-  // Los puntos de corte están pensados para calzar con las tarjetas
-  // laterales existentes (ver data-start/data-end en el HTML).
-  var PHOTO_BREAKPOINTS = [0, 40, 100, 150, 200]; // frame en el que empieza cada foto (coincide con el inicio de cada tarjeta lateral)
+  var PHOTO_FRAME_COUNT = 67;
+  var PHOTO_PATH = 'images/fotogramaslanding/';
+
+  function photoFileName(n) {
+    var padded = String(n);
+    while (padded.length < 3) padded = '0' + padded;
+    return PHOTO_PATH + 'frame_' + padded + '.webp';
+  }
+
+  // Precarga: crea Image() para los 67 fotogramas antes de que arranque
+  // el scroll, así el navegador ya los tiene en caché cuando el JS pida
+  // asignarlos como src de heroFrameImg.
+  var preloadedPhotos = [];
+  for (var pi = 1; pi <= PHOTO_FRAME_COUNT; pi++) {
+    var pImg = new Image();
+    pImg.src = photoFileName(pi);
+    preloadedPhotos.push(pImg);
+  }
 
   var heroEl = document.querySelector('.hero');
-  var frameImgs = Array.prototype.slice.call(document.querySelectorAll('.hero__frame-img'));
+  var heroFrameImg = document.getElementById('heroFrameImg');
   var signalReadout = document.getElementById('signalReadout');
   var scrollCue = document.getElementById('scrollCue');
   var slots = Array.prototype.slice.call(document.querySelectorAll('[data-slot]'));
 
-  var activePhotoIdx = 0;
+  var activePhotoIdx = -1;
   function showFrame(frameIdx) {
     frameIdx = Math.min(FRAME_COUNT - 1, Math.max(0, frameIdx));
-    var target = 0;
-    for (var p = 0; p < PHOTO_BREAKPOINTS.length; p++) {
-      if (frameIdx >= PHOTO_BREAKPOINTS[p]) target = p;
-    }
-    if (target !== activePhotoIdx) {
-      frameImgs.forEach(function (img, i) {
-        img.classList.toggle('is-active', i === target);
-      });
-      activePhotoIdx = target;
+    // Reparte 0–239 proporcionalmente entre 1–67, redondeando al fotograma
+    // más cercano (misma lógica que un scroll-scrub de video real).
+    var photoNum = Math.round((frameIdx / (FRAME_COUNT - 1)) * (PHOTO_FRAME_COUNT - 1)) + 1;
+    photoNum = Math.min(PHOTO_FRAME_COUNT, Math.max(1, photoNum));
+    if (photoNum !== activePhotoIdx) {
+      heroFrameImg.src = photoFileName(photoNum);
+      activePhotoIdx = photoNum;
     }
   }
 
