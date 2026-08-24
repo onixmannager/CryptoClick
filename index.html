@@ -2,6 +2,21 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<script>
+/* Redirección a landing.html solo la PRIMERA vez que se visita index.html
+   en este navegador (desktop, móvil o app instalada) o con cada cuenta
+   nueva, ya que un dispositivo/perfil nuevo = localStorage vacío. Va aquí,
+   lo primero en <head>, para redirigir antes de cargar el resto. Tras la
+   primera vez queda la marca en localStorage y no se vuelve a redirigir. */
+(function(){
+  try{
+    if(!localStorage.getItem('cck4_landing_seen')){
+      localStorage.setItem('cck4_landing_seen','1');
+      location.replace('landing.html');
+    }
+  }catch(e){}
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>CRYPTO ALIEN — $CLK</title>
 
