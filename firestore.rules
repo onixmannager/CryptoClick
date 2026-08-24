@@ -78,7 +78,8 @@ service cloud.firestore {
                     // define un nivel máximo (incremental sin techo).
                     && request.resource.data.total <= 1000000000
                     && request.resource.data.weekly <= 1000000000
-                    && request.resource.data.monthly <= 1000000000;
+                    && request.resource.data.monthly <= 1000000000
+                    && request.resource.data.stars <= 10;
 
       allow update: if request.auth != null
                     && request.auth.uid == uid
@@ -89,35 +90,58 @@ service cloud.firestore {
                     // este cambio es solo por consistencia entre colecciones,
                     // no por necesidad del bug de saves/.
                     && request.time > resource.data.updatedAt + duration.value(1, 's')
-                    // 'total' es un contador que solo crece con el juego
-                    // normal: nunca debe bajar de golpe en el ranking público
-                    // (evita "resetear" para limpiar sospechas) ni subir más
-                    // de lo que el ritmo de producción más alto del juego
-                    // permitiría en el tiempo transcurrido desde la última
-                    // escritura aceptada.
-                    && request.resource.data.total >= resource.data.total
-                    && growthWithinCap('total')
+                    // 'stars' se gana al llegar a nivel 50 (ver
+                    // triggerStarLevel()/resetGameKeepingAliasAndStars() en
+                    // index.html): nunca baja, sube de a lo sumo 1 por
+                    // escritura (mismo throttle de por medio que 'lvl'), y
+                    // nunca pasa de 10 (a partir de ahí el juego deja de
+                    // reiniciar y solo avisa al jugador). Se usa
+                    // resource.data.get('stars', 0) en vez de
+                    // resource.data.stars directo porque documentos creados
+                    // antes de que existiera este campo no lo tienen, y
+                    // referenciarlo directo en esos casos rompería la regla.
+                    && request.resource.data.stars >= resource.data.get('stars', 0)
+                    && request.resource.data.stars <= resource.data.get('stars', 0) + 1
+                    && request.resource.data.stars <= 10
+                    // Cada estrella reinicia la partida del jugador (ver
+                    // resetGameKeepingAliasAndStars()), así que 'total' y
+                    // 'lvl' SÍ pueden bajar de golpe, pero únicamente en la
+                    // misma escritura en la que 'stars' sube: fuera de ese
+                    // caso se mantienen las mismas cotas de siempre (nunca
+                    // bajan, y como mucho crecen al ritmo máximo del juego).
+                    && (
+                      (request.resource.data.stars == resource.data.get('stars', 0) + 1)
+                      || (
+                        request.resource.data.total >= resource.data.total
+                        && growthWithinCap('total')
+                        && request.resource.data.lvl >= resource.data.lvl
+                        && request.resource.data.lvl <= resource.data.lvl + 1
+                      )
+                    )
                     // 'weekly'/'monthly' SÍ pueden bajar de golpe (se
                     // resetean al empezar un nuevo periodo, ver
-                    // ensurePeriods()/weeklyScore() en el cliente), así que
-                    // no se exige que sean crecientes — pero si suben, deben
-                    // respetar el mismo ritmo máximo que 'total', porque
-                    // ambos se derivan del mismo contador base (totalClk).
-                    && (request.resource.data.weekly <= resource.data.weekly || growthWithinCap('weekly'))
-                    && (request.resource.data.monthly <= resource.data.monthly || growthWithinCap('monthly'))
-                    // El nivel es un contador discreto: no puede bajar, y
-                    // como máximo sube de 1 en 1 por evento de "level up" en
-                    // el cliente, así que un salto de más de 1 por escritura
-                    // (con el throttle de 15s de por medio) es imposible en
-                    // juego legítimo.
-                    && request.resource.data.lvl >= resource.data.lvl
-                    && request.resource.data.lvl <= resource.data.lvl + 1;
+                    // ensurePeriods()/weeklyScore() en el cliente, o al
+                    // reiniciarse la partida por una estrella), así que no
+                    // se exige que sean crecientes — pero si suben fuera de
+                    // un reinicio por estrella, deben respetar el mismo
+                    // ritmo máximo que 'total', porque ambos se derivan del
+                    // mismo contador base (totalClk).
+                    && (
+                      request.resource.data.weekly <= resource.data.weekly
+                      || request.resource.data.stars == resource.data.get('stars', 0) + 1
+                      || growthWithinCap('weekly')
+                    )
+                    && (
+                      request.resource.data.monthly <= resource.data.monthly
+                      || request.resource.data.stars == resource.data.get('stars', 0) + 1
+                      || growthWithinCap('monthly')
+                    );
 
       allow delete: if false;
 
       function isValidLeaderboardDoc() {
         let d = request.resource.data;
-        return d.keys().hasOnly(['alias', 'total', 'weekly', 'monthly', 'lvl', 'updatedAt'])
+        return d.keys().hasOnly(['alias', 'total', 'weekly', 'monthly', 'lvl', 'stars', 'updatedAt'])
           && d.alias is string
           && d.alias.size() > 0
           && d.alias.size() <= 16
@@ -129,6 +153,8 @@ service cloud.firestore {
           && d.monthly >= 0
           && d.lvl is int
           && d.lvl >= 1
+          && d.stars is int
+          && d.stars >= 0
           && d.updatedAt == request.time;
       }
 
