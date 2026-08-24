@@ -474,14 +474,17 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 }
 /* Capa oscura suave + aviso de rango flotan sobre el video a pantalla
    completa en movil, con texto legible via degradado. El aviso (rutitle+
-   runame) se muestra siempre que hay video, de forma compacta arriba
-   para no tapar la escena; rubonus y ruclose (boton "A MINAR") quedan
-   ocultos mientras hay video: el video termina solo (vid.onended) y
-   cierra el overlay, igual que el video de intro. */
+   runame) se muestra siempre que hay video, de forma compacta ABAJO
+   para no tapar la escena (justify-content:flex-end); rubonus y ruclose
+   (boton "A MINAR") quedan ocultos mientras hay video: el video termina
+   solo (vid.onended) y cierra el overlay, igual que el video de intro.
+   #ruskip (boton "Saltar") esta en position:fixed con su propio top,
+   fuera de este flujo flex, por lo que se mantiene arriba sin verse
+   afectado por este cambio. */
 #rubox.has-video{
   position:fixed;inset:0;width:100%;max-width:none;height:100%;
-  display:flex;flex-direction:column;justify-content:flex-start;
-  padding:calc(16px + env(safe-area-inset-top)) 24px 0;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:0 24px calc(28px + env(safe-area-inset-bottom));
   background:none;
   border-radius:0;
 }
@@ -509,18 +512,32 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 }
 
 /* ── Overlay del video de estrella (nivel 50): mismo patrón visual que
-   #ruov/#rubox, a pantalla completa mientras el video de Mux se reproduce
-   por debajo del texto. Sin botón de cerrar: triggerStarLevel() lo oculta
-   automáticamente cuando el reinicio de partida termina. ── */
+   #ruov/#rubox — texto (titulo+nombre+bonus) y botón "Saltar" flotan
+   sobre el video a pantalla completa, con el aviso ABAJO (justify-
+   content:flex-end) para no tapar la escena, igual que el aviso de
+   rango. #starskip reutiliza el mismo estilo/posición que #ruskip
+   (fixed, arriba). A diferencia de rango, aquí el video SIEMPRE está
+   presente (no hay modo "sin video"), así que #starskip no necesita
+   el condicionamiento .has-video de #ruskip: está visible siempre que
+   se muestra el overlay. Al terminar el video o pulsar "Saltar"
+   (skipStarVideo → window.__skipStarVideo, asignado en
+   triggerStarLevel), el overlay se oculta y triggerStarLevel() sigue
+   su curso normal. ── */
 #starov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:650;align-items:center;justify-content:center}
 #starov.show{display:flex}
-#starbox{text-align:center;padding:32px 24px;animation:popin .55s cubic-bezier(.175,.885,.32,1.275);position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}
+#starbox{text-align:center;padding:0 24px calc(28px + env(safe-area-inset-bottom));animation:popin .55s cubic-bezier(.175,.885,.32,1.275);position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
 #starvideo{display:block;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;--controls:none;z-index:0}
 #staremoji{font-size:80px;display:block;margin-bottom:6px;animation:bounce 1s ease-in-out infinite;position:relative;z-index:1}
 #starov #startitle,#starov #starname,#starov #starbonus{position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.85),0 0 4px rgba(0,0,0,.85)}
 #startitle{font-family:var(--fh);font-size:30px;color:var(--yellow);margin-bottom:4px}
 #starname{font-family:var(--fh);font-size:19px;color:var(--cyan);margin-bottom:6px}
 #starbonus{font-size:13px;color:rgba(255,255,255,.85)}
+#starskip{
+  position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:2;
+  background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;
+  padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;
+  cursor:pointer;backdrop-filter:blur(4px);
+}
 
 /* ── Aviso al llegar a 10 estrellas: mismo patrón que #noeov (tarjeta que
    sube desde abajo), en vez de reiniciar la partida se invita a contactar
@@ -887,14 +904,14 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   /* ── Video de rank-up en ESCRITORIO: mismo criterio que movil -pantalla
      completa, proporcion vertical 9:16 sin recortar ni deformar-. El
      video cubre todo el viewport igual que en movil y el aviso de rango
-     (titulo+nombre) flota arriba, compacto, sin taparlo. Como el
+     (titulo+nombre) flota ABAJO, compacto, sin taparlo. Como el
      viewport de escritorio es mas ancho que 9:16, se usa object-fit:contain
      sobre fondo negro para que se vea la MISMA franja vertical que en
      movil, ni estirada ni recortada a los lados. ──────────────────── */
   #rubox.has-video{
     position:fixed;inset:0;width:100%;max-width:none;height:100%;
-    display:flex;flex-direction:column;justify-content:flex-start;
-    padding:calc(16px + env(safe-area-inset-top)) 24px 0;
+    display:flex;flex-direction:column;justify-content:flex-end;
+    padding:0 24px calc(28px + env(safe-area-inset-bottom));
     background:#000;
     border-radius:0;
     box-shadow:none;
@@ -907,6 +924,22 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
     display:block;
   }
   #rubox.has-video #rutitle{margin-top:0}
+
+  /* ── Video de ESTRELLA (nivel 50) en ESCRITORIO: mismo criterio que
+     rank-up en escritorio -pantalla completa, proporcion vertical 9:16
+     sin recortar ni deformar, object-fit:contain sobre fondo negro para
+     ver la MISMA franja vertical que en movil-. A diferencia de rango,
+     aquí no hay clase .has-video condicional: el video de estrella
+     siempre está presente, así que estas reglas aplican directo sobre
+     #starbox/#starvideo. ──────────────────────────────────────────── */
+  #starbox{
+    padding:0 24px calc(28px + env(safe-area-inset-bottom));
+    background:#000;
+  }
+  #starvideo{
+    object-fit:contain;
+  }
+  #startitle{margin-top:0}
 
   /* ── Video de INTRO en ESCRITORIO: mismo tamaño y proporcion vertical
      9:16 que en movil (no se estira a lo ancho de la pantalla). Como el
@@ -1245,10 +1278,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 </div></div>
 
 <!-- Overlay del video "star.mp4": aparece al llegar a nivel 50. Mismo patrón que
-     #ruov (video de subida de rango), pero sin botón de saltar ni de cerrar manual:
-     al terminar el video, triggerStarLevel() reinicia la partida automáticamente. -->
+     #ruov (video de subida de rango), texto y botón "Saltar" incluidos: al
+     terminar el video (o al pulsar #starskip), triggerStarLevel() reinicia
+     la partida automáticamente igual que antes. -->
 <div id="starov"><div id="starbox">
   <mux-player id="starvideo" stream-type="on-demand" autoplay="any" no-muted-pref playsinline></mux-player>
+  <button id="starskip" onclick="skipStarVideo()">Saltar ⏭️</button>
   <span id="staremoji">🌟</span>
   <div id="startitle">¡NIVEL 50 ALCANZADO!</div>
   <div id="starname">Ganaste 1 estrella</div>
@@ -1678,7 +1713,7 @@ const INTRO_VIDEO_PLAYBACK_ID = 'AIf4LJoMv02eZ8iCorEVlBvG2AifM2ZTrrvgP01QpZcHc';
    justo antes de reiniciar la partida y otorgar 1 estrella (ver checkStarLevel()/
    triggerStarLevel() más abajo). Sustitúyelo por el Playback ID real desde el
    dashboard de Mux -> tu asset "star.mp4" -> pestaña "Playback and Thumbnails". */
-const STAR_VIDEO_PLAYBACK_ID = 'REPLACE_WITH_STAR_MP4_MUX_PLAYBACK_ID';
+const STAR_VIDEO_PLAYBACK_ID = '5f65YDdcaYwJHs6KL5qUzZmVi102AXh3Pvj700B2zfNW8';
 
 /* ── MUX: el reproductor oficial recibe directamente el Playback ID. ── */
 function playMuxVideo(vid, playbackId){
@@ -2705,6 +2740,11 @@ function showRankup(r){
   }
 }
 function skipRankupVideo(){ if(window.__skipRankupVideo)window.__skipRankupVideo(); }
+// Mismo patrón que skipRankupVideo(): window.__skipStarVideo ya se asigna
+// en triggerStarLevel() a la misma función 'finish' que corre al terminar
+// el video o al fallar la carga, así que saltar hace exactamente lo mismo
+// que dejarlo terminar solo (otorga la estrella y reinicia la partida).
+function skipStarVideo(){ if(window.__skipStarVideo)window.__skipStarVideo(); }
 
 /* ===== SISTEMA DE ESTRELLAS (nivel 50) =====
    Al llegar a nivel 50 (ver htap()): se reproduce star.mp4 (Mux), y al
