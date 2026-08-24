@@ -134,12 +134,29 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 @keyframes os{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
 .osat{position:absolute;border-radius:50%;pointer-events:none;width:20px;height:20px;background-size:cover;background-position:center;filter:drop-shadow(0 0 3px rgba(0,0,0,.35))}
+/* Cuando un planeta se sustituye por una estrella (ver renderStarOrbit()),
+   se le añade esta clase encima de su os1/os2/os3 original: mismo tamaño y
+   misma órbita/velocidad de siempre, solo cambia el brillo dorado extra. */
+.osat-star{filter:drop-shadow(0 0 5px rgba(255,215,0,.75)) drop-shadow(0 0 2px rgba(0,0,0,.35))}
 .os1{animation:osat1 14s linear infinite}
 .os2{animation:osat2 22s linear infinite reverse}
 .os3{animation:osat3 28s linear infinite}
 @keyframes osat1{from{transform:rotate(0) translateX(110px) rotate(0)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
 @keyframes osat2{from{transform:rotate(0) translateX(122px) rotate(0)}to{transform:rotate(360deg) translateX(122px) rotate(-360deg)}}
 @keyframes osat3{from{transform:rotate(0) translateX(134px) rotate(0)}to{transform:rotate(360deg) translateX(134px) rotate(-360deg)}}
+
+/* Badge de estrellas: vive dentro de #coinwrap (el círculo que rodea al
+   alien), esquina superior derecha. Oculto por defecto; upd() le quita
+   'show' solo cuando S.stars es 0. */
+#starbadge{
+  display:none;position:absolute;top:2px;right:2px;z-index:11;
+  align-items:center;gap:2px;background:rgba(10,6,0,.55);border:1px solid rgba(255,215,0,.55);
+  border-radius:12px;padding:2px 7px 2px 5px;pointer-events:none;
+  box-shadow:0 0 8px rgba(255,215,0,.35);
+}
+#starbadge.show{display:flex}
+#starbadgeico{font-size:12px;line-height:1}
+#starbadgev{font-family:var(--fh);font-size:13px;color:var(--yellow);line-height:1}
 
 /* ── COIN BUTTON WRAPPER: handles scale, never clips ── */
 #coinwrap {
@@ -490,6 +507,31 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   padding:9px 18px;color:#fff;font-family:var(--fb);font-weight:800;font-size:12.5px;
   cursor:pointer;backdrop-filter:blur(4px);
 }
+
+/* ── Overlay del video de estrella (nivel 50): mismo patrón visual que
+   #ruov/#rubox, a pantalla completa mientras el video de Mux se reproduce
+   por debajo del texto. Sin botón de cerrar: triggerStarLevel() lo oculta
+   automáticamente cuando el reinicio de partida termina. ── */
+#starov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:650;align-items:center;justify-content:center}
+#starov.show{display:flex}
+#starbox{text-align:center;padding:32px 24px;animation:popin .55s cubic-bezier(.175,.885,.32,1.275);position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}
+#starvideo{display:block;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;--controls:none;z-index:0}
+#staremoji{font-size:80px;display:block;margin-bottom:6px;animation:bounce 1s ease-in-out infinite;position:relative;z-index:1}
+#starov #startitle,#starov #starname,#starov #starbonus{position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.85),0 0 4px rgba(0,0,0,.85)}
+#startitle{font-family:var(--fh);font-size:30px;color:var(--yellow);margin-bottom:4px}
+#starname{font-family:var(--fh);font-size:19px;color:var(--cyan);margin-bottom:6px}
+#starbonus{font-size:13px;color:rgba(255,255,255,.85)}
+
+/* ── Aviso al llegar a 10 estrellas: mismo patrón que #noeov (tarjeta que
+   sube desde abajo), en vez de reiniciar la partida se invita a contactar
+   soporte para canjear el progreso por $CLK. ── */
+#starmaxov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:660;align-items:flex-end;justify-content:center}
+#starmaxov.show{display:flex}
+#starmaxbox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease}
+#starmaxbox .aic{font-size:44px;margin-bottom:8px}
+#starmaxbox h3{font-family:var(--fh);font-size:22px;color:var(--yellow);margin-bottom:8px}
+#starmaxbox p{color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.5}
+#starmaxclose{width:100%;padding:13px;background:linear-gradient(135deg,var(--yellow),var(--orange));border:none;border-radius:12px;color:#1a0a00;font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
 
 
 #dailyov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;align-items:flex-end;justify-content:center}
@@ -1006,6 +1048,9 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
             <div id="alienSprite" class="csym-sprite" role="img" aria-label="alien"></div>
           </div>
           <button id="coinbtn" aria-label="Minar CLK"></button>
+          <!-- Estrellas ganadas al llegar a nivel 50 (ver triggerStarLevel()/upd()).
+               Oculto mientras S.stars sea 0; #starbadgev lo actualiza cada upd(). -->
+          <div id="starbadge" aria-label="estrellas"><span id="starbadgeico">⭐</span><span id="starbadgev">0</span></div>
         </div>
 
       </div>
@@ -1197,6 +1242,26 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="runame">Nombre</div>
   <div id="rubonus">Bonus</div>
   <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show');document.getElementById('ruvideo').pause();BGM.resume()">¡A MINAR! ⛏️</button>
+</div></div>
+
+<!-- Overlay del video "star.mp4": aparece al llegar a nivel 50. Mismo patrón que
+     #ruov (video de subida de rango), pero sin botón de saltar ni de cerrar manual:
+     al terminar el video, triggerStarLevel() reinicia la partida automáticamente. -->
+<div id="starov"><div id="starbox">
+  <mux-player id="starvideo" stream-type="on-demand" autoplay="any" no-muted-pref playsinline></mux-player>
+  <span id="staremoji">🌟</span>
+  <div id="startitle">¡NIVEL 50 ALCANZADO!</div>
+  <div id="starname">Ganaste 1 estrella</div>
+  <div id="starbonus">Reiniciando tu progreso… conservas tu alias</div>
+</div></div>
+
+<!-- Aviso al llegar a 10 estrellas: en vez de reiniciar de nuevo, invita a
+     contactar con soporte para canjear todo el progreso acumulado por $CLK. -->
+<div id="starmaxov"><div id="starmaxbox">
+  <div class="aic">🏆</div>
+  <h3>¡10 estrellas conseguidas!</h3>
+  <p>Has llegado al máximo de estrellas posibles. Contacta con el equipo de soporte para canjear todo tu progreso por $CLK.</p>
+  <button id="starmaxclose" onclick="document.getElementById('starmaxov').classList.remove('show')">Entendido</button>
 </div></div>
 
 <div id="dailyov"><div id="dailybox">
@@ -1609,6 +1674,12 @@ const RANK_VIDEOS={
    Cámbialo por el tuyo si es un vídeo distinto al de arriba. */
 const INTRO_VIDEO_PLAYBACK_ID = 'AIf4LJoMv02eZ8iCorEVlBvG2AifM2ZTrrvgP01QpZcHc';
 
+/* Playback ID de Mux del vídeo "star.mp4": se reproduce al llegar a nivel 50,
+   justo antes de reiniciar la partida y otorgar 1 estrella (ver checkStarLevel()/
+   triggerStarLevel() más abajo). Sustitúyelo por el Playback ID real desde el
+   dashboard de Mux -> tu asset "star.mp4" -> pestaña "Playback and Thumbnails". */
+const STAR_VIDEO_PLAYBACK_ID = 'REPLACE_WITH_STAR_MP4_MUX_PLAYBACK_ID';
+
 /* ── MUX: el reproductor oficial recibe directamente el Playback ID. ── */
 function playMuxVideo(vid, playbackId){
   vid.setAttribute('playback-id', playbackId);
@@ -1748,6 +1819,11 @@ const DEFAULTS={
   maxCombo:0,upsCount:0,skin:0,
   dailyDay:0,dStreak:0,lastDaily:0,boostEnd:0,
   alias:'',
+  // Estrellas: se ganan al llegar a nivel 50 (ver checkStarLevel()/triggerStarLevel()).
+  // Cada estrella reinicia la partida (conservando alias) y sustituye un planeta
+  // orbitando el alien por una estrella. Al llegar a 10, el reset se detiene y se
+  // avisa al jugador que contacte con soporte para canjear su progreso por $CLK.
+  stars:0,
   wkAnchor:0,wkBase:0,moAnchor:0,moBase:0,
   lastSave:Date.now(),lastPassive:Date.now(),
 };
@@ -1911,6 +1987,7 @@ async function publishLeaderboard(force){
       weekly:weeklyScore(),
       monthly:monthlyScore(),
       lvl:S.lvl,
+      stars:S.stars,
       updatedAt:serverTimestamp()
     });
     _lastLbSave=now;
@@ -1939,7 +2016,7 @@ function forceSave(){
   cloudSaveNow(false);
 }
 function sanitize(d){
-  const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin','wkAnchor','wkBase','moAnchor','moBase'];
+  const nums=['clk','totalClk','totalTaps','lvl','xp','xpNeed','energy','eMax','eRegen','tapPow','pph','maxCombo','upsCount','refs','refEarned','dailyDay','dStreak','lastDaily','boostEnd','lastSave','lastPassive','skin','stars','wkAnchor','wkBase','moAnchor','moBase'];
   for(const k of nums){if(typeof d[k]!=='number'||!isFinite(d[k]))d[k]=DEFAULTS[k]||0;if(d[k]<0)d[k]=0;}
   if(d.lvl<1)d.lvl=1;if(d.xpNeed<500)d.xpNeed=500;if(d.eMax<120)d.eMax=120;if(d.eRegen<0.04)d.eRegen=0.04;if(d.tapPow<1)d.tapPow=1;
   if(!d.ups||typeof d.ups!=='object')d.ups={};if(!d.missions||typeof d.missions!=='object')d.missions={};
@@ -1974,7 +2051,7 @@ function mergeStates(a,b){
   // 'xp' va ligado al 'lvl' de la MISMA partida que lo produjo (100 xp en nivel 2 no es
   // comparable con 100 xp en nivel 5), así que no se puede tomar como máximo independiente:
   // primero se decide qué lado tiene el nivel más alto, y de ahí se hereda su par lvl+xp juntos.
-  const maxFields=['totalClk','totalTaps','maxCombo','upsCount','refs','refEarned','dStreak','dailyDay'];
+  const maxFields=['totalClk','totalTaps','maxCombo','upsCount','refs','refEarned','dStreak','dailyDay','stars'];
   for(const k of maxFields){
     const av=typeof a[k]==='number'?a[k]:0, bv=typeof b[k]==='number'?b[k]:0;
     base[k]=Math.max(av,bv);
@@ -2166,6 +2243,7 @@ function upd(){
   document.getElementById('dailybadge').textContent=dr?'RECLAMAR':'✅ OK';
   if(dr){document.getElementById('dailysub').textContent='¡Reclama tu recompensa!';}
   else{const nxt=86400000-(Date.now()-S.lastDaily);const h=Math.floor(nxt/3600000),m=Math.floor((nxt%3600000)/60000);document.getElementById('dailysub').textContent='Vuelve en '+h+'h '+m+'m';}
+  renderStarOrbit();
 }
 
 /* ── ALIEN SPRITE ENGINE ────────────────────────────────────────────
@@ -2312,7 +2390,11 @@ function htap(e){
     const pr=getRank().name;S.xp-=S.xpNeed;S.lvl++;S.xpNeed=Math.floor(500*Math.pow(1.18,S.lvl-1));recalc();
     const nr=getRank();const sk=SKINS.find(x=>x.lvl===S.lvl);if(sk)toast('🎨 Nueva skin "'+sk.name+'" desbloqueada!');
     SFX.levelUp();
-    if(nr.name!==pr)showRankup(nr);
+    // Nivel 50: en vez del video de subida de rango normal, se reproduce
+    // star.mp4 y, al terminar, la partida se reinicia por completo
+    // (ver triggerStarLevel()). No debe abrirse también showRankup aquí.
+    if(S.lvl===50)triggerStarLevel();
+    else if(nr.name!==pr)showRankup(nr);
   }
   spawnFloat(e,'+'+fmt(earned),combo);
   spawnRipple(e);
@@ -2604,6 +2686,151 @@ function showRankup(r){
   }
 }
 function skipRankupVideo(){ if(window.__skipRankupVideo)window.__skipRankupVideo(); }
+
+/* ===== SISTEMA DE ESTRELLAS (nivel 50) =====
+   Al llegar a nivel 50 (ver htap()): se reproduce star.mp4 (Mux), y al
+   terminar el video la partida se reinicia por completo -localStorage y
+   Firebase-, conservando solo el alias, y se otorga 1 estrella. Cada
+   estrella sustituye un planeta de los que orbitan al alien en #coinwrap
+   por una estrella (hasta 3, que es cuanto hay). Al llegar a 10 estrellas
+   ya no se reinicia más: se avisa al jugador de que contacte con soporte
+   para canjear su progreso por $CLK. ===== */
+const STAR_MAX=10;           // tope de estrellas; al llegarse, ya no hay más reinicios
+const STAR_ORBIT_SLOTS=3;    // solo hay 3 huecos orbitales (os1/os2/os3) para sustituir visualmente
+const STAR_ICON_URL="data:image/svg+xml,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22starGlow%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%20r%3D%2250%25%22%3E%3Cstop%20offset%3D%2245%25%22%20stop-color%3D%22%23FFE066%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%2275%25%22%20stop-color%3D%22%23FFD700%22%20stop-opacity%3D%22.4%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23FF6B35%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22starBody%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23FFF8DC%22%2F%3E%3Cstop%20offset%3D%2235%25%22%20stop-color%3D%22%23FFE066%22%2F%3E%3Cstop%20offset%3D%2270%25%22%20stop-color%3D%22%23FFD700%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23FF6B35%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2298%22%20fill%3D%22url%28%23starGlow%29%22%2F%3E%3Cpath%20d%3D%22M100%2026%20L118%2078%20L174%2078%20L128%20110%20L146%20164%20L100%20130%20L54%20164%20L72%20110%20L26%2078%20L82%2078%20Z%22%20fill%3D%22url%28%23starBody%29%22%20stroke%3D%22%23E85D04%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M100%2026%20L112%2070%20L100%20100%20L88%2070%20Z%22%20fill%3D%22%23FFFDF2%22%20opacity%3D%22.55%22%2F%3E%3C%2Fsvg%3E";
+// Guarda el background-image original de cada osat (sol/planeta/luna) la
+// primera vez que se lee, para poder restaurarlo si S.stars vuelve a 0.
+const _origOsatBg={};
+function _osatEl(n){return document.getElementById('coinout')?.querySelector('.os'+n)||document.querySelector('.osat.os'+n);}
+function renderStarOrbit(){
+  const badge=document.getElementById('starbadge');
+  if(badge){
+    badge.classList.toggle('show',S.stars>0);
+    const v=document.getElementById('starbadgev');if(v)v.textContent=S.stars;
+  }
+  // Sustituye, del hueco más externo (os3=luna) al más interno (os1=sol),
+  // tantos planetas como estrellas tenga el jugador (tope STAR_ORBIT_SLOTS).
+  const slots=[3,2,1];
+  const active=Math.min(S.stars,STAR_ORBIT_SLOTS);
+  slots.forEach((n,i)=>{
+    const el=_osatEl(n);
+    if(!el)return;
+    if(!(n in _origOsatBg))_origOsatBg[n]=el.style.backgroundImage;
+    if(i<active){
+      el.style.backgroundImage="url('"+STAR_ICON_URL+"')";
+      el.classList.add('osat-star');
+      el.setAttribute('aria-label','estrella');
+    }else{
+      el.style.backgroundImage=_origOsatBg[n];
+      el.classList.remove('osat-star');
+      el.setAttribute('aria-label',n===1?'sol':n===2?'planeta':'luna');
+    }
+  });
+}
+
+/* Se dispara al llegar exactamente a nivel 50 (ver htap()). Reproduce
+   star.mp4 desde Mux a pantalla completa; al terminar (o si el video
+   falla/no carga), ejecuta el reinicio de partida en finishStarLevel(). */
+function triggerStarLevel(){
+  const box=document.getElementById('starbox');
+  const vid=document.getElementById('starvideo');
+  vid.pause();vid.removeAttribute('playback-id');
+  vid.onended=null;vid.onerror=null;
+  window.__skipStarVideo=null;
+  document.getElementById('starov').classList.add('show');
+  SFX.rankUp();rankBurst();
+  // Mismo patrón que showRankup(): pausa la música mientras dura el video
+  // (trae su propio audio) y la reanuda cuando termine/falle.
+  BGM.pause();
+  vid.muted=false;
+  let done=false;
+  const finish=()=>{
+    if(done)return;done=true;
+    window.__skipStarVideo=null;
+    document.getElementById('starov').classList.remove('show');
+    vid.pause();
+    BGM.resume();
+    finishStarLevel();
+  };
+  vid.onended=finish;
+  vid.onerror=finish; // si el video no carga, igual se otorga la estrella y se reinicia
+  window.__skipStarVideo=finish;
+  playMuxVideo(vid,STAR_VIDEO_PLAYBACK_ID);
+  // Salvaguarda: si por lo que sea 'ended' nunca llega (video muy largo,
+  // playback-id sin configurar todavía, etc.), no dejar al jugador
+  // bloqueado en el overlay para siempre.
+  setTimeout(finish,60000);
+}
+
+/* Aplica el efecto de la estrella: +1 a S.stars y, si aún no se llegó al
+   máximo, reinicia la partida entera (localStorage + Firebase) conservando
+   solo el alias. Si se llega a STAR_MAX, no reinicia: muestra el aviso de
+   contactar con soporte. */
+function finishStarLevel(){
+  const newStars=Math.min(S.stars+1,STAR_MAX);
+  const reachedMax=newStars>=STAR_MAX;
+  if(reachedMax){
+    S.stars=STAR_MAX;
+    upd();forceSave();
+    document.getElementById('starmaxov').classList.add('show');
+    return;
+  }
+  resetGameKeepingAliasAndStars(newStars);
+}
+
+/* Borra el progreso guardado (localStorage local a este juego + el
+   documento de Firestore) y vuelve a arrancar S desde DEFAULTS,
+   conservando únicamente alias y el nuevo total de estrellas. */
+function resetGameKeepingAliasAndStars(newStars){
+  const keepAlias=S.alias;
+  const uid=window.__fbUser&&window.__fbUser.uid;
+
+  // 1) Limpieza de localStorage: TODAS las claves de este juego (prefijo
+  //    cck4), no solo el save principal, para que no quede ningún resto
+  //    de progreso viejo (referidos usados, misiones sociales, etc). No se
+  //    toca 'cck4_muted' porque es una preferencia de audio del
+  //    dispositivo, no progreso del jugador.
+  try{
+    const toRemove=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.indexOf('cck4')===0&&k!=='cck4_muted')toRemove.push(k);
+    }
+    toRemove.forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});
+  }catch(e){ console.error('No se pudo limpiar localStorage en el reinicio por estrella:',e); }
+
+  // 2) Estado en memoria: vuelve a DEFAULTS, conservando alias y stars.
+  Object.assign(S,DEFAULTS,{alias:keepAlias,stars:newStars,lastSave:Date.now(),lastPassive:Date.now()});
+  recalc();
+
+  // 3) Firebase: sobreescribe saves/{uid} con el estado limpio (equivale a
+  //    borrar todos los datos previos del user) y refleja el reinicio +
+  //    la nueva estrella en leaderboard/{uid}.
+  if(uid&&window.__fb){
+    (async()=>{
+      try{
+        const {db,doc,setDoc,serverTimestamp}=window.__fb;
+        const data=sanitize({...S,uid});
+        await setDoc(doc(db,'saves',uid),{data:JSON.stringify(data),updatedAt:serverTimestamp()});
+      }catch(e){ console.error('Fallo al reiniciar saves/{uid} en Firestore tras estrella:',e&&e.code,e); }
+      try{
+        if(S.alias){
+          const {db,doc,setDoc,serverTimestamp}=window.__fb;
+          ensurePeriods();
+          await setDoc(doc(db,'leaderboard',uid),{
+            alias:S.alias,total:0,weekly:0,monthly:0,lvl:S.lvl,stars:S.stars,updatedAt:serverTimestamp()
+          });
+        }
+      }catch(e){ console.error('Fallo al reiniciar leaderboard/{uid} en Firestore tras estrella:',e&&e.code,e); }
+    })();
+  }
+
+  // 4) Refresca UI y persiste localmente ya con el estado reiniciado.
+  upd();renderStarOrbit();
+  document.getElementById('rankpill').textContent=getRank().e+' '+getRank().name;
+  toast('🌟 ¡Ganaste 1 estrella! Partida reiniciada (conservas tu alias)');
+  forceSave();
+}
 
 function isDailyReady(){return Date.now()-S.lastDaily>86400000}
 function openDaily(){renderDG();document.getElementById('dailyov').classList.add('show');const cb=document.getElementById('dailyclaim');cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';}
