@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Lanzamiento de misil — Invasión</title>
-<meta name="theme-color" content="#0b0a14">
+<meta name="theme-color" content="#0B0A12">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.2/dist/mux-player.js"></script>
 <style>
 :root{
-  --bg:#0b0a14;--card:#16142a;--card2:#1e1c34;
-  --yellow:#FFD700;--orange:#FF6B35;--pink:#FF3CAC;--purple:#8B5CF6;
-  --green:#10B981;--red:#EF4444;--text:#fff;--muted:#a9a6d6;--border:rgba(255,255,255,0.07);
+  --bg:#0B0A12;--card:#16141F;--card2:#1c1a29;
+  --yellow:#FFC369;--orange:#FFC369;--pink:#B85CFF;--purple:#B85CFF;
+  --green:#C8FF4D;--red:#EF4444;--text:#EDEBFA;--muted:#918EAA;--border:rgba(232, 229, 250, 0.10);
   --fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif;
   --glass:rgba(10,12,22,.5);--glass-border:rgba(255,255,255,.14);--glass-blur:14px;
 }
@@ -33,7 +33,7 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 #topLabel{font-family:var(--fh);font-size:14px;letter-spacing:.3px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 #topSub{font-size:11px;font-weight:800;color:var(--muted);margin-top:1px}
 
-#countdown{font-family:var(--fh);font-size:96px;color:var(--yellow);text-shadow:0 0 30px rgba(255,215,0,.6),0 4px 16px rgba(0,0,0,.6);line-height:1}
+#countdown{font-family:var(--fh);font-size:96px;color:var(--yellow);text-shadow:0 0 30px rgba(255,195,105,.6),0 4px 16px rgba(0,0,0,.6);line-height:1}
 #countdown.zero{color:var(--red);text-shadow:0 0 34px rgba(239,68,68,.7),0 4px 16px rgba(0,0,0,.6)}
 
 /* Punto de mira central: cruz sutil que marca el centro exacto de la
@@ -54,13 +54,13 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 #scoreOverlay{position:fixed;inset:0;background:rgba(11,10,20,.88);backdrop-filter:blur(10px);z-index:10;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
 #scoreOverlay.show{display:flex}
 #scoreLabel{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:2px;margin-bottom:6px}
-#scoreValue{font-family:var(--fh);font-size:56px;color:var(--yellow);text-shadow:0 0 24px rgba(255,215,0,.5);margin-bottom:18px}
+#scoreValue{font-family:var(--fh);font-size:56px;color:var(--yellow);text-shadow:0 0 24px rgba(255,195,105,.5);margin-bottom:18px}
 #scoreValue.low{color:var(--orange)}
 #scoreValue.miss{color:var(--red)}
 #scoreStatus{font-family:var(--fh);font-size:18px;color:var(--text);margin-bottom:6px}
 #scoreSub{font-size:12.5px;color:var(--muted);font-weight:700;max-width:280px}
 #pendingNote{margin-top:22px;font-size:12px;color:var(--muted);font-weight:700;max-width:280px}
-#continueBtn{width:100%;max-width:280px;margin-top:26px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 22px rgba(255,60,172,.35)}
+#continueBtn{width:100%;max-width:280px;margin-top:26px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:var(--fh);font-size:16px;cursor:pointer;box-shadow:0 8px 22px rgba(184,92,255,.35)}
 #continueBtn:active{transform:scale(.96)}
 
 #rulesOverlay{position:fixed;inset:0;background:rgba(11,10,20,.96);backdrop-filter:blur(8px);z-index:70;display:none;align-items:center;justify-content:center;padding:24px}
