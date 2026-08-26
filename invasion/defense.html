@@ -85,15 +85,15 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 </head>
 <body>
 
-<div id="loadingScreen"><div>CARGANDO INTERCEPTACIÓN…</div></div>
+<div id="loadingScreen"><div data-i18n="defenseLoadingText">CARGANDO INTERCEPTACIÓN…</div></div>
 
 <div id="rulesOverlay">
   <div id="rulesCard">
-    <h2>Interceptación del misil</h2>
-    <div class="ruleRow"><span class="ruleIcon">🎯</span><span class="ruleText">Pulsa en el <b>centro exacto</b> de la pantalla.</span></div>
-    <div class="ruleRow"><span class="ruleIcon">⏱️</span><span class="ruleText">Cuanto más cerca del instante <b>"0,00"</b> pulses, mayor puntuación.</span></div>
-    <div class="ruleRow"><span class="ruleIcon">🛡️</span><span class="ruleText">Si tu puntuación supera a la del atacante, <b>interceptas el misil</b>.</span></div>
-    <button id="rulesOkBtn">ENTENDIDO</button>
+    <h2 data-i18n="defenseRulesTitle">Interceptación del misil</h2>
+    <div class="ruleRow"><span class="ruleIcon">🎯</span><span class="ruleText" data-i18n="ruleTapCenter">Pulsa en el <b>centro exacto</b> de la pantalla.</span></div>
+    <div class="ruleRow"><span class="ruleIcon">⏱️</span><span class="ruleText" data-i18n="ruleCloserZero">Cuanto más cerca del instante <b>"0,00"</b> pulses, mayor puntuación.</span></div>
+    <div class="ruleRow"><span class="ruleIcon">🛡️</span><span class="ruleText" data-i18n="ruleInterceptIfHigher">Si tu puntuación supera a la del atacante, <b>interceptas el misil</b>.</span></div>
+    <button id="rulesOkBtn" data-i18n="rulesOkBtn">ENTENDIDO</button>
   </div>
 </div>
 
@@ -106,8 +106,8 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 
 <div id="topBar">
   <div>
-    <div id="topLabel">🛡️ INTERCEPTACIÓN</div>
-    <div id="topSub">Atacante: <span id="attackerName">–</span></div>
+    <div id="topLabel" data-i18n="defenseTopLabel">🛡️ INTERCEPTACIÓN</div>
+    <div id="topSub"><span data-i18n="defenseTopSubLabel">Atacante:</span> <span id="attackerName">–</span></div>
   </div>
 </div>
 
@@ -116,18 +116,64 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 </div>
 
 <div id="scoreOverlay">
-  <div id="scoreLabel">TU PRECISIÓN</div>
+  <div id="scoreLabel" data-i18n="defenseScoreLabel">TU PRECISIÓN</div>
   <div id="scoreValue">–</div>
   <div id="resultIcon">🛡️</div>
   <div id="resultTitle">–</div>
   <div id="resultDetail"></div>
   <div id="resultAmount"></div>
-  <button id="continueBtn">CONTINUAR</button>
+  <button id="continueBtn" data-i18n="continueBtn">CONTINUAR</button>
 </div>
 
 <script type="module">
 import './js/invasion-core.js';
 import './js/aim-game.js';
+
+// ============================================================================
+// i18n de defense.html: mismo criterio es/en que index.html raíz e
+// invasion/index.html, compartiendo la misma clave de localStorage
+// ('cck4_lang'). Diccionario propio (I18N_INV), porque esta pantalla puede
+// abrirse directamente sin haber cargado el resto de scripts del proyecto.
+// ============================================================================
+let currentLang=(function(){try{return localStorage.getItem('cck4_lang')==='en'?'en':'es';}catch(e){return 'es';}})();
+const I18N_INV={
+  defenseLoadingText:{es:'CARGANDO INTERCEPTACIÓN…',en:'LOADING INTERCEPTION…'},
+  defenseRulesTitle:{es:'Interceptación del misil',en:'Missile interception'},
+  ruleTapCenter:{es:'Pulsa en el <b>centro exacto</b> de la pantalla.',en:'Tap the <b>exact center</b> of the screen.'},
+  ruleCloserZero:{es:'Cuanto más cerca del instante <b>"0,00"</b> pulses, mayor puntuación.',en:'The closer you tap to the <b>"0.00"</b> instant, the higher your score.'},
+  ruleInterceptIfHigher:{es:'Si tu puntuación supera a la del atacante, <b>interceptas el misil</b>.',en:'If your score beats the attacker\'s, <b>you intercept the missile</b>.'},
+  rulesOkBtn:{es:'ENTENDIDO',en:'GOT IT'},
+  defenseTopLabel:{es:'🛡️ INTERCEPTACIÓN',en:'🛡️ INTERCEPTION'},
+  defenseTopSubLabel:{es:'Atacante:',en:'Attacker:'},
+  defenseScoreLabel:{es:'TU PRECISIÓN',en:'YOUR ACCURACY'},
+  continueBtn:{es:'CONTINUAR',en:'CONTINUE'},
+  playerDefault:{es:'Jugador',en:'Player'},
+  missileIntercepted:{es:'MISIL INTERCEPTADO',en:'MISSILE INTERCEPTED'},
+  missileHit:{es:'MISIL IMPACTADO',en:'MISSILE HIT'},
+  defenseResultDetail:{es:'Tu precisión: {def}/100 · Atacante: {atk}/100',en:'Your accuracy: {def}/100 · Attacker: {atk}/100'},
+  resolveDuelFailed:{es:'No se pudo registrar el resultado — inténtalo de nuevo más tarde.',en:'Could not record the result — try again later.'},
+};
+function t(key,vars){
+  const entry=I18N_INV[key];
+  let str=entry?(entry[currentLang]||entry.es):key;
+  if(vars)for(const k in vars)str=str.split('{'+k+'}').join(vars[k]);
+  return str;
+}
+function applyI18nInv(root){
+  const scope=root||document;
+  scope.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    const entry=I18N_INV[key];
+    if(!entry)return;
+    const val=entry[currentLang]||entry.es;
+    if(val.indexOf('<')!==-1)el.innerHTML=val;else el.textContent=val;
+  });
+}
+(function(){
+  const html=document.documentElement;
+  if(html)html.setAttribute('lang',currentLang);
+  applyI18nInv(document);
+})();
 
 let core, myProfile, attack, attackId, aimGame;
 
@@ -181,7 +227,7 @@ async function boot(){
       return;
     }
 
-    document.getElementById('attackerName').textContent = attack.attackerAlias || 'Jugador';
+    document.getElementById('attackerName').textContent = attack.attackerAlias || t('playerDefault');
 
     document.getElementById('loadingScreen').classList.add('hide');
     if(rulesAlreadyShown()){
@@ -254,10 +300,10 @@ async function onDefenseResolved(result){
     const intercepted = !res.won; // won se refiere a "ganó el atacante"
     iconEl.textContent = intercepted ? '🛡️' : '💥';
     iconEl.style.display='block';
-    titleEl.textContent = intercepted ? 'MISIL INTERCEPTADO' : 'MISIL IMPACTADO';
+    titleEl.textContent = intercepted ? t('missileIntercepted') : t('missileHit');
     titleEl.className = 'show ' + (intercepted ? 'win' : 'lose');
     titleEl.style.display='block';
-    detailEl.textContent = `Tu precisión: ${res.defenseScore}/100 · Atacante: ${res.attackScore}/100`;
+    detailEl.textContent = t('defenseResultDetail',{def:res.defenseScore, atk:res.attackScore});
 
     if(!intercepted && res.stolenAmount>0){
       amountEl.style.display='block';
@@ -265,7 +311,7 @@ async function onDefenseResolved(result){
     }
   }catch(e){
     console.error('resolveDuel failed:', e);
-    document.getElementById('resultDetail').textContent = 'No se pudo registrar el resultado — inténtalo de nuevo más tarde.';
+    document.getElementById('resultDetail').textContent = t('resolveDuelFailed');
     document.getElementById('resultDetail').style.display='block';
   }
 }
