@@ -604,6 +604,23 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .shieldBuyBtnImg{display:block;width:30px;height:30px;object-fit:contain;margin:0 auto 4px}
 #shieldClose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:4px}
 
+/* AJUSTES (sonido/volumen, idioma, cuenta) — mismo esqueleto visual que
+   #dailyov/#dailybox: hoja oscura desde abajo con animación "sup". Agrupa
+   los controles que antes vivían sueltos en la topbar (altavoz, idioma,
+   cerrar sesión), ahora detrás del único botón de engranaje #settingsBtn. */
+#settingsOv{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:600;align-items:flex-end;justify-content:center}
+#settingsOv.show{display:flex}
+#settingsBox{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:430px;text-align:center;animation:sup .3s ease}
+#settingsBox h3{font-family:var(--fh);font-size:22px;color:var(--yellow);margin-bottom:14px}
+.setRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 2px;border-bottom:1px solid var(--border);text-align:left}
+.setRow:last-of-type{border-bottom:none}
+.setRowLabel{font-size:13px;font-weight:800;color:var(--text)}
+.setRowSub{font-size:10px;color:var(--muted);font-weight:700;margin-top:1px}
+.setRowCtrl{display:flex;align-items:center;gap:10px;flex-shrink:0}
+#volumeSlider{width:88px;accent-color:var(--yellow);cursor:pointer}
+#volumeVal{font-size:11px;color:var(--muted);font-weight:800;min-width:30px;text-align:right}
+#settingsClose{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;font-family:var(--fb);font-weight:800;font-size:14px;color:var(--muted);cursor:pointer;margin-top:10px}
+
 /* ── Video de INTRO/presentación — se muestra una sola vez, la primera vez
    que se entra a la app (antes de pedir el alias). Tiene su propio audio,
    por eso la música de fondo (BGM) se pausa mientras se reproduce (ver
@@ -727,6 +744,11 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 /* BOTÓN DE IDIOMA: mismo estilo circular que #muteBtn, junto a él en la topbar */
 #langBtn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,border-color .2s;flex-shrink:0;color:var(--text);font-family:var(--fb)}
 #langBtn:active{transform:scale(.88)}
+/* BOTÓN DE AJUSTES: mismo estilo circular que #muteBtn/#langBtn. Es el único
+   botón visible en la topbar; agrupa detrás sonido, idioma y cierre de
+   sesión dentro de #settingsOv/#settingsBox (ver más abajo). */
+#settingsBtn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,border-color .2s;flex-shrink:0}
+#settingsBtn:active{transform:scale(.88)}
 
 /* ══════════════════════════════════════════════════════════════════
    DESKTOP — "Mining Station" shell.
@@ -911,8 +933,8 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   /* ── OVERLAYS: center as real dialogs instead of mobile bottom
      sheets that would otherwise slam edge-to-edge across a wide
      viewport. ──────────────────────────────────────────────────── */
-  #noeov,#dailyov,#updateOv,#shieldOv{align-items:center}
-  #noebox,#dailybox,#updateBanner,#shieldBox{
+  #noeov,#dailyov,#updateOv,#shieldOv,#settingsOv{align-items:center}
+  #noebox,#dailybox,#updateBanner,#shieldBox,#settingsBox{
     max-width:380px;
     border-radius:24px;
     animation:popin .4s cubic-bezier(.175,.885,.32,1.275);
@@ -1054,9 +1076,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="topbar">
   <a href="landing.html" id="logo">CRYPTO ALIEN</a>
   <div id="usermini">
-    <button id="langBtn" onclick="toggleLang()" aria-label="Change language">EN</button>
-    <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
-    <button id="logoutBtn" onclick="logoutUser()" data-i18n="logoutBtn">Salir</button>
+    <button id="settingsBtn" onclick="openSettings()" aria-label="Ajustes">⚙️</button>
   </div>
   </div>
   <!-- Música de fondo en loop. preload="auto" para que esté lista en cuanto el
@@ -1332,6 +1352,30 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="shieldStatusLine" data-i18n="loadingText">Cargando…</div>
   <div id="shieldBuyBtnsMain"></div>
   <button id="shieldClose" onclick="document.getElementById('shieldOv').classList.remove('show')" data-i18n="closeBtn">Cerrar</button>
+</div></div>
+
+<div id="settingsOv"><div id="settingsBox">
+  <h3 data-i18n="settingsTitle">⚙️ Ajustes</h3>
+  <div class="setRow">
+    <div>
+      <div class="setRowLabel" data-i18n="settingsSoundLabel">Sonido</div>
+      <div class="setRowSub" data-i18n="settingsVolumeLabel">Volumen</div>
+    </div>
+    <div class="setRowCtrl">
+      <input type="range" id="volumeSlider" min="0" max="100" step="5" value="100" oninput="setVolume(this.value)" aria-label="Volumen">
+      <span id="volumeVal">100%</span>
+      <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
+    </div>
+  </div>
+  <div class="setRow">
+    <div class="setRowLabel" data-i18n="settingsLangLabel">Idioma</div>
+    <button id="langBtn" onclick="toggleLang()" aria-label="Change language">EN</button>
+  </div>
+  <div class="setRow">
+    <div class="setRowLabel" data-i18n="settingsAccountLabel">Cuenta</div>
+    <button id="logoutBtn" onclick="logoutUser()" data-i18n="logoutBtn">Salir</button>
+  </div>
+  <button id="settingsClose" onclick="document.getElementById('settingsOv').classList.remove('show')" data-i18n="closeBtn">Cerrar</button>
 </div></div>
 
 <div id="introov">
@@ -1724,6 +1768,11 @@ const I18N={
   moonLabel:{es:'luna',en:'moon'},
   starAriaLabel:{es:'estrella',en:'star'},
   tapPowerUnlocked:{es:'poder de tap desbloqueado',en:'tap power unlocked'},
+  settingsTitle:{es:'⚙️ Ajustes',en:'⚙️ Settings'},
+  settingsSoundLabel:{es:'Sonido',en:'Sound'},
+  settingsVolumeLabel:{es:'Volumen',en:'Volume'},
+  settingsLangLabel:{es:'Idioma',en:'Language'},
+  settingsAccountLabel:{es:'Cuenta',en:'Account'},
 };
 let currentLang=(function(){try{return localStorage.getItem('cck4_lang')==='es'?'es':'en';}catch(e){return 'en';}})();
 function t(key,vars){
@@ -1777,15 +1826,16 @@ function toggleLang(){
    que el juego tenga feedback sonoro sin depender de red ni CORS.
    ════════════════════════════════════════════════════════════════ */
 const SFX=(()=>{
-  let ctx=null,master=null,muted=false;
+  let ctx=null,master=null,muted=false,vol=1;
   try{ muted = localStorage.getItem('cck4_muted')==='1'; }catch(e){}
+  try{ const v=parseFloat(localStorage.getItem('cck4_volume')); if(!isNaN(v)&&v>=0&&v<=1)vol=v; }catch(e){}
 
   function ensure(){
     if(ctx)return ctx;
     try{
       ctx=new (window.AudioContext||window.webkitAudioContext)();
       master=ctx.createGain();
-      master.gain.value=muted?0:0.5;
+      master.gain.value=muted?0:0.5*vol;
       master.connect(ctx.destination);
     }catch(e){ ctx=null; }
     return ctx;
@@ -1829,11 +1879,19 @@ const SFX=(()=>{
 
   return {
     get muted(){return muted},
+    get volume(){return vol},
     toggleMute(){
       muted=!muted;
       try{localStorage.setItem('cck4_muted',muted?'1':'0');}catch(e){}
-      if(master)master.gain.setTargetAtTime(muted?0:0.5,ctx.currentTime,0.05);
+      if(master)master.gain.setTargetAtTime(muted?0:0.5*vol,ctx.currentTime,0.05);
       return muted;
+    },
+    setVolume(v){
+      vol=Math.max(0,Math.min(1,v));
+      try{localStorage.setItem('cck4_volume',String(vol));}catch(e){}
+      const c=ensure();
+      if(master&&c)master.gain.setTargetAtTime(muted?0:0.5*vol,c.currentTime,0.05);
+      return vol;
     },
     tap(comboLevel){
       // El tono sube ligeramente con el combo para que la racha "se sienta" ascendente
@@ -1902,7 +1960,7 @@ const BGM=(()=>{
   }
   function applyVolume(){
     const a=getEl(); if(!a)return;
-    a.volume=SFX.muted?0:VOL;
+    a.volume=SFX.muted?0:VOL*SFX.volume;
   }
   function start(){
     if(!_canStart){ _pendingGesture=true; return; } // guardado para intentarlo en cuanto se permita
@@ -3054,6 +3112,30 @@ function toggleMute(){
   btn.classList.toggle('off',isMuted);
   BGM.onMuteChanged();
   if(!isMuted)SFX.toggle();
+}
+function setVolume(val){
+  const v=SFX.setVolume((parseInt(val,10)||0)/100);
+  BGM.onMuteChanged();
+  const vv=document.getElementById('volumeVal');
+  if(vv)vv.textContent=Math.round(v*100)+'%';
+}
+// Sincroniza los controles del panel de ajustes (mute, volumen, idioma) con
+// el estado real -se llama tanto al arrancar el juego como cada vez que se
+// abre el panel, para que nunca se desincronicen entre sí.
+function syncSettingsUI(){
+  const mb=document.getElementById('muteBtn');
+  if(mb){mb.textContent=SFX.muted?'🔇':'🔊';mb.classList.toggle('off',SFX.muted);}
+  const lb=document.getElementById('langBtn');
+  if(lb)lb.textContent=currentLang==='es'?'ES':'EN';
+  const vs=document.getElementById('volumeSlider');
+  if(vs)vs.value=Math.round(SFX.volume*100);
+  const vv=document.getElementById('volumeVal');
+  if(vv)vv.textContent=Math.round(SFX.volume*100)+'%';
+}
+function openSettings(){
+  SFX.navClick();
+  syncSettingsUI();
+  document.getElementById('settingsOv').classList.add('show');
 }
 function showRankup(r){
   document.getElementById('ruemoji').textContent=r.e;
@@ -4248,10 +4330,7 @@ window.startGameForUser=async function(user){
   setupCoinPress();
   AlienSprite.init();
   setTimeout(()=>AlienSprite.wave(),600); // saludo de bienvenida al abrir la app
-  const mb=document.getElementById('muteBtn');
-  if(mb){mb.textContent=SFX.muted?'🔇':'🔊';mb.classList.toggle('off',SFX.muted);}
-  const lb=document.getElementById('langBtn');
-  if(lb)lb.textContent=currentLang==='es'?'ES':'EN';
+  syncSettingsUI();
   const htmlEl=document.getElementById('htmlRoot');
   if(htmlEl)htmlEl.setAttribute('lang',currentLang);
   applyI18n(document);
