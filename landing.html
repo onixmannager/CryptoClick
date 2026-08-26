@@ -381,7 +381,7 @@
   .hero__stage {
     position: relative;
     width: min(1180px, 94vw);
-    height: min(58vh, 580px);
+    height: min(58vh, 580px, calc(100vh - var(--nav-h) - 250px));
     flex: 0 0 auto;
     display: grid;
     grid-template-columns: 1fr minmax(220px, 300px) 1fr;
@@ -483,7 +483,7 @@
     position: relative;
     flex: 0 0 auto;
     width: min(460px, 90vw);
-    height: 118px;
+    height: 155px;
     margin-top: 20px;
   }
   .hero__bottom {
