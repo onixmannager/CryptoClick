@@ -133,6 +133,87 @@
     transition: color 0.15s ease, border-color 0.15s ease;
   }
   .lang-toggle:hover { color: var(--lime); border-color: var(--lime); }
+  .lang-toggle-wrap { position: relative; display: inline-flex; }
+  .lang-toggle--hint { position: relative; }
+  .lang-toggle--hint::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 1px solid var(--lime);
+    border-radius: var(--radius);
+    animation: langPulse 1.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* Language toggle onboarding hint */
+  .lang-hint {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translate(-50%, -6px);
+    z-index: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .lang-hint.is-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .lang-hint__arrow {
+    width: 20px;
+    height: 12px;
+    color: var(--lime);
+  }
+  .lang-hint__bubble {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: -1px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--lime);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .lang-hint__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    line-height: 1;
+    font-size: 0.9rem;
+  }
+  .lang-hint__close:hover { color: var(--text); }
+
+  @keyframes langPulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.06); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lang-toggle--hint::after { animation: none; opacity: 0.7; }
+  }
+
+  @media (max-width: 480px) {
+    .lang-hint__bubble { font-size: 0.74rem; padding: 8px 10px; white-space: normal; max-width: 180px; text-align: center; }
+  }
+  @media (max-width: 360px) {
+    .lang-hint { left: auto; right: -10px; transform: translateY(-6px); }
+    .lang-hint.is-visible { transform: translateY(0); }
+    .lang-hint__arrow { align-self: flex-end; margin-right: 20px; }
+  }
 
   /* Nav */
   .nav {
@@ -165,7 +246,7 @@
   .nav__logo span { color: var(--lime); }
   .nav__links { display: flex; gap: 32px; font-size: 0.92rem; color: var(--text-dim); }
   .nav__links a:hover { color: var(--text); }
-  .nav__right { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+  .nav__right { display: flex; align-items: center; gap: 18px; flex-shrink: 0; position: relative; }
   .nav__toggle {
     display: none;
     flex-direction: column;
@@ -1101,7 +1182,18 @@
       <a href="#roadmap" data-i18n="nav.roadmap">Roadmap</a>
     </div>
     <div class="nav__right">
-      <button class="lang-toggle mono" id="langToggle" type="button" aria-label="Cambiar idioma / Switch language">ES / EN</button>
+      <div class="lang-toggle-wrap">
+        <button class="lang-toggle mono" id="langToggle" type="button" aria-label="Cambiar idioma / Switch language">ES / EN</button>
+        <div class="lang-hint" id="langHint" role="status">
+          <svg class="lang-hint__arrow" viewBox="0 0 20 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 0 L10 8 M4 5 L10 11 L16 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="lang-hint__bubble">
+            <span data-i18n="langHint.text">Select language / Elegí idioma</span>
+            <button type="button" class="lang-hint__close" id="langHintClose" aria-label="Cerrar">✕</button>
+          </div>
+        </div>
+      </div>
       <a href="index.html" class="btn btn--sm btn--primary" data-i18n="nav.play">Jugar ahora</a>
       <button class="nav__toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -1959,6 +2051,7 @@
       "nav.community": "Comunidad",
       "nav.token": "Token CLK",
       "nav.roadmap": "Roadmap",
+      "langHint.text": "Elegí idioma / Select language",
 
       "hero.slot1.title": "Tap instantáneo",
       "hero.slot1.text": "Cada toque genera CLK en el momento, sin esperas.",
@@ -2177,6 +2270,7 @@
       "nav.community": "Community",
       "nav.token": "CLK Token",
       "nav.roadmap": "Roadmap",
+      "langHint.text": "Select language / Elegí idioma",
 
       "hero.slot1.title": "Instant tap",
       "hero.slot1.text": "Every tap generates CLK instantly, no waiting.",
@@ -2395,7 +2489,7 @@
   function getLang() {
     var saved = null;
     try { saved = localStorage.getItem('ca_lang'); } catch (e) {}
-    return (saved === 'en' || saved === 'es') ? saved : 'es';
+    return (saved === 'en' || saved === 'es') ? saved : 'en';
   }
 
   function setLang(lang) {
@@ -2456,10 +2550,49 @@
     langToggle.addEventListener('click', function () {
       currentLang = currentLang === 'es' ? 'en' : 'es';
       setLang(currentLang);
+      hideLangHint();
+    });
+  }
+
+  // ---- Guía de primer acceso: apunta al selector de idioma ----
+  var langHint = document.getElementById('langHint');
+  var langHintClose = document.getElementById('langHintClose');
+  var langHintTimer = null;
+
+  function hideLangHint() {
+    if (langHintTimer) { clearTimeout(langHintTimer); langHintTimer = null; }
+    if (langHint) langHint.classList.remove('is-visible');
+    if (langToggle) langToggle.classList.remove('lang-toggle--hint');
+    try { localStorage.setItem('ca_lang_hint_seen', '1'); } catch (e) {}
+    document.removeEventListener('click', onOutsideClick, true);
+  }
+
+  function onOutsideClick(e) {
+    if (!langHint) return;
+    if (langHint.contains(e.target) || e.target === langToggle) return;
+    hideLangHint();
+  }
+
+  function showLangHintIfFirstVisit() {
+    var seen = null;
+    try { seen = localStorage.getItem('ca_lang_hint_seen'); } catch (e) {}
+    if (seen || !langHint) return;
+
+    langHint.classList.add('is-visible');
+    if (langToggle) langToggle.classList.add('lang-toggle--hint');
+    document.addEventListener('click', onOutsideClick, true);
+    langHintTimer = setTimeout(hideLangHint, 8000);
+  }
+
+  if (langHintClose) {
+    langHintClose.addEventListener('click', function (e) {
+      e.stopPropagation();
+      hideLangHint();
     });
   }
 
   applyLang(currentLang);
+  showLangHintIfFirstVisit();
 })();
 </script>
 
