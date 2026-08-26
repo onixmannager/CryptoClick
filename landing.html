@@ -568,10 +568,13 @@
     .hero__slot.is-active { transform: translate(-50%, 0); }
     .hero__slot--left, .hero__slot--right { grid-column: unset; justify-self: unset; text-align: center; }
     .hero__slot--left .card, .hero__slot--right .card { margin-left: auto; margin-right: auto; }
+    .hero__slot .card { background: rgba(22,20,31,0.82); backdrop-filter: blur(6px); padding: 16px 18px; }
+    .hero__slot .card h3 { font-size: 0.92rem; margin-bottom: 4px; line-height: 1.25; }
+    .hero__slot .card p { font-size: 0.78rem; line-height: 1.35; }
     /* Slots laterales pasan a apilarse arriba (bajo el nav) en mobile,
        dejando el centro y el pie libres para el sujeto y el hook/close. */
-    .hero__slot--left { top: calc(var(--nav-h) + 18px); }
-    .hero__slot--right { top: calc(var(--nav-h) + 18px); }
+    .hero__slot--left { top: calc(var(--nav-h) + 12px); }
+    .hero__slot--right { top: calc(var(--nav-h) + 12px); }
 
     .hero__bottom-wrap {
       position: absolute;
@@ -582,6 +585,8 @@
       max-width: 400px;
       height: auto;
       min-height: 150px;
+      max-height: calc(100vh - var(--nav-h) - 190px);
+      overflow: hidden;
       margin-top: 0;
       z-index: 4;
       background: linear-gradient(180deg, transparent, rgba(11,10,18,0.88) 32%);
@@ -590,6 +595,8 @@
     }
     .hero__bottom { position: static; }
     .hero__bottom:not(.is-active) { display: none; }
+    .hero__bottom h1 { font-size: clamp(1.15rem, 5.6vw, 1.7rem); line-height: 1.15; }
+    .hero__bottom p { font-size: 0.82rem; line-height: 1.4; }
   }
 
   /* Sections */
