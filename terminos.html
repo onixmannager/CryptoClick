@@ -115,6 +115,16 @@ footer{
 footer a{color:var(--muted);text-decoration:none;margin:0 10px}
 footer a:hover{color:var(--gold)}
 
+/* Language toggle */
+.lang-toggle{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:8px 12px;font-size:.76rem;font-weight:700;letter-spacing:.04em;
+  color:var(--muted);background:transparent;border:1px solid var(--border);
+  border-radius:3px;cursor:pointer;transition:color .15s ease,border-color .15s ease;
+  font-family:'Space Mono',monospace;
+}
+.lang-toggle:hover{color:var(--gold);border-color:var(--gold)}
+
 /* ── Comportamiento tipo app nativa: sin selección de texto ni menú contextual ── */
 *{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
@@ -125,91 +135,237 @@ img,a{-webkit-touch-callout:none}
 
 <div class="topbar">
   <a href="landing.html" class="topbar-logo">CRYPTO ALIEN</a>
-  <a href="landing.html" class="topbar-back">← Volver al sitio</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="lang-toggle" id="langToggle" type="button" aria-label="Cambiar idioma / Switch language">ES / EN</button>
+    <a href="landing.html" class="topbar-back" data-i18n="back">← Volver al sitio</a>
+  </div>
 </div>
 
 <main>
   <div class="doc-header">
-    <div class="doc-eyebrow">Legal</div>
-    <h1>Términos y Condiciones</h1>
-    <div class="doc-meta">Última actualización: 8 de agosto de 2026</div>
+    <div class="doc-eyebrow" data-i18n="eyebrow">Legal</div>
+    <h1 data-i18n="title">Términos y Condiciones</h1>
+    <div class="doc-meta" data-i18n="updated">Última actualización: 8 de agosto de 2026</div>
   </div>
 
   <div class="doc-body">
-    <p><strong>Crypto Alien </strong> (el "Juego") es un producto desarrollado y operado por <strong>Tecnologías Onix</strong> ("nosotros", "nuestro"). Al acceder o jugar, aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo, por favor no utilices el Juego.</p>
+    <p data-i18n-html="intro"><strong>Crypto Alien </strong> (el "Juego") es un producto desarrollado y operado por <strong>Tecnologías Onix</strong> ("nosotros", "nuestro"). Al acceder o jugar, aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo, por favor no utilices el Juego.</p>
 
-    <h2>1. Descripción del servicio</h2>
-    <p>Crypto Alien  es un videojuego gratuito de tipo "clicker" con temática cripto, en el que el jugador acumula un token virtual dentro del juego llamado <strong>$CLK</strong>, compra mejoras, completa misiones y compite en un ranking global. El acceso al Juego requiere iniciar sesión con una cuenta de Google.</p>
+    <h2 data-i18n="h1">1. Descripción del servicio</h2>
+    <p data-i18n-html="p1"><strong>Crypto Alien</strong> es un videojuego gratuito de tipo "clicker" con temática cripto, en el que el jugador acumula un token virtual dentro del juego llamado <strong>$CLK</strong>, compra mejoras, completa misiones y compite en un ranking global. El acceso al Juego requiere iniciar sesión con una cuenta de Google.</p>
 
     <div class="warn-box">
-      <p><strong>Importante:</strong> $CLK es un token exclusivamente virtual y de uso interno del Juego. No tiene valor monetario, no es un valor negociable, no constituye criptomoneda ni activo financiero, y no puede canjearse por dinero real dentro del propio Juego. Cualquier mención a un "airdrop" se refiere a una posible distribución futura sujeta a condiciones que serán comunicadas oportunamente a través de nuestros canales oficiales, y no constituye una promesa ni garantía de valor económico presente o futuro.</p>
+      <p data-i18n-html="warn"><strong>Importante:</strong> $CLK es un token exclusivamente virtual y de uso interno del Juego. No tiene valor monetario, no es un valor negociable, no constituye criptomoneda ni activo financiero, y no puede canjearse por dinero real dentro del propio Juego. Cualquier mención a un "airdrop" se refiere a una posible distribución futura sujeta a condiciones que serán comunicadas oportunamente a través de nuestros canales oficiales, y no constituye una promesa ni garantía de valor económico presente o futuro.</p>
     </div>
 
-    <h2>2. Elegibilidad</h2>
-    <p>El Juego no está dirigido a menores de 13 años. Si eres menor de edad según la legislación de tu país, necesitas el consentimiento de tu madre, padre o tutor legal para usarlo.</p>
+    <h2 data-i18n="h2">2. Elegibilidad</h2>
+    <p data-i18n="p2">El Juego no está dirigido a menores de 13 años. Si eres menor de edad según la legislación de tu país, necesitas el consentimiento de tu madre, padre o tutor legal para usarlo.</p>
 
-    <h2>3. Tu cuenta</h2>
+    <h2 data-i18n="h3">3. Tu cuenta</h2>
     <ul>
-      <li>El acceso se realiza mediante inicio de sesión con Google; no gestionamos contraseñas propias.</li>
-      <li>Eres responsable de mantener la seguridad de tu cuenta de Google y de toda la actividad que ocurra en tu partida.</li>
-      <li>Tu progreso se guarda de forma local en tu dispositivo y, al iniciar sesión, se sincroniza en la nube para que puedas continuar desde cualquier dispositivo.</li>
-      <li>Podemos suspender o eliminar cuentas que incumplan estos Términos, incluyendo el uso de trampas, bots, exploits o manipulación del ranking global.</li>
+      <li data-i18n="p3li1">El acceso se realiza mediante inicio de sesión con Google; no gestionamos contraseñas propias.</li>
+      <li data-i18n="p3li2">Eres responsable de mantener la seguridad de tu cuenta de Google y de toda la actividad que ocurra en tu partida.</li>
+      <li data-i18n="p3li3">Tu progreso se guarda de forma local en tu dispositivo y, al iniciar sesión, se sincroniza en la nube para que puedas continuar desde cualquier dispositivo.</li>
+      <li data-i18n="p3li4">Podemos suspender o eliminar cuentas que incumplan estos Términos, incluyendo el uso de trampas, bots, exploits o manipulación del ranking global.</li>
     </ul>
 
-    <h2>4. Uso aceptable</h2>
-    <p>Al usar el Juego, te comprometes a no:</p>
+    <h2 data-i18n="h4">4. Uso aceptable</h2>
+    <p data-i18n="p4">Al usar el Juego, te comprometes a no:</p>
     <ul>
-      <li>Utilizar bots, scripts automatizados, ingeniería inversa o cualquier método para alterar tu progreso, saldo de $CLK o posición en el ranking de forma fraudulenta.</li>
-      <li>Explotar errores o vulnerabilidades del Juego en tu beneficio, en lugar de reportarlos.</li>
-      <li>Usar un alias público ofensivo, engañoso o que infrinja derechos de terceros.</li>
-      <li>Crear múltiples cuentas con el fin de abusar del sistema de referidos.</li>
-      <li>Intentar acceder a partidas o datos de otros jugadores.</li>
+      <li data-i18n="p4li1">Utilizar bots, scripts automatizados, ingeniería inversa o cualquier método para alterar tu progreso, saldo de $CLK o posición en el ranking de forma fraudulenta.</li>
+      <li data-i18n="p4li2">Explotar errores o vulnerabilidades del Juego en tu beneficio, en lugar de reportarlos.</li>
+      <li data-i18n="p4li3">Usar un alias público ofensivo, engañoso o que infrinja derechos de terceros.</li>
+      <li data-i18n="p4li4">Crear múltiples cuentas con el fin de abusar del sistema de referidos.</li>
+      <li data-i18n="p4li5">Intentar acceder a partidas o datos de otros jugadores.</li>
     </ul>
 
-    <h2>5. Ranking global (leaderboard)</h2>
-    <p>Al elegir un alias público, aceptas que este, junto con tu puntuación, sea visible para el resto de jugadores con sesión iniciada. Puedes optar por jugar sin aparecer en el ranking en cualquier momento desde el propio Juego.</p>
+    <h2 data-i18n="h5">5. Ranking global (leaderboard)</h2>
+    <p data-i18n="p5">Al elegir un alias público, aceptas que este, junto con tu puntuación, sea visible para el resto de jugadores con sesión iniciada. Puedes optar por jugar sin aparecer en el ranking en cualquier momento desde el propio Juego.</p>
 
-    <h2>6. Propiedad intelectual</h2>
-    <p>El nombre "Crypto Alien ", su diseño, personaje, arte, código y contenido son propiedad de <strong>Tecnologías Onix</strong>, salvo que se indique lo contrario. No está permitido copiar, distribuir o crear obras derivadas del Juego sin autorización previa por escrito.</p>
+    <h2 data-i18n="h6">6. Propiedad intelectual</h2>
+    <p data-i18n-html="p6">El nombre "Crypto Alien", su diseño, personaje, arte, código y contenido son propiedad de <strong>Tecnologías Onix</strong>, salvo que se indique lo contrario. No está permitido copiar, distribuir o crear obras derivadas del Juego sin autorización previa por escrito.</p>
 
-    <h2>7. Disponibilidad del servicio</h2>
-    <p>Nos esforzamos por mantener el Juego disponible, pero no garantizamos un servicio ininterrumpido o libre de errores. Podemos modificar, suspender o descontinuar el Juego, total o parcialmente, en cualquier momento, incluyendo el reinicio o ajuste del progreso y la economía interna cuando sea necesario por motivos técnicos o de equilibrio del juego.</p>
+    <h2 data-i18n="h7">7. Disponibilidad del servicio</h2>
+    <p data-i18n="p7">Nos esforzamos por mantener el Juego disponible, pero no garantizamos un servicio ininterrumpido o libre de errores. Podemos modificar, suspender o descontinuar el Juego, total o parcialmente, en cualquier momento, incluyendo el reinicio o ajuste del progreso y la economía interna cuando sea necesario por motivos técnicos o de equilibrio del juego.</p>
 
     <div class="card-box">
-      <p>Aunque procuramos mantener tu progreso sincronizado de forma segura mediante Firebase, no podemos garantizar de forma absoluta la ausencia de pérdida de datos ante fallos técnicos, por lo que el uso del Juego y la conservación de tu progreso se ofrecen "tal cual".</p>
+      <p data-i18n="card1">Aunque procuramos mantener tu progreso sincronizado de forma segura mediante Firebase, no podemos garantizar de forma absoluta la ausencia de pérdida de datos ante fallos técnicos, por lo que el uso del Juego y la conservación de tu progreso se ofrecen "tal cual".</p>
     </div>
 
-    <h2>8. Limitación de responsabilidad</h2>
-    <p>El Juego se ofrece "tal cual" y "según disponibilidad". En la medida permitida por la ley aplicable, Tecnologías Onix no será responsable de daños indirectos, incidentales o derivados del uso o la imposibilidad de uso del Juego, incluyendo la pérdida de progreso, saldo de $CLK o posición en el ranking.</p>
+    <h2 data-i18n="h8">8. Limitación de responsabilidad</h2>
+    <p data-i18n="p8">El Juego se ofrece "tal cual" y "según disponibilidad". En la medida permitida por la ley aplicable, Tecnologías Onix no será responsable de daños indirectos, incidentales o derivados del uso o la imposibilidad de uso del Juego, incluyendo la pérdida de progreso, saldo de $CLK o posición en el ranking.</p>
 
-    <h2>9. Cambios en los términos</h2>
-    <p>Podemos actualizar estos Términos y Condiciones ocasionalmente. Los cambios entrarán en vigor al publicarse en esta página, indicando la fecha de última actualización. El uso continuado del Juego tras dichos cambios implica su aceptación.</p>
+    <h2 data-i18n="h9">9. Cambios en los términos</h2>
+    <p data-i18n="p9">Podemos actualizar estos Términos y Condiciones ocasionalmente. Los cambios entrarán en vigor al publicarse en esta página, indicando la fecha de última actualización. El uso continuado del Juego tras dichos cambios implica su aceptación.</p>
 
-    <h2>10. Legislación aplicable</h2>
-    <p>Estos Términos se rigen por la legislación aplicable en el territorio donde Tecnologías Onix desarrolla su actividad, sin perjuicio de los derechos que la normativa de protección al consumidor de tu país de residencia pueda reconocerte.</p>
+    <h2 data-i18n="h10">10. Legislación aplicable</h2>
+    <p data-i18n="p10">Estos Términos se rigen por la legislación aplicable en el territorio donde Tecnologías Onix desarrolla su actividad, sin perjuicio de los derechos que la normativa de protección al consumidor de tu país de residencia pueda reconocerte.</p>
 
-    <h2>11. Contacto</h2>
-    <p>Para cualquier consulta relacionada con estos Términos y Condiciones, puedes escribirnos a <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a>.</p>
+    <h2 data-i18n="h11">11. Contacto</h2>
+    <p data-i18n-html="p11">Para cualquier consulta relacionada con estos Términos y Condiciones, puedes escribirnos a <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a>.</p>
 
     <div class="contact-box">
-      <div class="doc-eyebrow">¿Dudas sobre estos términos?</div>
+      <div class="doc-eyebrow" data-i18n="contactEyebrow">¿Dudas sobre estos términos?</div>
       <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a>
-      <div class="contact-sub">Tecnologías Onix — responderemos lo antes posible</div>
+      <div class="contact-sub" data-i18n="contactSub">Tecnologías Onix — responderemos lo antes posible</div>
     </div>
   </div>
 </main>
 
 <footer>
-  <a href="landing.html">Inicio</a>
-  <a href="index.html">Jugar</a>
-  <a href="privacidad.html">Política de Privacidad</a>
-  <a href="mailto:info@tecnologiasonix.com">Contacto</a>
-  <div style="margin-top:14px">© 2026 Tecnologías Onix · Crypto Alien </div>
+  <a href="landing.html" data-i18n="footHome">Inicio</a>
+  <a href="index.html" data-i18n="footPlay">Jugar</a>
+  <a href="privacidad.html" data-i18n="footPrivacy">Política de Privacidad</a>
+  <a href="mailto:info@tecnologiasonix.com" data-i18n="footContact">Contacto</a>
+  <div style="margin-top:14px" data-i18n="footCopy">© 2026 Tecnologías Onix · Crypto Alien </div>
 </footer>
 
 <!-- Comportamiento tipo app nativa: sin menú contextual / long-press -->
 <script>
 document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+</script>
+
+<script>
+/* Sistema de idioma ES/EN — mismo esquema que landing.html, compartido
+   vía localStorage ('ca_lang'). Traduce data-i18n (texto) y
+   data-i18n-html (texto con HTML simple como <strong>/<a>). */
+(function () {
+  'use strict';
+
+  var I18N = {
+    es: {
+      back: "← Volver al sitio",
+      eyebrow: "Legal",
+      title: "Términos y Condiciones",
+      updated: "Última actualización: 8 de agosto de 2026",
+      intro: "<strong>Crypto Alien </strong> (el \"Juego\") es un producto desarrollado y operado por <strong>Tecnologías Onix</strong> (\"nosotros\", \"nuestro\"). Al acceder o jugar, aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo, por favor no utilices el Juego.",
+      h1: "1. Descripción del servicio",
+      p1: "<strong>Crypto Alien</strong> es un videojuego gratuito de tipo \"clicker\" con temática cripto, en el que el jugador acumula un token virtual dentro del juego llamado <strong>$CLK</strong>, compra mejoras, completa misiones y compite en un ranking global. El acceso al Juego requiere iniciar sesión con una cuenta de Google.",
+      warn: "<strong>Importante:</strong> $CLK es un token exclusivamente virtual y de uso interno del Juego. No tiene valor monetario, no es un valor negociable, no constituye criptomoneda ni activo financiero, y no puede canjearse por dinero real dentro del propio Juego. Cualquier mención a un \"airdrop\" se refiere a una posible distribución futura sujeta a condiciones que serán comunicadas oportunamente a través de nuestros canales oficiales, y no constituye una promesa ni garantía de valor económico presente o futuro.",
+      h2: "2. Elegibilidad",
+      p2: "El Juego no está dirigido a menores de 13 años. Si eres menor de edad según la legislación de tu país, necesitas el consentimiento de tu madre, padre o tutor legal para usarlo.",
+      h3: "3. Tu cuenta",
+      p3li1: "El acceso se realiza mediante inicio de sesión con Google; no gestionamos contraseñas propias.",
+      p3li2: "Eres responsable de mantener la seguridad de tu cuenta de Google y de toda la actividad que ocurra en tu partida.",
+      p3li3: "Tu progreso se guarda de forma local en tu dispositivo y, al iniciar sesión, se sincroniza en la nube para que puedas continuar desde cualquier dispositivo.",
+      p3li4: "Podemos suspender o eliminar cuentas que incumplan estos Términos, incluyendo el uso de trampas, bots, exploits o manipulación del ranking global.",
+      h4: "4. Uso aceptable",
+      p4: "Al usar el Juego, te comprometes a no:",
+      p4li1: "Utilizar bots, scripts automatizados, ingeniería inversa o cualquier método para alterar tu progreso, saldo de $CLK o posición en el ranking de forma fraudulenta.",
+      p4li2: "Explotar errores o vulnerabilidades del Juego en tu beneficio, en lugar de reportarlos.",
+      p4li3: "Usar un alias público ofensivo, engañoso o que infrinja derechos de terceros.",
+      p4li4: "Crear múltiples cuentas con el fin de abusar del sistema de referidos.",
+      p4li5: "Intentar acceder a partidas o datos de otros jugadores.",
+      h5: "5. Ranking global (leaderboard)",
+      p5: "Al elegir un alias público, aceptas que este, junto con tu puntuación, sea visible para el resto de jugadores con sesión iniciada. Puedes optar por jugar sin aparecer en el ranking en cualquier momento desde el propio Juego.",
+      h6: "6. Propiedad intelectual",
+      p6: "El nombre \"Crypto Alien\", su diseño, personaje, arte, código y contenido son propiedad de <strong>Tecnologías Onix</strong>, salvo que se indique lo contrario. No está permitido copiar, distribuir o crear obras derivadas del Juego sin autorización previa por escrito.",
+      h7: "7. Disponibilidad del servicio",
+      p7: "Nos esforzamos por mantener el Juego disponible, pero no garantizamos un servicio ininterrumpido o libre de errores. Podemos modificar, suspender o descontinuar el Juego, total o parcialmente, en cualquier momento, incluyendo el reinicio o ajuste del progreso y la economía interna cuando sea necesario por motivos técnicos o de equilibrio del juego.",
+      card1: "Aunque procuramos mantener tu progreso sincronizado de forma segura mediante Firebase, no podemos garantizar de forma absoluta la ausencia de pérdida de datos ante fallos técnicos, por lo que el uso del Juego y la conservación de tu progreso se ofrecen \"tal cual\".",
+      h8: "8. Limitación de responsabilidad",
+      p8: "El Juego se ofrece \"tal cual\" y \"según disponibilidad\". En la medida permitida por la ley aplicable, Tecnologías Onix no será responsable de daños indirectos, incidentales o derivados del uso o la imposibilidad de uso del Juego, incluyendo la pérdida de progreso, saldo de $CLK o posición en el ranking.",
+      h9: "9. Cambios en los términos",
+      p9: "Podemos actualizar estos Términos y Condiciones ocasionalmente. Los cambios entrarán en vigor al publicarse en esta página, indicando la fecha de última actualización. El uso continuado del Juego tras dichos cambios implica su aceptación.",
+      h10: "10. Legislación aplicable",
+      p10: "Estos Términos se rigen por la legislación aplicable en el territorio donde Tecnologías Onix desarrolla su actividad, sin perjuicio de los derechos que la normativa de protección al consumidor de tu país de residencia pueda reconocerte.",
+      h11: "11. Contacto",
+      p11: "Para cualquier consulta relacionada con estos Términos y Condiciones, puedes escribirnos a <a href=\"mailto:info@tecnologiasonix.com\">info@tecnologiasonix.com</a>.",
+      contactEyebrow: "¿Dudas sobre estos términos?",
+      contactSub: "Tecnologías Onix — responderemos lo antes posible",
+      footHome: "Inicio",
+      footPlay: "Jugar",
+      footPrivacy: "Política de Privacidad",
+      footContact: "Contacto",
+      footCopy: "© 2026 Tecnologías Onix · Crypto Alien "
+    },
+    en: {
+      back: "← Back to site",
+      eyebrow: "Legal",
+      title: "Terms and Conditions",
+      updated: "Last updated: August 8, 2026",
+      intro: "<strong>Crypto Alien </strong> (the \"Game\") is a product developed and operated by <strong>Tecnologías Onix</strong> (\"we\", \"our\"). By accessing or playing, you accept these Terms and Conditions in full. If you do not agree, please do not use the Game.",
+      h1: "1. Service description",
+      p1: "<strong>Crypto Alien</strong> is a free crypto-themed \"clicker\" video game in which the player accumulates a virtual in-game token called <strong>$CLK</strong>, buys upgrades, completes missions and competes on a global leaderboard. Accessing the Game requires signing in with a Google account.",
+      warn: "<strong>Important:</strong> $CLK is an exclusively virtual token for internal use within the Game. It has no monetary value, is not a tradable security, does not constitute a cryptocurrency or financial asset, and cannot be exchanged for real money within the Game itself. Any mention of an \"airdrop\" refers to a possible future distribution subject to conditions that will be communicated in due course through our official channels, and does not constitute a promise or guarantee of present or future economic value.",
+      h2: "2. Eligibility",
+      p2: "The Game is not directed at children under 13. If you are a minor under the laws of your country, you need the consent of your parent or legal guardian to use it.",
+      h3: "3. Your account",
+      p3li1: "Access is granted through signing in with Google; we do not manage our own passwords.",
+      p3li2: "You are responsible for keeping your Google account secure and for all activity that occurs in your game session.",
+      p3li3: "Your progress is saved locally on your device and, once you sign in, is synced to the cloud so you can continue from any device.",
+      p3li4: "We may suspend or delete accounts that violate these Terms, including the use of cheats, bots, exploits, or manipulation of the global leaderboard.",
+      h4: "4. Acceptable use",
+      p4: "By using the Game, you agree not to:",
+      p4li1: "Use bots, automated scripts, reverse engineering, or any method to fraudulently alter your progress, $CLK balance, or leaderboard position.",
+      p4li2: "Exploit bugs or vulnerabilities in the Game for your own benefit instead of reporting them.",
+      p4li3: "Use a public alias that is offensive, misleading, or that infringes the rights of third parties.",
+      p4li4: "Create multiple accounts to abuse the referral system.",
+      p4li5: "Attempt to access other players' game sessions or data.",
+      h5: "5. Global leaderboard",
+      p5: "By choosing a public alias, you agree that it, along with your score, will be visible to other signed-in players. You can choose to play without appearing on the leaderboard at any time from within the Game.",
+      h6: "6. Intellectual property",
+      p6: "The name \"Crypto Alien\", its design, character, art, code, and content are the property of <strong>Tecnologías Onix</strong>, unless otherwise stated. Copying, distributing, or creating derivative works from the Game without prior written authorization is not permitted.",
+      h7: "7. Service availability",
+      p7: "We strive to keep the Game available, but we do not guarantee uninterrupted or error-free service. We may modify, suspend, or discontinue the Game, in whole or in part, at any time, including resetting or adjusting progress and the internal economy when necessary for technical reasons or game balance.",
+      card1: "Although we strive to keep your progress securely synced via Firebase, we cannot absolutely guarantee against data loss due to technical failures, so use of the Game and preservation of your progress are provided \"as is\".",
+      h8: "8. Limitation of liability",
+      p8: "The Game is provided \"as is\" and \"as available\". To the extent permitted by applicable law, Tecnologías Onix will not be liable for indirect, incidental, or consequential damages arising from the use or inability to use the Game, including loss of progress, $CLK balance, or leaderboard position.",
+      h9: "9. Changes to the terms",
+      p9: "We may update these Terms and Conditions from time to time. Changes take effect upon publication on this page, indicating the last-updated date. Continued use of the Game after such changes constitutes acceptance.",
+      h10: "10. Governing law",
+      p10: "These Terms are governed by the applicable law of the territory where Tecnologías Onix conducts its business, without prejudice to the rights that consumer protection regulations in your country of residence may grant you.",
+      h11: "11. Contact",
+      p11: "For any inquiry related to these Terms and Conditions, you can write to us at <a href=\"mailto:info@tecnologiasonix.com\">info@tecnologiasonix.com</a>.",
+      contactEyebrow: "Questions about these terms?",
+      contactSub: "Tecnologías Onix — we'll respond as soon as possible",
+      footHome: "Home",
+      footPlay: "Play",
+      footPrivacy: "Privacy Policy",
+      footContact: "Contact",
+      footCopy: "© 2026 Tecnologías Onix · Crypto Alien "
+    }
+  };
+
+  function getLang() {
+    var saved = null;
+    try { saved = localStorage.getItem('ca_lang'); } catch (e) {}
+    return (saved === 'en' || saved === 'es') ? saved : 'es';
+  }
+
+  function setLang(lang) {
+    try { localStorage.setItem('ca_lang', lang); } catch (e) {}
+    applyLang(lang);
+  }
+
+  function applyLang(lang) {
+    var dict = I18N[lang] || I18N.es;
+    document.documentElement.setAttribute('lang', lang);
+
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (dict[key] !== undefined) el.textContent = dict[key];
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n-html');
+      if (dict[key] !== undefined) el.innerHTML = dict[key];
+    });
+
+    var toggleBtn = document.getElementById('langToggle');
+    if (toggleBtn) toggleBtn.textContent = lang === 'es' ? 'ES / EN' : 'EN / ES';
+  }
+
+  var currentLang = getLang();
+  var langToggle = document.getElementById('langToggle');
+  if (langToggle) {
+    langToggle.addEventListener('click', function () {
+      currentLang = currentLang === 'es' ? 'en' : 'es';
+      setLang(currentLang);
+    });
+  }
+
+  applyLang(currentLang);
+})();
 </script>
 
 </body>
