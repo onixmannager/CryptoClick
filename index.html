@@ -1432,7 +1432,7 @@ window.loginWithGoogle = async function () {
   const safetyTimer = setTimeout(() => {
     timedOut = true;
     loadEl.style.display = 'none';
-    errEl.textContent = 'Está tardando demasiado. Revisa tu conexión e inténtalo de nuevo.';
+    errEl.textContent = t('loginTimeout');
   }, 15000);
 
   try {
@@ -1447,7 +1447,7 @@ window.loginWithGoogle = async function () {
         await signInWithRedirect(auth, provider);
         return;
       } catch (e2) {
-        errEl.textContent = 'No se pudo iniciar sesión (' + (e2 && e2.code || 'error') + ').';
+        errEl.textContent = t('loginFailedCode',{code:(e2 && e2.code || 'error')});
         console.error('signInWithRedirect también falló:', e2);
         return;
       }
@@ -1455,7 +1455,7 @@ window.loginWithGoogle = async function () {
     // Mostramos el código real (no solo un mensaje genérico) porque el motivo típico en móvil
     // es auth/unauthorized-domain: el dominio desde el que se abre la app no está en la lista
     // de "Dominios autorizados" de Firebase Auth (Authentication > Settings > Authorized domains).
-    errEl.textContent = 'No se pudo iniciar sesión (' + (e && e.code || 'error') + ').';
+    errEl.textContent = t('loginFailedCode',{code:(e && e.code || 'error')});
     console.error(e);
   }
 };
@@ -1515,6 +1515,8 @@ const I18N={
   loginSub:{es:'Inicia sesión con Google para guardar tu progreso en la nube y jugar desde cualquier dispositivo.',en:'Sign in with Google to save your progress in the cloud and play from any device.'},
   googleBtn:{es:'Continuar con Google',en:'Continue with Google'},
   loginLoading:{es:'🔄 Conectando...',en:'🔄 Connecting...'},
+  loginTimeout:{es:'Está tardando demasiado. Revisa tu conexión e inténtalo de nuevo.',en:'This is taking too long. Check your connection and try again.'},
+  loginFailedCode:{es:'No se pudo iniciar sesión ({code}).',en:'Could not sign in ({code}).'},
   energyTitle:{es:'⚡ ENERGÍA',en:'⚡ ENERGY'},
   energyAutoRecharge:{es:'recarga automática',en:'auto recharge'},
   dailyBonusTitle:{es:'Bonus Diario',en:'Daily Bonus'},
@@ -1562,6 +1564,10 @@ const I18N={
   partnersDocsText:{es:'📖 ¿Quieres conocer mejor el proyecto? Consulta nuestra documentación oficial.',en:'📖 Want to learn more about the project? Check our official documentation.'},
   viewDocsBtn:{es:'Ver docs ↗',en:'View docs ↗'},
   partnersFooter:{es:'Toda operación de canje se realiza fuera de esta app, en el sitio oficial de cada proyecto. Infórmate bien antes de conectar ninguna wallet.',en:'All redemption operations take place outside this app, on each project\'s official site. Do your research before connecting any wallet.'},
+  partnersComingSoon:{es:'🔁 Próximamente<br><span style="font-size:11px;opacity:.8">Todavía no hay proyectos disponibles. ¡Vuelve pronto!</span>',en:'🔁 Coming soon<br><span style="font-size:11px;opacity:.8">No projects available yet. Check back soon!</span>'},
+  partnerStatusLive:{es:'Activo',en:'Live'},
+  partnerStatusSoon:{es:'Próximamente',en:'Coming soon'},
+  partnerViewBtn:{es:'Ver ↗',en:'View ↗'},
   navMine:{es:'MINAR',en:'MINE'},
   navUpgrades:{es:'MEJORAS',en:'UPGRADES'},
   navMissions:{es:'MISIONES',en:'MISSIONS'},
@@ -3246,14 +3252,14 @@ function resetGameKeepingAliasAndStars(newStars){
   // 4) Refresca UI y persiste localmente ya con el estado reiniciado.
   upd();renderStarOrbit();
   document.getElementById('rankpill').textContent=getRank().e+' '+getRank().name;
-  toast('🌟 ¡Ganaste 1 estrella! Partida reiniciada (conservas tu alias)');
+  toast(t('starGained'));
   forceSave();
 }
 
 function isDailyReady(){return Date.now()-S.lastDaily>86400000}
 function openDaily(){renderDG();document.getElementById('dailyov').classList.add('show');const cb=document.getElementById('dailyclaim');cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';}
-function renderDG(){const g=document.getElementById('dailygrid');g.innerHTML='';for(let i=0;i<7;i++){const div=document.createElement('div');div.className='dday'+(i<S.dailyDay?' done':i===S.dailyDay?' today':'');div.innerHTML='<div class="ddv">'+fmt(DRWD[i])+'</div>Día '+(i+1);g.appendChild(div);}}
-function claimDaily(){if(!isDailyReady())return;const rwd=DRWD[S.dailyDay%7];addClk(rwd,'daily');S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();upd();checkMiss();renderDG();document.getElementById('dailyclaim').disabled=true;document.getElementById('dailyclaim').style.opacity='.4';toast('🎁 Bonus diario: +'+fmt(rwd)+' $CLK!');SFX.dailyClaim();rankBurst();forceSave();}
+function renderDG(){const g=document.getElementById('dailygrid');g.innerHTML='';for(let i=0;i<7;i++){const div=document.createElement('div');div.className='dday'+(i<S.dailyDay?' done':i===S.dailyDay?' today':'');div.innerHTML='<div class="ddv">'+fmt(DRWD[i])+'</div>'+t('dailyDayLabel',{n:i+1});g.appendChild(div);}}
+function claimDaily(){if(!isDailyReady())return;const rwd=DRWD[S.dailyDay%7];addClk(rwd,'daily');S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();upd();checkMiss();renderDG();document.getElementById('dailyclaim').disabled=true;document.getElementById('dailyclaim').style.opacity='.4';toast(t('dailyBonusClaimed',{amt:fmt(rwd)}));SFX.dailyClaim();rankBurst();forceSave();}
 
 function renderUps(){
   recalc();const list=document.getElementById('upslist');list.innerHTML='';
@@ -3283,7 +3289,7 @@ function renderUps(){
   bab.style.opacity=bab.disabled?'.4':'1';
   renderSkins();
 }
-function buyUp(id){const u=UPS.find(x=>x.id===id);if(!u)return;const l=S.ups[id]||0;if(l>=u.max)return;const cost=upCost(u);if(!spendClk(cost)){toast(pendingDefenseFreeze?'❌ Saldo congelado: tienes un ataque de Invasión pendiente':'❌ Sin suficiente $CLK');SFX.buyFail();return}S.ups[id]=(l+1);S.upsCount++;if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;recalc();upd();renderUps();checkMiss();toast('✅ '+u.n+' → Nivel '+S.ups[id]);SFX.coinBuy();forceSave();}
+function buyUp(id){const u=UPS.find(x=>x.id===id);if(!u)return;const l=S.ups[id]||0;if(l>=u.max)return;const cost=upCost(u);if(!spendClk(cost)){toast(pendingDefenseFreeze?t('frozenBalanceInvasionPending'):t('notEnoughClk'));SFX.buyFail();return}S.ups[id]=(l+1);S.upsCount++;if(u.bMin)S.boostEnd=Date.now()+u.bMin*(l+1)*60000;recalc();upd();renderUps();checkMiss();toast(t('upgradeBought',{name:u.n,lvl:S.ups[id]}));SFX.coinBuy();forceSave();}
 function buyAllUps(){
   // Compra en cascada: en cada pasada busca, entre TODAS las mejoras no
   // maxeadas, la de menor costo actual que sea asequible con el $CLK que
@@ -3297,7 +3303,7 @@ function buyAllUps(){
   // pasa por el booleano de spendClk() en cada vuelta), así que sin este
   // corte seguiría "comprando" mejoras gratis en bucle mientras
   // spendClk() rechaza en silencio y S.clk nunca baja.
-  if(pendingDefenseFreeze){toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente');SFX.buyFail();return}
+  if(pendingDefenseFreeze){toast(t('frozenBalanceInvasionPending'));SFX.buyFail();return}
   let count=0,spent=0;
   while(true){
     let cheapest=null,cheapestCost=Infinity;
@@ -3424,15 +3430,15 @@ function claimAllMiss(){
 function renderRef(){document.getElementById('refcode').textContent=S.refCode;document.getElementById('rcount').textContent=S.refs;document.getElementById('rearned').textContent=fmt(S.refEarned);}
 function copyCode(){
   const gameUrl = window.location.href;  // Captura la URL actual del juego
-  const text = '¡Juega Crypto Click! 🪙 Mi código: ' + S.refCode + '\nEnlace: ' + gameUrl;
+  const text = t('gameLinkShareText',{code:S.refCode,url:gameUrl});
   SFX.navClick();
   if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(() => toast('📋 ¡Código y enlace copiados!')).catch(() => toast('📋 Copia manual: ' + text));
+    navigator.clipboard.writeText(text).then(() => toast(t('codeAndLinkCopied'))).catch(() => toast(t('manualCopy',{text:text})));
   } else {
-    toast('📋 Copia manual: ' + text);
+    toast(t('manualCopy',{text:text}));
   }
 }
-function subRef(){const norm=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');const v=norm(document.getElementById('refinp').value);if(!v)return;if(!/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{7}$/.test(v)){toast('❌ Código no válido');SFX.buyFail();return}const own=norm(S.refCode)||norm(document.getElementById('refcode').textContent);if(own&&v===own){toast('❌ No puedes usar tu propio código');SFX.buyFail();return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast('❌ Código ya usado');SFX.buyFail();return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast('🎉 Código válido! +50000 $CLK');SFX.refJoin();document.getElementById('refinp').value='';forceSave();}
+function subRef(){const norm=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');const v=norm(document.getElementById('refinp').value);if(!v)return;if(!/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{7}$/.test(v)){toast(t('invalidCode'));SFX.buyFail();return}const own=norm(S.refCode)||norm(document.getElementById('refcode').textContent);if(own&&v===own){toast(t('cantUseOwnCode'));SFX.buyFail();return}const used=JSON.parse(localStorage.getItem('cck4_refs')||'[]');if(used.includes(v)){toast(t('codeAlreadyUsed'));SFX.buyFail();return}used.push(v);localStorage.setItem('cck4_refs',JSON.stringify(used));addClk(50000,'ref');S.refs++;S.refEarned+=50000;upd();renderRef();toast(t('validCodeReward'));SFX.refJoin();document.getElementById('refinp').value='';forceSave();}
 
 // Recompensa única (+50.000 $CLK) por seguir cada red social — una sola vez por
 // red, igual que el patrón anti-doble-cobro de subRef() (flag en localStorage,
@@ -3474,7 +3480,7 @@ function claimSocial(network){
   localStorage.setItem(SOCIAL_CLAIM_KEY,JSON.stringify(claimed));
   addClk(50000,'social');
   upd();
-  toast('🎉 ¡Gracias por seguirnos! +50000 $CLK');
+  toast(t('thanksForFollowing'));
   SFX.refJoin();
   renderSocialClaims();
   forceSave();
@@ -3487,11 +3493,11 @@ function renderSocialClaims(){
     const btn=document.getElementById(map[network]);
     if(!btn)continue;
     if(claimed[network]){
-      btn.disabled=true;btn.style.opacity='.4';btn.textContent='✅ Recompensa reclamada';
+      btn.disabled=true;btn.style.opacity='.4';btn.textContent=t('rewardClaimed');
     }else if(clicked[network]){
-      btn.disabled=false;btn.style.opacity='1';btn.textContent='🎁 Reclamar +50.000 $CLK';
+      btn.disabled=false;btn.style.opacity='1';btn.textContent=t('claimReward');
     }else{
-      btn.disabled=true;btn.style.opacity='.4';btn.textContent='🎁 Pulsa el enlace primero';
+      btn.disabled=true;btn.style.opacity='.4';btn.textContent=t('socialClickFirst');
     }
   }
 }
@@ -3520,20 +3526,20 @@ let _redeemPending=null;
 function renderRedeem(){
   const list=document.getElementById('redeemlist');list.innerHTML='';
   if(RDPROJ.length===0){
-    list.innerHTML='<div class="rdintro" style="text-align:center">🔁 Próximamente<br><span style="font-size:11px;opacity:.8">Todavía no hay proyectos disponibles. ¡Vuelve pronto!</span></div>';
+    list.innerHTML='<div class="rdintro" style="text-align:center">'+t('partnersComingSoon')+'</div>';
     return;
   }
   for(const p of RDPROJ){
     const card=document.createElement('div');card.className='rdcard';
-    const statusLabel=p.status==='live'?'Activo':'Próximamente';
-    card.innerHTML='<div class="rdico">'+p.i+'</div><div class="rdinfo"><div class="rdname">'+p.n+' <span class="rdstatus '+p.status+'">'+statusLabel+'</span></div><div class="rddesc">'+p.d+'</div></div><button class="rdbtn" onclick="openRedeem(\''+p.id+'\')">Ver ↗</button>';
+    const statusLabel=p.status==='live'?t('partnerStatusLive'):t('partnerStatusSoon');
+    card.innerHTML='<div class="rdico">'+p.i+'</div><div class="rdinfo"><div class="rdname">'+p.n+' <span class="rdstatus '+p.status+'">'+statusLabel+'</span></div><div class="rddesc">'+p.d+'</div></div><button class="rdbtn" onclick="openRedeem(\''+p.id+'\')">'+t('partnerViewBtn')+'</button>';
     list.appendChild(card);
   }
 }
 function openRedeem(id){
   const p=RDPROJ.find(x=>x.id===id);if(!p)return;
   _redeemPending=p;
-  document.getElementById('redeemtext').textContent='Vas a abrir el sitio externo de "'+p.n+'" para informarte sobre su programa de canje.';
+  document.getElementById('redeemtext').textContent=t('openExternalSite',{name:p.n});
   document.getElementById('redeemov').classList.add('show');
   SFX.navClick();
 }
@@ -3551,14 +3557,14 @@ function cancelRedeem(){
 function confirmAlias(){
   const v=document.getElementById('aliasinp').value.trim();
   const errEl=document.getElementById('aliaserr');
-  if(!v){errEl.textContent='Escribe un alias para continuar';return}
-  if(v.length<2){errEl.textContent='Muy corto, usa al menos 2 caracteres';return}
+  if(!v){errEl.textContent=t('writeAliasToContinue');return}
+  if(v.length<2){errEl.textContent=t('aliasTooShort');return}
   errEl.textContent='';
   S.alias=v.slice(0,16);
   document.getElementById('aliasov').classList.remove('show');
   forceSave();
   publishLeaderboard(true);
-  toast('🏆 ¡Ya apareces en el Ranking Global!');
+  toast(t('nowOnLeaderboard'));
   SFX.missionClaim();
   rankBurst();
 }
@@ -3592,12 +3598,12 @@ function setLBPeriod(p){
   document.querySelectorAll('.lbtab').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
   renderLBList();
 }
-const LB_LABELS={weekly:'Se reinicia cada lunes',monthly:'Se reinicia el día 1 de cada mes',total:'Progreso histórico de siempre'};
+const LB_LABELS={weekly:'lbResetWeekly',monthly:'lbResetMonthly',total:'lbResetTotal'};
 function renderLBList(){
   const sub=document.getElementById('lbsub'),me=document.getElementById('lbme'),list=document.getElementById('lblist');
-  sub.textContent=LB_LABELS[LB_PERIOD];
-  if(LB_CACHE==='error'){list.innerHTML='<div class="lbempty">⚠️ No se pudo cargar el ranking.<br>Revisa tu conexión e inténtalo de nuevo.</div>';me.innerHTML='';return}
-  if(!LB_CACHE){list.innerHTML='<div class="lbempty">Cargando ranking…</div>';me.innerHTML='';return}
+  sub.textContent=t(LB_LABELS[LB_PERIOD]);
+  if(LB_CACHE==='error'){list.innerHTML='<div class="lbempty">'+t('leaderboardFetchError')+'</div>';me.innerHTML='';return}
+  if(!LB_CACHE){list.innerHTML='<div class="lbempty">'+t('loadingLeaderboard')+'</div>';me.innerHTML='';return}
   if(LB_CACHE.length===0){list.innerHTML='<div class="lbempty">🏆 Todavía nadie tiene alias publicado.<br>¡Sé el primero del Ranking Global!</div>';me.innerHTML='';return}
   const field=LB_PERIOD==='weekly'?'weekly':LB_PERIOD==='monthly'?'monthly':'total';
   const sorted=[...LB_CACHE].sort((a,b)=>(b[field]||0)-(a[field]||0));
@@ -3625,7 +3631,7 @@ function renderLBList(){
 function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 async function renderLB(){
   ensurePeriods();
-  document.getElementById('lblist').innerHTML='<div class="lbempty">Cargando ranking…</div>';
+  document.getElementById('lblist').innerHTML='<div class="lbempty">'+t('loadingLeaderboard')+'</div>';
   await fetchLB();
   renderLBList();
 }
@@ -3872,7 +3878,7 @@ async function syncShieldState(){
 // aquí porque este archivo no importa nada de invasion/index.html (solo
 // de invasion-core.js, que no define etiquetas de UI, ver CFG.DIFFICULTY_TIERS
 // para los datos crudos que sí expone).
-const INVASION_DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal',dificil:'Difícil',muy_dificil:'Casi imposible'};
+const INVASION_DIFF_KEYS={muy_facil:'diffMuyFacil',facil:'diffFacil',normal:'diffNormal',dificil:'diffDificil',muy_dificil:'diffMuyDificil'};
 
 // ─────────────────────────────────────────────────────────────────────
 // AVISO DE ATAQUE PENDIENTE — DESDE EL ÍNDICE PADRE (spec 4/6, ver
@@ -3940,18 +3946,18 @@ async function checkPendingAttacksFromMain(){
     const rowsEl = document.getElementById('pendingAttackRows');
     const titleEl = document.getElementById('pendingAttackTitle');
     const introEl = document.getElementById('pendingAttackIntro');
-    titleEl.textContent = pending.length===1 ? '¡Te están atacando!' : `¡Te están atacando! (${pending.length})`;
+    titleEl.textContent = pending.length===1 ? t('pendingAttackTitleSingle') : t('pendingAttackTitlePlural',{n:pending.length});
     introEl.textContent = pending.length===1
-      ? 'Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo. Mientras tanto, tu $CLK está congelado y no puedes gastarlo en mejoras.'
-      : `${pending.length} jugadores lanzaron un misil contra ti en el modo Invasión. Defiéndete de cada uno antes de que se resuelvan los duelos. Mientras tanto, tu $CLK está congelado y no puedes gastarlo en mejoras.`;
+      ? t('pendingAttackIntroSingleFrozen')
+      : t('pendingAttackIntroPlural',{n:pending.length});
     rowsEl.innerHTML = pending.map(a => `
       <div class="paRow">
         <div class="paRowIcon">🚀</div>
         <div class="paRowInfo">
-          <div class="paRowTitle">${escapeHtml(a.attackerAlias||'Jugador')} te ha atacado</div>
-          <div class="paRowSub">Nivel ${a.attackerLvl||1} · Dificultad ${INVASION_DIFF_LABELS[a.difficulty]||a.difficulty}</div>
+          <div class="paRowTitle">${t('attackedYou',{alias:escapeHtml(a.attackerAlias||t('playerDefault'))})}</div>
+          <div class="paRowSub">${t('attackLevelDifficulty',{lvl:a.attackerLvl||1,diff:t(INVASION_DIFF_KEYS[a.difficulty])||a.difficulty})}</div>
         </div>
-        <button class="paRowBtn" data-attack-id="${a.id}">DEFENDER</button>
+        <button class="paRowBtn" data-attack-id="${a.id}">${t('attackDefendBtn')}</button>
       </div>
     `).join('');
     rowsEl.querySelectorAll('.paRowBtn').forEach(btn=>{
@@ -4014,7 +4020,7 @@ function renderShieldModalContent(){
     // syncShieldState() todavía no ha traído el clk/lvl real del
     // jugador — en ambos casos mejor un mensaje de carga honesto que
     // botones con costes que podrían no reflejar el saldo real todavía.
-    status.textContent = 'Cargando datos del escudo…';
+    status.textContent = t('shieldLoadingData');
     wrap.innerHTML = '';
     return;
   }
@@ -4031,8 +4037,8 @@ function renderShieldModalContent(){
   const SHIELD_LABELS_FIJAS = { '3d': '12H.', '7d': '24H.' };
 
   status.textContent = active
-    ? `Escudo activo (${SHIELD_LABELS_FIJAS[shieldState.shieldType] || shieldState.shieldType}) — te protege en Invasión durante ${fmtShieldCountdown(shieldState.shieldUntil-now)} más`
-    : 'No tienes escudo activo: eres un objetivo válido en Invasión';
+    ? t('shieldActiveStatus',{label:SHIELD_LABELS_FIJAS[shieldState.shieldType] || shieldState.shieldType, time:fmtShieldCountdown(shieldState.shieldUntil-now)})
+    : t('shieldInactiveStatus');
 
   wrap.innerHTML='';
   // Imagen del escudo correspondiente a cada tipo, mismo criterio que
@@ -4103,7 +4109,7 @@ async function buyShieldFromMain(type, expectedCost){
   // criterio de doble comprobación que ya usa buyUp() con
   // pendingDefenseFreeze para las mejoras normales.
   if(pendingDefenseFreeze){
-    toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender');
+    toast(t('frozenBalanceDefend'));
     return;
   }
   try{
@@ -4144,11 +4150,11 @@ async function buyShieldFromMain(type, expectedCost){
     forceSave();
     renderEscudoIcon();
     renderShieldModalContent();
-    toast(`🛡️ Escudo activado por 🪙 ${fmt(cost)}`);
+    toast(t('shieldActivated',{cost:fmt(cost)}));
   }catch(e){
     console.error(e);
     if((e.message||'').includes('CLK insuficiente')){
-      toast(`❌ Te faltan $CLK para este escudo (cuesta 🪙 ${fmt(expectedCost)})`);
+      toast(t('shieldNotEnoughClk',{cost:fmt(expectedCost)}));
     }else if((e.message||'').includes('Ya tienes un escudo')){
       toast(`❌ ${e.message}`);
       renderShieldModalContent();
@@ -4159,11 +4165,11 @@ async function buyShieldFromMain(type, expectedCost){
       // repintado, no un fallo del botón en sí) — el servidor es quien
       // manda, así que se avisa igual y se refresca el panel para que el
       // botón pase a bloqueado con el resto de la UI ya al día.
-      toast('❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender');
+      toast(t('frozenBalanceDefend'));
       pendingDefenseFreeze = true;
       renderShieldModalContent();
     }else{
-      toast('❌ No se pudo activar el escudo');
+      toast(t('shieldCouldNotActivate'));
     }
   }
 }
