@@ -99,10 +99,10 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 
 <div id="overlay">
   <div id="topBar">
-    <a href="./" id="backLink" aria-label="Volver">←</a>
+    <a href="./" id="backLink" aria-label="Volver" data-i18n-aria="backAria">←</a>
     <div>
-      <div id="topTitle">SECTOR DE INVASIÓN</div>
-      <div id="topSub">Radar de objetivos</div>
+      <div id="topTitle" data-i18n="sectorTitle">SECTOR DE INVASIÓN</div>
+      <div id="topSub" data-i18n="radarSub">Radar de objetivos</div>
     </div>
   </div>
 
@@ -110,8 +110,8 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
     <div id="searchingChip">
       <div class="pulseDot"></div>
       <div>
-        <div id="searchingText">Escaneando sector…</div>
-        <div id="searchingSub">Buscando objetivos disponibles</div>
+        <div id="searchingText" data-i18n="scanningSectorText">Escaneando sector…</div>
+        <div id="searchingSub" data-i18n="searchingTargetsSub">Buscando objetivos disponibles</div>
       </div>
     </div>
 
@@ -127,19 +127,19 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
         </div>
         <div class="rivalClkRow">
           <div class="rivalClk" id="rivalClk">–</div>
-          <div class="rivalClkLabel">$CLK EN JUEGO</div>
+          <div class="rivalClkLabel" data-i18n="clkInPlayLabel">$CLK EN JUEGO</div>
         </div>
       </div>
-      <button id="attackBtn">⚔️ ATACAR</button>
-      <button id="retryBtn">🔄 Buscar otro rival</button>
+      <button id="attackBtn" data-i18n="attackBtnText">⚔️ ATACAR</button>
+      <button id="retryBtn" data-i18n="findAnotherRivalBtn">🔄 Buscar otro rival</button>
     </div>
 
     <div id="noneFound">
       <div class="noneCard">
         <div class="noneIcon">🛸</div>
-        <h1 id="noneTitle">Sin objetivos ahora</h1>
-        <div id="noneText">No hay rivales disponibles en este momento. Todos protegidos o sin $CLK suficiente.</div>
-        <button id="retryBtn2">🔄 Reintentar</button>
+        <h1 id="noneTitle" data-i18n="noTargetsNowTitle">Sin objetivos ahora</h1>
+        <div id="noneText" data-i18n="noRivalsAvailableText">No hay rivales disponibles en este momento. Todos protegidos o sin $CLK suficiente.</div>
+        <button id="retryBtn2" data-i18n="retryBtn2Text">🔄 Reintentar</button>
       </div>
     </div>
   </div>
@@ -147,6 +147,75 @@ html,body{width:100%;height:100%;min-height:100vh;background:var(--bg);color:var
 
 <script type="module">
 import './js/invasion-core.js';
+
+// ============================================================================
+// i18n de search.html: mismo criterio es/en que el resto del modo Invasión,
+// compartiendo la misma clave de localStorage ('cck4_lang'). Diccionario
+// propio (I18N_INV), porque esta pantalla puede abrirse directamente sin
+// haber cargado el resto de scripts del proyecto.
+// ============================================================================
+let currentLang=(function(){try{return localStorage.getItem('cck4_lang')==='en'?'en':'es';}catch(e){return 'es';}})();
+const I18N_INV={
+  backAria:{es:'Volver',en:'Back'},
+  sectorTitle:{es:'SECTOR DE INVASIÓN',en:'INVASION SECTOR'},
+  radarSub:{es:'Radar de objetivos',en:'Target radar'},
+  scanningSectorText:{es:'Escaneando sector…',en:'Scanning sector…'},
+  searchingTargetsSub:{es:'Buscando objetivos disponibles',en:'Looking for available targets'},
+  clkInPlayLabel:{es:'$CLK EN JUEGO',en:'$CLK AT STAKE'},
+  attackBtnText:{es:'⚔️ ATACAR',en:'⚔️ ATTACK'},
+  findAnotherRivalBtn:{es:'🔄 Buscar otro rival',en:'🔄 Find another rival'},
+  noTargetsNowTitle:{es:'Sin objetivos ahora',en:'No targets right now'},
+  noRivalsAvailableText:{es:'No hay rivales disponibles en este momento. Todos protegidos o sin $CLK suficiente.',en:'No rivals available right now. All are protected or don\'t have enough $CLK.'},
+  retryBtn2Text:{es:'🔄 Reintentar',en:'🔄 Retry'},
+  diffMuyFacil:{es:'Muy fácil',en:'Very easy'},
+  diffFacil:{es:'Fácil',en:'Easy'},
+  diffNormal:{es:'Normal',en:'Normal'},
+  diffDificil:{es:'Difícil',en:'Difficult'},
+  diffMuyDificil:{es:'Casi imposible',en:'Nearly impossible'},
+  playerDefault:{es:'Jugador',en:'Player'},
+  levelLabel:{es:'Nivel {lvl}',en:'Level {lvl}'},
+  signInFirst:{es:'Inicia sesión en el juego principal primero.',en:'Sign in on the main game first.'},
+  cantRevengeThatPlayer:{es:'Ya no puedes vengarte de ese jugador — puede que ya te hayas vengado o que hayan pasado más de 24h.',en:'You can no longer take revenge on that player — you may have already taken revenge, or more than 24h have passed.'},
+  targetActivatedShield:{es:'Ese jugador activó un escudo — no puedes vengarte ahora.',en:'That player activated a shield — you can\'t take revenge right now.'},
+  targetNoClk:{es:'Ese jugador ya no tiene $CLK suficiente para robar.',en:'That player no longer has enough $CLK to steal.'},
+  targetHasPendingDefense:{es:'Ese jugador ya tiene otro ataque pendiente sin resolver — inténtalo de nuevo más tarde.',en:'That player already has another unresolved pending attack — try again later.'},
+  couldNotLoadTarget:{es:'No se pudo cargar ese objetivo.',en:'Could not load that target.'},
+  invasionLockedTitle:{es:'Invasión bloqueada',en:'Invasion locked'},
+  invasionLockedText:{es:'Disponible a partir de nivel {lvl}. Sigue jugando para desbloquearla.',en:'Available from level {lvl}. Keep playing to unlock it.'},
+  backBtn:{es:'← Volver',en:'← Back'},
+  cantInvadeNow:{es:'No puedes invadir ahora mismo — vuelve al menú para ver cuánto falta.',en:'You can\'t invade right now — go back to the menu to see how long is left.'},
+  bootFailedGeneric:{es:'No se pudo cargar. Reintenta o avisa si persiste.',en:'Could not load. Retry or report if it persists.'},
+  revengeFailedTitle:{es:'No se pudo completar la venganza',en:'Could not complete the revenge'},
+  attackFailedTitle:{es:'No se pudo lanzar el ataque',en:'Could not launch the attack'},
+  searchErrorRetry:{es:'Error al buscar. Inténtalo de nuevo.',en:'Search error. Try again.'},
+  couldNotCheckTarget:{es:'No se pudo comprobar el objetivo. Inténtalo de nuevo.',en:'Could not check the target. Try again.'},
+};
+function t(key,vars){
+  const entry=I18N_INV[key];
+  let str=entry?(entry[currentLang]||entry.es):key;
+  if(vars)for(const k in vars)str=str.split('{'+k+'}').join(vars[k]);
+  return str;
+}
+function applyI18nInv(root){
+  const scope=root||document;
+  scope.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    const entry=I18N_INV[key];
+    if(!entry)return;
+    const val=entry[currentLang]||entry.es;
+    if(val.indexOf('<')!==-1)el.innerHTML=val;else el.textContent=val;
+  });
+  scope.querySelectorAll('[data-i18n-aria]').forEach(el=>{
+    const key=el.getAttribute('data-i18n-aria');
+    const entry=I18N_INV[key];
+    if(entry)el.setAttribute('aria-label',entry[currentLang]||entry.es);
+  });
+}
+(function(){
+  const html=document.documentElement;
+  if(html)html.setAttribute('lang',currentLang);
+  applyI18nInv(document);
+})();
 
 let core, myProfile, foundTarget, isRevengeFlow=false;
 
@@ -156,7 +225,7 @@ function fmtClk(n){
   if(n>=1e3)return(n/1e3).toFixed(1)+'K';
   return n+'';
 }
-const DIFF_LABELS={muy_facil:'Muy fácil',facil:'Fácil',normal:'Normal',dificil:'Difícil',muy_dificil:'Casi imposible'};
+const DIFF_LABELS={muy_facil:t('diffMuyFacil'),facil:t('diffFacil'),normal:t('diffNormal'),dificil:t('diffDificil'),muy_dificil:t('diffMuyDificil')};
 
 const vidSinExito = document.getElementById('videoSinExito');
 const vidExito = document.getElementById('videoExito');
@@ -211,7 +280,7 @@ async function boot(){
   const user = await core.authReady;
   if(!user){
     playSinExitoVideo();
-    document.getElementById('searchingText').textContent='Inicia sesión en el juego principal primero.';
+    document.getElementById('searchingText').textContent=t('signInFirst');
     document.getElementById('searchingSub').textContent='';
     showView('scanning');
     return;
@@ -225,9 +294,9 @@ async function boot(){
     // donde vive el botón ya deshabilitado para niveles 1-2.
     if(!core.isInvasionUnlocked(myProfile.lvl)){
       playSinExitoVideo();
-      document.getElementById('noneTitle').textContent = 'Invasión bloqueada';
-      document.getElementById('noneText').textContent = `Disponible a partir de nivel ${core.CFG.MIN_LEVEL_TO_UNLOCK}. Sigue jugando para desbloquearla.`;
-      document.getElementById('retryBtn2').textContent = '← Volver';
+      document.getElementById('noneTitle').textContent = t('invasionLockedTitle');
+      document.getElementById('noneText').textContent = t('invasionLockedText',{lvl:core.CFG.MIN_LEVEL_TO_UNLOCK});
+      document.getElementById('retryBtn2').textContent = t('backBtn');
       directTargetFailed = true;
       showView('noneFound');
       return;
@@ -247,7 +316,7 @@ async function boot(){
 
     const check = core.checkCanInvade(myProfile);
     if(!check.ok){
-      markSearchFailed('No puedes invadir ahora mismo — vuelve al menú para ver cuánto falta.', isRevengeFlow);
+      markSearchFailed(t('cantInvadeNow'), isRevengeFlow);
       return;
     }
 
@@ -261,7 +330,7 @@ async function boot(){
     // de escaneo girando para siempre sin explicación — ver el mismo
     // problema y su arreglo en index.html/boot().
     console.error('boot() falló:', e);
-    markSearchFailed('No se pudo cargar. Reintenta o avisa si persiste.', isRevengeFlow);
+    markSearchFailed(t('bootFailedGeneric'), isRevengeFlow);
   }
 }
 
@@ -276,9 +345,9 @@ let directTargetFailed=false; // true si el fallo viene de un intento de VENGANZ
 // al menú con un mensaje que no le corresponde.
 function markSearchFailed(msg, isRevenge){
   playSinExitoVideo();
-  document.getElementById('noneTitle').textContent = isRevenge ? 'No se pudo completar la venganza' : 'No se pudo lanzar el ataque';
+  document.getElementById('noneTitle').textContent = isRevenge ? t('revengeFailedTitle') : t('attackFailedTitle');
   document.getElementById('noneText').textContent = msg;
-  document.getElementById('retryBtn2').textContent = isRevenge ? '← Volver' : '🔄 Reintentar';
+  document.getElementById('retryBtn2').textContent = isRevenge ? t('backBtn') : t('retryBtn2Text');
   directTargetFailed = isRevenge;
   showView('noneFound');
 }
@@ -303,7 +372,7 @@ async function searchDirectTarget(uid){
     if(isRevengeFlow){
       const legit = await core.isLegitimateRevenge(myProfile.uid, uid);
       if(!legit){
-        markSearchFailed('Ya no puedes vengarte de ese jugador — puede que ya te hayas vengado o que hayan pasado más de 24h.', true);
+        markSearchFailed(t('cantRevengeThatPlayer'), true);
         return;
       }
     }
@@ -312,22 +381,22 @@ async function searchDirectTarget(uid){
     const d = snap.data();
     const now = Date.now();
     if((d.shieldUntil||0) > now){
-      markSearchFailed('Ese jugador activó un escudo — no puedes vengarte ahora.', true);
+      markSearchFailed(t('targetActivatedShield'), true);
       return;
     }
     if((d.clk||0) < core.CFG.MIN_CLK_TO_BE_TARGET){
-      markSearchFailed('Ese jugador ya no tiene $CLK suficiente para robar.', true);
+      markSearchFailed(t('targetNoClk'), true);
       return;
     }
     if(await core.hasActivePendingDefense(uid)){
-      markSearchFailed('Ese jugador ya tiene otro ataque pendiente sin resolver — inténtalo de nuevo más tarde.', true);
+      markSearchFailed(t('targetHasPendingDefense'), true);
       return;
     }
     foundTarget = { uid, ...d };
     showResult();
   }catch(e){
     console.error(e);
-    markSearchFailed('No se pudo cargar ese objetivo.', true);
+    markSearchFailed(t('couldNotLoadTarget'), true);
   }
 }
 
@@ -363,9 +432,9 @@ async function searchRandom(){
     foundTarget = await core.findTargetByLevel(myProfile.uid, myProfile.lvl, myProfile.recentTargets);
     if(!foundTarget){
       playSinExitoVideo();
-      document.getElementById('noneTitle').textContent = 'Sin objetivos ahora';
+      document.getElementById('noneTitle').textContent = t('noTargetsNowTitle');
       document.getElementById('noneText').textContent = core.explainNoTargetFound();
-      document.getElementById('retryBtn2').textContent = '🔄 Reintentar';
+      document.getElementById('retryBtn2').textContent = t('retryBtn2Text');
       directTargetFailed = false;
       showView('noneFound');
       return;
@@ -373,15 +442,15 @@ async function searchRandom(){
     showResult();
   }catch(e){
     console.error('findTargetByLevel failed:',e);
-    markSearchFailed('Error al buscar. Inténtalo de nuevo.', false);
+    markSearchFailed(t('searchErrorRetry'), false);
   }
 }
 
 function showResult(){
   playExitoVideo();
   const tier = core.difficultyFor(myProfile.lvl, foundTarget.lvl);
-  document.getElementById('rivalName').textContent = foundTarget.alias || 'Jugador';
-  document.getElementById('rivalLvl').textContent = `Nivel ${foundTarget.lvl}`;
+  document.getElementById('rivalName').textContent = foundTarget.alias || t('playerDefault');
+  document.getElementById('rivalLvl').textContent = t('levelLabel',{lvl:foundTarget.lvl});
   const badge=document.getElementById('diffBadge');
   badge.textContent = DIFF_LABELS[tier.key];
   badge.className = 'diffBadge ' + tier.key;
@@ -410,7 +479,7 @@ document.getElementById('attackBtn').onclick=async ()=>{
     // flujo ya trató (y, de paso, resolvió) como libre.
     const busy = await core.hasActivePendingDefense(foundTarget.uid);
     if(busy){
-      markSearchFailed('Ese jugador ya tiene otro ataque pendiente sin resolver — inténtalo de nuevo más tarde.', isRevengeFlow);
+      markSearchFailed(t('targetHasPendingDefense'), isRevengeFlow);
       return;
     }
     sessionStorage.setItem('invasion_battle_defender', foundTarget.uid);
@@ -418,7 +487,7 @@ document.getElementById('attackBtn').onclick=async ()=>{
     window.location.href='minigame.html';
   }catch(e){
     console.error('hasActivePendingDefense check failed:', e);
-    markSearchFailed('No se pudo comprobar el objetivo. Inténtalo de nuevo.', isRevengeFlow);
+    markSearchFailed(t('couldNotCheckTarget'), isRevengeFlow);
   }finally{
     btn.disabled=false;
   }
