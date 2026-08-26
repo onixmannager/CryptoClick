@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" id="htmlRoot">
+<html lang="en" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
 <script>
@@ -1054,7 +1054,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="topbar">
   <a href="landing.html" id="logo">CRYPTO ALIEN</a>
   <div id="usermini">
-    <button id="langBtn" onclick="toggleLang()" aria-label="Change language">ES</button>
+    <button id="langBtn" onclick="toggleLang()" aria-label="Change language">EN</button>
     <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
     <button id="logoutBtn" onclick="logoutUser()" data-i18n="logoutBtn">Salir</button>
   </div>
@@ -1725,7 +1725,7 @@ const I18N={
   starAriaLabel:{es:'estrella',en:'star'},
   tapPowerUnlocked:{es:'poder de tap desbloqueado',en:'tap power unlocked'},
 };
-let currentLang=(function(){try{return localStorage.getItem('cck4_lang')==='en'?'en':'es';}catch(e){return 'es';}})();
+let currentLang=(function(){try{return localStorage.getItem('cck4_lang')==='es'?'es':'en';}catch(e){return 'en';}})();
 function t(key,vars){
   const entry=I18N[key];
   let str=entry?(entry[currentLang]||entry.es):key;
