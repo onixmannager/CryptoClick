@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
 <script>
@@ -724,6 +724,9 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #muteBtn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,border-color .2s;flex-shrink:0}
 #muteBtn:active{transform:scale(.88)}
 #muteBtn.off{opacity:.5;border-color:var(--border)}
+/* BOTÓN DE IDIOMA: mismo estilo circular que #muteBtn, junto a él en la topbar */
+#langBtn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,border-color .2s;flex-shrink:0;color:var(--text);font-family:var(--fb)}
+#langBtn:active{transform:scale(.88)}
 
 /* ══════════════════════════════════════════════════════════════════
    DESKTOP — "Mining Station" shell.
@@ -1023,12 +1026,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 <div id="login-screen" style="display:none">
   <img src="https://raw.githubusercontent.com/onixmannager/CryptoClick/refs/heads/main/images/aliensaludamonedaarriba.png" alt="alien">
   <div id="login-title">CRYPTO ALIEN</div>
-  <div id="login-sub">Inicia sesión con Google para guardar tu progreso en la nube y jugar desde cualquier dispositivo.</div>
+  <div id="login-sub" data-i18n="loginSub">Inicia sesión con Google para guardar tu progreso en la nube y jugar desde cualquier dispositivo.</div>
   <button id="googleBtn" onclick="loginWithGoogle()">
     <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 36.4 26.7 37 24 37c-5.3 0-9.6-3.4-11.3-8.1l-6.5 5C9.5 40.6 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-0.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C40.9 36 45 30.5 45 24c0-1.2-.1-2.4-.4-3.5z"/></svg>
-    Continuar con Google
+    <span data-i18n="googleBtn">Continuar con Google</span>
   </button>
-  <div id="login-loading">🔄 Conectando...</div>
+  <div id="login-loading" data-i18n="loginLoading">🔄 Conectando...</div>
   <div id="login-error"></div>
 </div>
 
@@ -1051,8 +1054,9 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <div id="topbar">
   <a href="landing.html" id="logo">CRYPTO ALIEN</a>
   <div id="usermini">
+    <button id="langBtn" onclick="toggleLang()" aria-label="Change language">ES</button>
     <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido">🔊</button>
-    <button id="logoutBtn" onclick="logoutUser()">Salir</button>
+    <button id="logoutBtn" onclick="logoutUser()" data-i18n="logoutBtn">Salir</button>
   </div>
   </div>
   <!-- Música de fondo en loop. preload="auto" para que esté lista en cuanto el
@@ -1108,56 +1112,56 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
       </div>
       <div id="miningsec">
         <div id="mininghead">
-          <div id="miningtitle"><span class="mdot"></span>MINANDO EN SEGUNDO PLANO</div>
+          <div id="miningtitle"><span class="mdot"></span><span data-i18n="miningTitle">MINANDO EN SEGUNDO PLANO</span></div>
           <div id="miningpct">0%</div>
         </div>
         <div id="miningtrack"><div id="miningfill"><div id="miningpop">+0</div></div></div>
-        <div id="miningsub">Sigue minando aunque no toques la pantalla</div>
+        <div id="miningsub" data-i18n="miningSubActive">Sigue minando aunque no toques la pantalla</div>
       </div>
     </div>
     <div id="ensec">
-      <div id="enhead"><div id="entitle">⚡ ENERGÍA</div><div id="encount"><span id="ecur">120</span>/<span id="emax">120</span></div></div>
+      <div id="enhead"><div id="entitle" data-i18n="energyTitle">⚡ ENERGÍA</div><div id="encount"><span id="ecur">120</span>/<span id="emax">120</span></div></div>
       <div id="entrack"><div id="enfill" style="width:100%"></div></div>
-      <div id="enregen">+<span id="eregen">0.04</span>/s · recarga automática</div>
+      <div id="enregen">+<span id="eregen">0.04</span>/s · <span data-i18n="energyAutoRecharge">recarga automática</span></div>
     </div>
     <div id="dailysec">
       <button id="dailybtn" onclick="openDaily()">
         <div class="dbicon">🎁</div>
-        <div class="dbinfo"><div class="dbtitle">Bonus Diario</div><div class="dbsub" id="dailysub">¡Reclama tu recompensa!</div></div>
-        <div class="dbbadge" id="dailybadge">RECLAMAR</div>
+        <div class="dbinfo"><div class="dbtitle" data-i18n="dailyBonusTitle">Bonus Diario</div><div class="dbsub" id="dailysub" data-i18n="dailyClaimReward">¡Reclama tu recompensa!</div></div>
+        <div class="dbbadge" id="dailybadge" data-i18n="claim">RECLAMAR</div>
       </button>
     </div>
   </div>
 
   <!-- UPGRADES -->
   <div id="screen-upgrades" class="screen">
-    <div class="sh">⚡ Mejoras</div>
-    <div class="ss">Invierte $CLK para generar más tokens</div>
-    <button id="buyallbtn" class="claimall" onclick="buyAllUps()">🪙 Comprar todo lo disponible</button>
+    <div class="sh" data-i18n="upgradesTitle">⚡ Mejoras</div>
+    <div class="ss" data-i18n="upgradesSub">Invierte $CLK para generar más tokens</div>
+    <button id="buyallbtn" class="claimall" onclick="buyAllUps()" data-i18n="buyAllBtn">🪙 Comprar todo lo disponible</button>
     <div id="upslist"></div>
     <div id="skinsec">
-      <div class="skintitle">🎨 SKINS DE MONEDA</div>
+      <div class="skintitle" data-i18n="skinsTitle">🎨 SKINS DE MONEDA</div>
       <div id="skingrid"></div>
     </div>
   </div>
 
   <!-- MISSIONS -->
   <div id="screen-missions" class="screen">
-    <div class="sh">🎯 Misiones</div>
-    <div class="ss">Completa retos para ganar $CLK extra</div>
-    <button id="claimallbtn" class="claimall" onclick="claimAllMiss()">🎁 Reclamar todo lo disponible</button>
+    <div class="sh" data-i18n="missionsTitle">🎯 Misiones</div>
+    <div class="ss" data-i18n="missionsSub">Completa retos para ganar $CLK extra</div>
+    <button id="claimallbtn" class="claimall" onclick="claimAllMiss()" data-i18n="claimAllBtn">🎁 Reclamar todo lo disponible</button>
     <div id="misslist"></div>
   </div>
 
   <!-- RANKING GLOBAL -->
   <div id="screen-leaderboard" class="screen">
-    <div class="sh">🏆 Ranking Global</div>
-    <div class="ss">Los mejores mineros de $CLK</div>
+    <div class="sh" data-i18n="leaderboardTitle">🏆 Ranking Global</div>
+    <div class="ss" data-i18n="leaderboardSub">Los mejores mineros de $CLK</div>
 
     <div id="lbtabs">
-      <button class="lbtab active" data-period="weekly" onclick="setLBPeriod('weekly')">📅 Semanal</button>
-      <button class="lbtab" data-period="monthly" onclick="setLBPeriod('monthly')">🗓️ Mensual</button>
-      <button class="lbtab" data-period="total" onclick="setLBPeriod('total')">👑 Total</button>
+      <button class="lbtab active" data-period="weekly" onclick="setLBPeriod('weekly')" data-i18n="lbWeekly">📅 Semanal</button>
+      <button class="lbtab" data-period="monthly" onclick="setLBPeriod('monthly')" data-i18n="lbMonthly">🗓️ Mensual</button>
+      <button class="lbtab" data-period="total" onclick="setLBPeriod('total')" data-i18n="lbTotal">👑 Total</button>
     </div>
     <div id="lbsub" class="ss" style="margin-bottom:10px"></div>
 
@@ -1167,12 +1171,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 
   <!-- TELEGRAM CTA -->
   <div id="screen-community" class="screen">
-    <div class="sh">📡 Comunidad</div>
-    <div class="ss">Únete para enterarte de las novedades de $CLK</div>
+    <div class="sh" data-i18n="communityTitle">📡 Comunidad</div>
+    <div class="ss" data-i18n="communitySub">Únete para enterarte de las novedades de $CLK</div>
 
     <div style="background:linear-gradient(135deg,rgba(255,195,105,.08),rgba(255,195,105,.08));border:1px solid rgba(255,195,105,.25);border-radius:16px;padding:16px;text-align:center;margin-bottom:14px">
-      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:6px">🎁 +50.000 $CLK POR ENLACE</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5">Síguenos en cada red — pulsa el enlace para abrirla y luego reclama tu recompensa, una vez por red</div>
+      <div style="font-size:11px;color:var(--yellow);font-weight:800;letter-spacing:2px;margin-bottom:6px" data-i18n="communityRewardBanner">🎁 +50.000 $CLK POR ENLACE</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5" data-i18n="communityRewardText">Síguenos en cada red — pulsa el enlace para abrirla y luego reclama tu recompensa, una vez por red</div>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
@@ -1180,116 +1184,116 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
         <a href="https://t.me/Crypto_Click_News" target="_blank" rel="noopener" class="socialLink" onclick="markSocialLinkClicked('telegram')" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
           <div style="font-size:32px;flex-shrink:0">📢</div>
           <div style="flex:1">
-            <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Canal de Noticias</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Anuncios oficiales · Fecha del airdrop · Actualizaciones</div>
+            <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px" data-i18n="telegramChannelTitle">Canal de Noticias</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700" data-i18n="telegramChannelSub">Anuncios oficiales · Fecha del airdrop · Actualizaciones</div>
           </div>
           <div style="font-size:20px;color:white">›</div>
         </a>
-        <button id="socialClaimTelegram" class="rdbtn" style="width:100%" disabled onclick="claimSocial('telegram')">🎁 Pulsa el enlace primero</button>
+        <button id="socialClaimTelegram" class="rdbtn" style="width:100%" disabled onclick="claimSocial('telegram')" data-i18n="socialClickFirst">🎁 Pulsa el enlace primero</button>
       </div>
       <div style="background:linear-gradient(135deg,#1a1a1a,#000);border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,.3)">
         <a href="https://x.com/harley_pax" target="_blank" rel="noopener" class="socialLink" onclick="markSocialLinkClicked('twitter')" style="display:flex;align-items:center;gap:14px;text-decoration:none;margin-bottom:12px">
           <div style="font-size:32px;flex-shrink:0">🐦</div>
           <div style="flex:1">
-            <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px">Síguenos en X (Twitter)</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700">Novedades · Sorteos · Comunidad</div>
+            <div style="font-family:var(--fh);font-size:16px;color:white;margin-bottom:2px" data-i18n="twitterTitle">Síguenos en X (Twitter)</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700" data-i18n="twitterSub">Novedades · Sorteos · Comunidad</div>
           </div>
           <div style="font-size:20px;color:white">›</div>
         </a>
-        <button id="socialClaimTwitter" class="rdbtn" style="width:100%" disabled onclick="claimSocial('twitter')">🎁 Pulsa el enlace primero</button>
+        <button id="socialClaimTwitter" class="rdbtn" style="width:100%" disabled onclick="claimSocial('twitter')" data-i18n="socialClickFirst">🎁 Pulsa el enlace primero</button>
       </div>
     </div>
 
     <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
-      <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:2px;margin-bottom:12px">🗺️ CÓMO MANTENERTE AL DÍA</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:2px;margin-bottom:12px" data-i18n="howToStayUpdated">🗺️ CÓMO MANTENERTE AL DÍA</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#059669);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#001a0a;flex-shrink:0">1</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Sigue minando $CLK en el juego</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)" data-i18n="stepKeepMining">Sigue minando $CLK en el juego</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0088cc,#006aaa);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:white;flex-shrink:0">2</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Suscríbete al canal oficial de Telegram</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)" data-i18n="stepSubscribeTelegram">Suscríbete al canal oficial de Telegram</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:white;flex-shrink:0">3</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Entérate de los anuncios oficiales cuando se publiquen</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)" data-i18n="stepFindOutAnnouncements">Entérate de los anuncios oficiales cuando se publiquen</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green),#059669);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#001a0a;flex-shrink:0">4</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.8)">Consulta la pantalla Socios para más información 📋</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8)" data-i18n="stepCheckPartners">Consulta la pantalla Socios para más información 📋</div>
         </div>
       </div>
     </div>
 
     <div style="background:linear-gradient(135deg,rgba(200,255,77,.08),rgba(6,182,212,.08));border:1px solid rgba(200,255,77,.2);border-radius:14px;padding:14px;text-align:center">
-      <div style="font-size:11px;color:var(--green);font-weight:800;letter-spacing:1px;margin-bottom:4px">🌍 ÚNETE A LA COMUNIDAD $CLK</div>
-      <div style="font-size:12px;color:var(--muted)">Comparte el juego · Invita amigos · Gana más $CLK</div>
+      <div style="font-size:11px;color:var(--green);font-weight:800;letter-spacing:1px;margin-bottom:4px" data-i18n="joinCommunityBanner">🌍 ÚNETE A LA COMUNIDAD $CLK</div>
+      <div style="font-size:12px;color:var(--muted)" data-i18n="joinCommunityText">Comparte el juego · Invita amigos · Gana más $CLK</div>
     </div>
 
     <!-- AMIGOS: trasladado desde su propia pestaña de navegación, contenido intacto -->
     <div style="margin:22px 0 10px;padding-top:14px;border-top:1px solid var(--border)">
-      <div class="sh" style="font-size:18px">👥 Amigos</div>
-      <div class="ss">Invita amigos · +50000 $CLK por cada uno</div>
+      <div class="sh" style="font-size:18px" data-i18n="friendsTitle">👥 Amigos</div>
+      <div class="ss" data-i18n="friendsSub">Invita amigos · +50000 $CLK por cada uno</div>
     </div>
     <div id="refbox">
-      <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:2px">TU CÓDIGO ÚNICO</div>
+      <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:2px" data-i18n="yourUniqueCode">TU CÓDIGO ÚNICO</div>
       <div id="refcode">XXXXXXX</div>
-      <button id="copybtn" onclick="copyCode()">📋 Copiar y compartir</button>
+      <button id="copybtn" onclick="copyCode()" data-i18n="copyShareBtn">📋 Copiar y compartir</button>
     </div>
     <div class="refstats">
-      <div class="rs"><div class="rsv" id="rcount">0</div><div class="rsl">AMIGOS</div></div>
-      <div class="rs"><div class="rsv" id="rearned">0</div><div class="rsl">$CLK GANADOS</div></div>
+      <div class="rs"><div class="rsv" id="rcount">0</div><div class="rsl" data-i18n="friendsLabel">AMIGOS</div></div>
+      <div class="rs"><div class="rsv" id="rearned">0</div><div class="rsl" data-i18n="clkEarnedLabel">$CLK GANADOS</div></div>
     </div>
-    <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px">CÓDIGO DE AMIGO</div>
+    <div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:1px;margin-bottom:8px" data-i18n="friendCodeLabel">CÓDIGO DE AMIGO</div>
     <div style="display:flex;gap:8px">
-      <input id="refinp" type="text" placeholder="Ej: ABC1234" maxlength="8">
+      <input id="refinp" type="text" placeholder="Ej: ABC1234" maxlength="8" data-i18n-placeholder="friendCodePlaceholder">
       <button id="refgo" onclick="subRef()">✓</button>
     </div>
   </div>
 
   <!-- SOCIOS (antes "Canjear"): catálogo informativo de proyectos externos, redirige fuera de la app -->
   <div id="screen-redeem" class="screen">
-    <div class="sh">🔁 Socios</div>
-    <div class="ss">Airdrops de proyectos externos</div>
-    <div class="rdintro">
+    <div class="sh" data-i18n="partnersTitle">🔁 Socios</div>
+    <div class="ss" data-i18n="partnersSub">Airdrops de proyectos externos</div>
+    <div class="rdintro" data-i18n="partnersIntro">
       Aquí encontrarás <b>proyectos de terceros</b>, no afiliados a CRYPTO ALIEN, que ofrecen airdrops o programas de canje propios. Cada proyecto tiene sus propias condiciones, requisitos y token — este juego no gestiona, garantiza ni interviene en ningún canje.
     </div>
     <div id="redeemlist"></div>
     <div class="rdintro" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <div>📖 ¿Quieres conocer mejor el proyecto? Consulta nuestra documentación oficial.</div>
-      <a href="landing.html" target="_blank" rel="noopener" class="rdbtn" style="text-decoration:none;display:inline-block">Ver docs ↗</a>
+      <div data-i18n="partnersDocsText">📖 ¿Quieres conocer mejor el proyecto? Consulta nuestra documentación oficial.</div>
+      <a href="landing.html" target="_blank" rel="noopener" class="rdbtn" style="text-decoration:none;display:inline-block" data-i18n="viewDocsBtn">Ver docs ↗</a>
     </div>
-    <div class="rdfoot">Toda operación de canje se realiza fuera de esta app, en el sitio oficial de cada proyecto. Infórmate bien antes de conectar ninguna wallet.</div>
+    <div class="rdfoot" data-i18n="partnersFooter">Toda operación de canje se realiza fuera de esta app, en el sitio oficial de cada proyecto. Infórmate bien antes de conectar ninguna wallet.</div>
   </div>
 
 
 </div>
 
 <nav id="bnav">
-  <button class="nbtn active" id="nav-mine" onclick="goTo('mine')"><span class="nicon">⛏️</span>MINAR</button>
-  <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span>MEJORAS</button>
-  <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span>MISIONES</button>
-  <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span>RANKING</button>
-  <button class="nbtn" id="nav-redeem" onclick="goTo('redeem')"><span class="nicon">🔁</span>SOCIOS</button>
-  <button class="nbtn" id="nav-community" onclick="goTo('community')"><span class="nicon">📡</span>COMUNIDAD</button>
+  <button class="nbtn active" id="nav-mine" onclick="goTo('mine')"><span class="nicon">⛏️</span><span data-i18n="navMine">MINAR</span></button>
+  <button class="nbtn" id="nav-upgrades" onclick="goTo('upgrades')" style="position:relative"><span class="nicon">⚡</span><span data-i18n="navUpgrades">MEJORAS</span></button>
+  <button class="nbtn" id="nav-missions" onclick="goTo('missions')" style="position:relative"><span class="nicon">🎯</span><span data-i18n="navMissions">MISIONES</span></button>
+  <button class="nbtn" id="nav-leaderboard" onclick="goTo('leaderboard')"><span class="nicon">🏆</span><span data-i18n="navLeaderboard">RANKING</span></button>
+  <button class="nbtn" id="nav-redeem" onclick="goTo('redeem')"><span class="nicon">🔁</span><span data-i18n="navRedeem">SOCIOS</span></button>
+  <button class="nbtn" id="nav-community" onclick="goTo('community')"><span class="nicon">📡</span><span data-i18n="navCommunity">COMUNIDAD</span></button>
 </nav>
 
 <!-- OVERLAYS -->
 <div id="noeov"><div id="noebox">
-  <h3>⚡ Sin energía</h3>
-  <p>Se recarga sola — +<span id="noeregen">0.04</span>/segundo<br>¡Mejora tu batería en la tienda!</p>
-  <button class="obbtn" onclick="document.getElementById('noeov').classList.remove('show')">Esperar ⏳</button>
+  <h3 data-i18n="noEnergyTitle">⚡ Sin energía</h3>
+  <p><span data-i18n="noEnergyRecharge">Se recarga sola —</span> +<span id="noeregen">0.04</span>/<span data-i18n="perSecond">segundo</span><br><span data-i18n="noEnergyUpgradeHint">¡Mejora tu batería en la tienda!</span></p>
+  <button class="obbtn" onclick="document.getElementById('noeov').classList.remove('show')" data-i18n="waitBtn">Esperar ⏳</button>
 </div></div>
 
 <div id="ruov"><div id="rubox">
   <mux-player id="ruvideo" stream-type="on-demand" autoplay="any" no-muted-pref playsinline></mux-player>
-  <button id="ruskip" onclick="skipRankupVideo()">Saltar ⏭️</button>
+  <button id="ruskip" onclick="skipRankupVideo()" data-i18n="skipBtn">Saltar ⏭️</button>
   <span id="ruemoji">🎉</span>
-  <div id="rutitle">¡SUBISTE DE RANGO!</div>
+  <div id="rutitle" data-i18n="rankUpTitle">¡SUBISTE DE RANGO!</div>
   <div id="runame">Nombre</div>
   <div id="rubonus">Bonus</div>
-  <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show');document.getElementById('ruvideo').pause();BGM.resume()">¡A MINAR! ⛏️</button>
+  <button id="ruclose" onclick="document.getElementById('ruov').classList.remove('show');document.getElementById('ruvideo').pause();BGM.resume()" data-i18n="goMineBtn">¡A MINAR! ⛏️</button>
 </div></div>
 
 <!-- Overlay del video "star.mp4": aparece al llegar a nivel 50. Mismo patrón que
@@ -1298,60 +1302,60 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
      la partida automáticamente igual que antes. -->
 <div id="starov"><div id="starbox">
   <mux-player id="starvideo" stream-type="on-demand" autoplay="any" no-muted-pref playsinline></mux-player>
-  <button id="starskip" onclick="skipStarVideo()">Saltar ⏭️</button>
+  <button id="starskip" onclick="skipStarVideo()" data-i18n="skipBtn">Saltar ⏭️</button>
   <span id="staremoji">🌟</span>
-  <div id="startitle">¡NIVEL 50 ALCANZADO!</div>
-  <div id="starname">Ganaste 1 estrella</div>
-  <div id="starbonus">Reiniciando tu progreso… conservas tu alias</div>
+  <div id="startitle" data-i18n="level50Title">¡NIVEL 50 ALCANZADO!</div>
+  <div id="starname" data-i18n="starEarned">Ganaste 1 estrella</div>
+  <div id="starbonus" data-i18n="starResetting">Reiniciando tu progreso… conservas tu alias</div>
 </div></div>
 
 <!-- Aviso al llegar a 10 estrellas: en vez de reiniciar de nuevo, invita a
      contactar con soporte para canjear todo el progreso acumulado por $CLK. -->
 <div id="starmaxov"><div id="starmaxbox">
   <div class="aic">🏆</div>
-  <h3>¡10 estrellas conseguidas!</h3>
-  <p>Has llegado al máximo de estrellas posibles. Contacta con el equipo de soporte para canjear todo tu progreso por $CLK.</p>
-  <button id="starmaxclose" onclick="document.getElementById('starmaxov').classList.remove('show')">Entendido</button>
+  <h3 data-i18n="starMaxTitle">¡10 estrellas conseguidas!</h3>
+  <p data-i18n="starMaxText">Has llegado al máximo de estrellas posibles. Contacta con el equipo de soporte para canjear todo tu progreso por $CLK.</p>
+  <button id="starmaxclose" onclick="document.getElementById('starmaxov').classList.remove('show')" data-i18n="understoodBtn">Entendido</button>
 </div></div>
 
 <div id="dailyov"><div id="dailybox">
-  <h3>🎁 Bonus Diario</h3>
-  <p>¡Regresa cada día para multiplicar tus recompensas!</p>
+  <h3 data-i18n="dailyBonusOvTitle">🎁 Bonus Diario</h3>
+  <p data-i18n="dailyBonusOvText">¡Regresa cada día para multiplicar tus recompensas!</p>
   <div id="dailygrid"></div>
-  <button id="dailyclaim" onclick="claimDaily()">Reclamar 🎁</button>
-  <button id="dailyclose" onclick="document.getElementById('dailyov').classList.remove('show')">Cerrar</button>
+  <button id="dailyclaim" onclick="claimDaily()" data-i18n="claimDailyBtn">Reclamar 🎁</button>
+  <button id="dailyclose" onclick="document.getElementById('dailyov').classList.remove('show')" data-i18n="closeBtn">Cerrar</button>
 </div></div>
 
 <div id="shieldOv"><div id="shieldBox">
   <img id="shieldBoxIcon" src="images/escudo.png" alt="Escudo">
-  <h3>Escudo de Invasión</h3>
-  <div id="shieldStatusLine">Cargando…</div>
+  <h3 data-i18n="shieldTitle">Escudo de Invasión</h3>
+  <div id="shieldStatusLine" data-i18n="loadingText">Cargando…</div>
   <div id="shieldBuyBtnsMain"></div>
-  <button id="shieldClose" onclick="document.getElementById('shieldOv').classList.remove('show')">Cerrar</button>
+  <button id="shieldClose" onclick="document.getElementById('shieldOv').classList.remove('show')" data-i18n="closeBtn">Cerrar</button>
 </div></div>
 
 <div id="introov">
   <mux-player id="introvideo" stream-type="on-demand" autoplay="any" no-muted-pref playsinline></mux-player>
   <div id="introfade"></div>
-  <button id="introskip" onclick="skipIntroVideo()">Saltar ⏭️</button>
+  <button id="introskip" onclick="skipIntroVideo()" data-i18n="skipBtn">Saltar ⏭️</button>
 </div>
 
 <div id="aliasov"><div id="aliasbox">
   <div class="aic">🏆</div>
-  <h3>Elige tu alias</h3>
-  <p>Así te verán los demás mineros en el Ranking Global. Puedes cambiarlo luego desde la sección Ranking.</p>
+  <h3 data-i18n="chooseAliasTitle">Elige tu alias</h3>
+  <p data-i18n="chooseAliasText">Así te verán los demás mineros en el Ranking Global. Puedes cambiarlo luego desde la sección Ranking.</p>
   <input id="aliasinp" type="text" placeholder="Ej: MineroCLK" maxlength="16">
   <div id="aliaserr"></div>
-  <button id="aliasgo" onclick="confirmAlias()">Confirmar ✓</button>
-  <button id="aliasskip" onclick="skipAlias()">Ahora no, jugar sin ranking</button>
+  <button id="aliasgo" onclick="confirmAlias()" data-i18n="confirmBtn">Confirmar ✓</button>
+  <button id="aliasskip" onclick="skipAlias()" data-i18n="skipAliasBtn">Ahora no, jugar sin ranking</button>
 </div></div>
 
 <div id="redeemov"><div id="redeembox">
-  <h3>⚠️ Vas a salir de la app</h3>
-  <p id="redeemtext">Vas a abrir el sitio externo de este proyecto para gestionar tu canje.</p>
-  <div class="rdwarn">Este juego no participa en la operación, no puede revertirla ni garantizar el resultado. Verifica siempre que la dirección web sea la oficial del proyecto y nunca compartas tus claves privadas ni frase semilla con nadie.</div>
-  <button id="redeemgo" onclick="confirmRedeem()">Entiendo, continuar</button>
-  <button id="redeemcancel" onclick="cancelRedeem()">Cancelar</button>
+  <h3 data-i18n="redeemWarnTitle">⚠️ Vas a salir de la app</h3>
+  <p id="redeemtext" data-i18n="redeemWarnText">Vas a abrir el sitio externo de este proyecto para gestionar tu canje.</p>
+  <div class="rdwarn" data-i18n="redeemWarnDetail">Este juego no participa en la operación, no puede revertirla ni garantizar el resultado. Verifica siempre que la dirección web sea la oficial del proyecto y nunca compartas tus claves privadas ni frase semilla con nadie.</div>
+  <button id="redeemgo" onclick="confirmRedeem()" data-i18n="understandContinueBtn">Entiendo, continuar</button>
+  <button id="redeemcancel" onclick="cancelRedeem()" data-i18n="cancelBtn">Cancelar</button>
 </div></div>
 
 <div id="sfire">🔥</div>
@@ -1360,10 +1364,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 <!-- AVISO DE ACTUALIZACIÓN PWA -->
 <div id="updateOv"><div id="updateBanner">
   <div class="ubIcon">🚀</div>
-  <h3>¡Nueva versión!</h3>
-  <div class="ubText">Hay una actualización del juego lista para instalar</div>
-  <button class="ubBtn" id="updateBannerBtn">Actualizar</button>
-  <button class="ubClose" id="updateBannerClose">Ahora no</button>
+  <h3 data-i18n="newVersionTitle">¡Nueva versión!</h3>
+  <div class="ubText" data-i18n="newVersionText">Hay una actualización del juego lista para instalar</div>
+  <button class="ubBtn" id="updateBannerBtn" data-i18n="updateBtn">Actualizar</button>
+  <button class="ubClose" id="updateBannerClose" data-i18n="notNowBtn">Ahora no</button>
 </div></div>
 
 <!-- AVISO DE ATAQUE PENDIENTE DE INVASIÓN — ver checkPendingAttacksFromMain()
@@ -1371,10 +1375,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
      sin resolver (puede haber varios, de atacantes distintos). -->
 <div id="pendingAttackOv"><div id="pendingAttackBanner">
   <div class="paIcon">🚨</div>
-  <h3 id="pendingAttackTitle">¡Te están atacando!</h3>
-  <div class="paIntro" id="pendingAttackIntro">Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo.</div>
+  <h3 id="pendingAttackTitle" data-i18n="pendingAttackTitleSingle">¡Te están atacando!</h3>
+  <div class="paIntro" id="pendingAttackIntro" data-i18n="pendingAttackIntroSingle">Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo.</div>
   <div id="pendingAttackRows"></div>
-  <button id="pendingAttackClose">Ahora no</button>
+  <button id="pendingAttackClose" data-i18n="notNowBtn">Ahora no</button>
 </div></div>
 
 <!-- ============ FIREBASE ============ -->
@@ -1498,6 +1502,269 @@ setTimeout(() => {
 
 
 <script>
+/* ════════════════════════════════════════════════════════════════
+   I18N — sistema de idioma ES/EN. Un único diccionario clave->{es,en}
+   cubre todo el texto estático (marcado en el HTML con data-i18n /
+   data-i18n-placeholder) y todo el texto generado dinámicamente por
+   JS (toasts, listas renderizadas, etc.), que llama a t('clave').
+   La preferencia se guarda en localStorage y no afecta a S (el save
+   del juego), es solo una preferencia de dispositivo/navegador.
+   ════════════════════════════════════════════════════════════════ */
+const I18N={
+  logoutBtn:{es:'Salir',en:'Log out'},
+  loginSub:{es:'Inicia sesión con Google para guardar tu progreso en la nube y jugar desde cualquier dispositivo.',en:'Sign in with Google to save your progress in the cloud and play from any device.'},
+  googleBtn:{es:'Continuar con Google',en:'Continue with Google'},
+  loginLoading:{es:'🔄 Conectando...',en:'🔄 Connecting...'},
+  energyTitle:{es:'⚡ ENERGÍA',en:'⚡ ENERGY'},
+  energyAutoRecharge:{es:'recarga automática',en:'auto recharge'},
+  dailyBonusTitle:{es:'Bonus Diario',en:'Daily Bonus'},
+  dailyClaimReward:{es:'¡Reclama tu recompensa!',en:'Claim your reward!'},
+  claim:{es:'RECLAMAR',en:'CLAIM'},
+  upgradesTitle:{es:'⚡ Mejoras',en:'⚡ Upgrades'},
+  upgradesSub:{es:'Invierte $CLK para generar más tokens',en:'Invest $CLK to generate more tokens'},
+  buyAllBtn:{es:'🪙 Comprar todo lo disponible',en:'🪙 Buy everything available'},
+  skinsTitle:{es:'🎨 SKINS DE MONEDA',en:'🎨 COIN SKINS'},
+  missionsTitle:{es:'🎯 Misiones',en:'🎯 Missions'},
+  missionsSub:{es:'Completa retos para ganar $CLK extra',en:'Complete challenges to earn extra $CLK'},
+  claimAllBtn:{es:'🎁 Reclamar todo lo disponible',en:'🎁 Claim everything available'},
+  leaderboardTitle:{es:'🏆 Ranking Global',en:'🏆 Global Leaderboard'},
+  leaderboardSub:{es:'Los mejores mineros de $CLK',en:'The best $CLK miners'},
+  lbWeekly:{es:'📅 Semanal',en:'📅 Weekly'},
+  lbMonthly:{es:'🗓️ Mensual',en:'🗓️ Monthly'},
+  lbTotal:{es:'👑 Total',en:'👑 Total'},
+  communityTitle:{es:'📡 Comunidad',en:'📡 Community'},
+  communitySub:{es:'Únete para enterarte de las novedades de $CLK',en:'Join to stay up to date with $CLK news'},
+  communityRewardBanner:{es:'🎁 +50.000 $CLK POR ENLACE',en:'🎁 +50,000 $CLK PER LINK'},
+  communityRewardText:{es:'Síguenos en cada red — pulsa el enlace para abrirla y luego reclama tu recompensa, una vez por red',en:'Follow us on each network — tap the link to open it, then claim your reward, once per network'},
+  telegramChannelTitle:{es:'Canal de Noticias',en:'News Channel'},
+  telegramChannelSub:{es:'Anuncios oficiales · Fecha del airdrop · Actualizaciones',en:'Official announcements · Airdrop date · Updates'},
+  socialClickFirst:{es:'🎁 Pulsa el enlace primero',en:'🎁 Tap the link first'},
+  twitterTitle:{es:'Síguenos en X (Twitter)',en:'Follow us on X (Twitter)'},
+  twitterSub:{es:'Novedades · Sorteos · Comunidad',en:'News · Giveaways · Community'},
+  howToStayUpdated:{es:'🗺️ CÓMO MANTENERTE AL DÍA',en:'🗺️ HOW TO STAY UP TO DATE'},
+  stepKeepMining:{es:'Sigue minando $CLK en el juego',en:'Keep mining $CLK in the game'},
+  stepSubscribeTelegram:{es:'Suscríbete al canal oficial de Telegram',en:'Subscribe to the official Telegram channel'},
+  stepFindOutAnnouncements:{es:'Entérate de los anuncios oficiales cuando se publiquen',en:'Find out about official announcements as soon as they are posted'},
+  stepCheckPartners:{es:'Consulta la pantalla Socios para más información 📋',en:'Check the Partners screen for more information 📋'},
+  joinCommunityBanner:{es:'🌍 ÚNETE A LA COMUNIDAD $CLK',en:'🌍 JOIN THE $CLK COMMUNITY'},
+  joinCommunityText:{es:'Comparte el juego · Invita amigos · Gana más $CLK',en:'Share the game · Invite friends · Earn more $CLK'},
+  friendsTitle:{es:'👥 Amigos',en:'👥 Friends'},
+  friendsSub:{es:'Invita amigos · +50000 $CLK por cada uno',en:'Invite friends · +50000 $CLK for each one'},
+  yourUniqueCode:{es:'TU CÓDIGO ÚNICO',en:'YOUR UNIQUE CODE'},
+  copyShareBtn:{es:'📋 Copiar y compartir',en:'📋 Copy and share'},
+  friendsLabel:{es:'AMIGOS',en:'FRIENDS'},
+  clkEarnedLabel:{es:'$CLK GANADOS',en:'$CLK EARNED'},
+  friendCodeLabel:{es:'CÓDIGO DE AMIGO',en:'FRIEND CODE'},
+  friendCodePlaceholder:{es:'Ej: ABC1234',en:'E.g: ABC1234'},
+  partnersTitle:{es:'🔁 Socios',en:'🔁 Partners'},
+  partnersSub:{es:'Airdrops de proyectos externos',en:'Airdrops from external projects'},
+  partnersIntro:{es:'Aquí encontrarás <b>proyectos de terceros</b>, no afiliados a CRYPTO ALIEN, que ofrecen airdrops o programas de canje propios. Cada proyecto tiene sus propias condiciones, requisitos y token — este juego no gestiona, garantiza ni interviene en ningún canje.',en:'Here you\'ll find <b>third-party projects</b>, not affiliated with CRYPTO ALIEN, offering their own airdrops or redemption programs. Each project has its own terms, requirements and token — this game does not manage, guarantee, or take part in any redemption.'},
+  partnersDocsText:{es:'📖 ¿Quieres conocer mejor el proyecto? Consulta nuestra documentación oficial.',en:'📖 Want to learn more about the project? Check our official documentation.'},
+  viewDocsBtn:{es:'Ver docs ↗',en:'View docs ↗'},
+  partnersFooter:{es:'Toda operación de canje se realiza fuera de esta app, en el sitio oficial de cada proyecto. Infórmate bien antes de conectar ninguna wallet.',en:'All redemption operations take place outside this app, on each project\'s official site. Do your research before connecting any wallet.'},
+  navMine:{es:'MINAR',en:'MINE'},
+  navUpgrades:{es:'MEJORAS',en:'UPGRADES'},
+  navMissions:{es:'MISIONES',en:'MISSIONS'},
+  navLeaderboard:{es:'RANKING',en:'RANKING'},
+  navRedeem:{es:'SOCIOS',en:'PARTNERS'},
+  navCommunity:{es:'COMUNIDAD',en:'COMMUNITY'},
+  noEnergyTitle:{es:'⚡ Sin energía',en:'⚡ No energy'},
+  noEnergyRecharge:{es:'Se recarga sola —',en:'It recharges on its own —'},
+  perSecond:{es:'segundo',en:'second'},
+  noEnergyUpgradeHint:{es:'¡Mejora tu batería en la tienda!',en:'Upgrade your battery in the shop!'},
+  waitBtn:{es:'Esperar ⏳',en:'Wait ⏳'},
+  skipBtn:{es:'Saltar ⏭️',en:'Skip ⏭️'},
+  rankUpTitle:{es:'¡SUBISTE DE RANGO!',en:'RANK UP!'},
+  goMineBtn:{es:'¡A MINAR! ⛏️',en:'GO MINE! ⛏️'},
+  level50Title:{es:'¡NIVEL 50 ALCANZADO!',en:'LEVEL 50 REACHED!'},
+  starEarned:{es:'Ganaste 1 estrella',en:'You earned 1 star'},
+  starResetting:{es:'Reiniciando tu progreso… conservas tu alias',en:'Resetting your progress… you keep your alias'},
+  starMaxTitle:{es:'¡10 estrellas conseguidas!',en:'10 stars reached!'},
+  starMaxText:{es:'Has llegado al máximo de estrellas posibles. Contacta con el equipo de soporte para canjear todo tu progreso por $CLK.',en:'You\'ve reached the maximum number of stars. Contact the support team to redeem all your progress for $CLK.'},
+  understoodBtn:{es:'Entendido',en:'Got it'},
+  dailyBonusOvTitle:{es:'🎁 Bonus Diario',en:'🎁 Daily Bonus'},
+  dailyBonusOvText:{es:'¡Regresa cada día para multiplicar tus recompensas!',en:'Come back every day to multiply your rewards!'},
+  claimDailyBtn:{es:'Reclamar 🎁',en:'Claim 🎁'},
+  closeBtn:{es:'Cerrar',en:'Close'},
+  shieldTitle:{es:'Escudo de Invasión',en:'Invasion Shield'},
+  loadingText:{es:'Cargando…',en:'Loading…'},
+  chooseAliasTitle:{es:'Elige tu alias',en:'Choose your alias'},
+  chooseAliasText:{es:'Así te verán los demás mineros en el Ranking Global. Puedes cambiarlo luego desde la sección Ranking.',en:'This is how other miners will see you in the Global Leaderboard. You can change it later from the Leaderboard section.'},
+  confirmBtn:{es:'Confirmar ✓',en:'Confirm ✓'},
+  skipAliasBtn:{es:'Ahora no, jugar sin ranking',en:'Not now, play without ranking'},
+  redeemWarnTitle:{es:'⚠️ Vas a salir de la app',en:'⚠️ You\'re about to leave the app'},
+  redeemWarnText:{es:'Vas a abrir el sitio externo de este proyecto para gestionar tu canje.',en:'You\'re about to open this project\'s external site to manage your redemption.'},
+  redeemWarnDetail:{es:'Este juego no participa en la operación, no puede revertirla ni garantizar el resultado. Verifica siempre que la dirección web sea la oficial del proyecto y nunca compartas tus claves privadas ni frase semilla con nadie.',en:'This game is not part of the transaction and cannot reverse it or guarantee the outcome. Always verify the web address is the project\'s official one, and never share your private keys or seed phrase with anyone.'},
+  understandContinueBtn:{es:'Entiendo, continuar',en:'I understand, continue'},
+  cancelBtn:{es:'Cancelar',en:'Cancel'},
+  newVersionTitle:{es:'¡Nueva versión!',en:'New version!'},
+  newVersionText:{es:'Hay una actualización del juego lista para instalar',en:'A game update is ready to install'},
+  updateBtn:{es:'Actualizar',en:'Update'},
+  notNowBtn:{es:'Ahora no',en:'Not now'},
+  pendingAttackTitleSingle:{es:'¡Te están atacando!',en:'You\'re under attack!'},
+  pendingAttackIntroSingle:{es:'Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo.',en:'Another player launched a missile at you in Invasion mode. Defend yourself before the duel is resolved.'},
+  miningTitle:{es:'MINANDO EN SEGUNDO PLANO',en:'MINING IN THE BACKGROUND'},
+  miningSubActive:{es:'Sigue minando aunque no toques la pantalla',en:'Keeps mining even if you don\'t touch the screen'},
+  miningSubIdle:{es:'Compra una mejora de producción para que mine solo',en:'Buy a production upgrade so it mines on its own'},
+  // ---- Strings generadas dinámicamente por JS ----
+  savingText:{es:'Guardando…',en:'Saving…'},
+  savedLocalText:{es:'Guardado local',en:'Saved locally'},
+  cloudNotConfigured:{es:'Nube no configurada',en:'Cloud not configured'},
+  savedText:{es:'Guardado',en:'Saved'},
+  browserBlockingSave:{es:'⚠️ Tu navegador está bloqueando el guardado (¿modo privado?). Usa una pestaña normal.',en:'⚠️ Your browser is blocking saving (private mode?). Use a normal tab.'},
+  offlineEarned:{es:'💤 Ganaste {amt} $CLK offline!',en:'💤 You earned {amt} $CLK offline!'},
+  cloudLoadFailed:{es:'⚠️ No se pudo cargar tu partida de la nube ({err}). Usando local.',en:'⚠️ Could not load your save from the cloud ({err}). Using local.'},
+  newSkinUnlocked:{es:'🎨 Nueva skin "{name}" desbloqueada!',en:'🎨 New skin "{name}" unlocked!'},
+  skinActivated:{es:'🎨 Skin "{name}" activada',en:'🎨 Skin "{name}" activated'},
+  notEnoughClkForAnyUpgrade:{es:'❌ Sin suficiente $CLK para ninguna mejora',en:'❌ Not enough $CLK for any upgrade'},
+  upgradesBought:{es:'✅ {count} mejora{plural} comprada{plural} · -{spent} $CLK',en:'✅ {count} upgrade{pluralEn} bought · -{spent} $CLK'},
+  frozenBalanceInvasionPending:{es:'❌ Saldo congelado: tienes un ataque de Invasión pendiente',en:'❌ Balance frozen: you have a pending Invasion attack'},
+  frozenBalanceDefend:{es:'❌ Saldo congelado: tienes un ataque de Invasión pendiente de defender',en:'❌ Balance frozen: you have a pending Invasion attack to defend'},
+  notEnoughClk:{es:'❌ Sin suficiente $CLK',en:'❌ Not enough $CLK'},
+  upgradeBought:{es:'✅ {name} → Nivel {lvl}',en:'✅ {name} → Level {lvl}'},
+  noMissionsReady:{es:'❌ No hay misiones listas para reclamar',en:'❌ No missions ready to claim'},
+  missionClaimed:{es:'🎉 Misión Nv.{lvl}: +{reward} $CLK',en:'🎉 Mission Lv.{lvl}: +{reward} $CLK'},
+  missionsClaimed:{es:'🎉 {count} misión{plural2} reclamada{plural2}: +{total} $CLK',en:'🎉 {count} mission{pluralEn} claimed: +{total} $CLK'},
+  gameLinkShareText:{es:'¡Juega Crypto Click! 🪙 Mi código: {code}\nEnlace: {url}',en:'Play Crypto Click! 🪙 My code: {code}\nLink: {url}'},
+  codeAndLinkCopied:{es:'📋 ¡Código y enlace copiados!',en:'📋 Code and link copied!'},
+  manualCopy:{es:'📋 Copia manual: {text}',en:'📋 Manual copy: {text}'},
+  invalidCode:{es:'❌ Código no válido',en:'❌ Invalid code'},
+  cantUseOwnCode:{es:'❌ No puedes usar tu propio código',en:'❌ You can\'t use your own code'},
+  codeAlreadyUsed:{es:'❌ Código ya usado',en:'❌ Code already used'},
+  validCodeReward:{es:'🎉 Código válido! +50000 $CLK',en:'🎉 Valid code! +50000 $CLK'},
+  thanksForFollowing:{es:'🎉 ¡Gracias por seguirnos! +50000 $CLK',en:'🎉 Thanks for following us! +50000 $CLK'},
+  rewardClaimed:{es:'✅ Recompensa reclamada',en:'✅ Reward claimed'},
+  claimReward:{es:'🎁 Reclamar +50.000 $CLK',en:'🎁 Claim +50,000 $CLK'},
+  comingSoon:{es:'🔁 Próximamente<br><span style="font-size:11px;opacity:.8">Todavía no hay proyectos disponibles. ¡Vuelve pronto!</span>',en:'🔁 Coming soon<br><span style="font-size:11px;opacity:.8">No projects available yet. Check back soon!</span>'},
+  statusActive:{es:'Activo',en:'Active'},
+  statusComingSoon:{es:'Próximamente',en:'Coming soon'},
+  viewArrow:{es:'Ver ↗',en:'View ↗'},
+  openExternalSite:{es:'Vas a abrir el sitio externo de "{name}" para informarte sobre su programa de canje.',en:'You\'re about to open the external site for "{name}" to learn about its redemption program.'},
+  writeAliasToContinue:{es:'Escribe un alias para continuar',en:'Enter an alias to continue'},
+  aliasTooShort:{es:'Muy corto, usa al menos 2 caracteres',en:'Too short, use at least 2 characters'},
+  nowOnLeaderboard:{es:'🏆 ¡Ya apareces en el Ranking Global!',en:'🏆 You now appear on the Global Leaderboard!'},
+  leaderboardFetchError:{es:'⚠️ No se pudo cargar el ranking.<br>Revisa tu conexión e inténtalo de nuevo.',en:'⚠️ Could not load the leaderboard.<br>Check your connection and try again.'},
+  loadingLeaderboard:{es:'Cargando ranking…',en:'Loading leaderboard…'},
+  noAliasYetLeaderboard:{es:'🏆 Todavía nadie tiene alias publicado.<br>¡Sé el primero del Ranking Global!',en:'🏆 No one has a published alias yet.<br>Be the first on the Global Leaderboard!'},
+  youLabel:{es:'(tú)',en:'(you)'},
+  levelLabel:{es:'Nivel {lvl}',en:'Level {lvl}'},
+  outsideTop100:{es:'Fuera del Top 100',en:'Outside Top 100'},
+  minerDefault:{es:'Minero',en:'Miner'},
+  noAliasYet:{es:'Sin alias todavía',en:'No alias yet'},
+  notOnLeaderboard:{es:'No apareces en el ranking',en:'You don\'t appear on the leaderboard'},
+  joinBtn:{es:'Unirme',en:'Join'},
+  lbResetWeekly:{es:'Se reinicia cada lunes',en:'Resets every Monday'},
+  lbResetMonthly:{es:'Se reinicia el día 1 de cada mes',en:'Resets on the 1st of each month'},
+  lbResetTotal:{es:'Progreso histórico de siempre',en:'All-time historical progress'},
+  dailyBonusReady:{es:'¡Reclama tu recompensa!',en:'Claim your reward!'},
+  dailyBonusCooldown:{es:'Vuelve en {h}h {m}m',en:'Come back in {h}h {m}m'},
+  dailyOk:{es:'✅ OK',en:'✅ OK'},
+  dailyDayLabel:{es:'Día {n}',en:'Day {n}'},
+  dailyBonusClaimed:{es:'🎁 Bonus diario: +{amt} $CLK!',en:'🎁 Daily bonus: +{amt} $CLK!'},
+  starGained:{es:'🌟 ¡Ganaste 1 estrella! Partida reiniciada (conservas tu alias)',en:'🌟 You earned 1 star! Game reset (you keep your alias)'},
+  categoryTaps:{es:'👆 TAPS',en:'👆 TAPS'},
+  categoryClk:{es:'💰 $CLK ACUMULADO',en:'💰 $CLK ACCUMULATED'},
+  categoryLvl:{es:'📈 NIVEL',en:'📈 LEVEL'},
+  categoryUps:{es:'⚡ MEJORAS',en:'⚡ UPGRADES'},
+  categoryCombo:{es:'🔥 COMBO',en:'🔥 COMBO'},
+  categoryDstreak:{es:'📅 RACHA DIARIA',en:'📅 DAILY STREAK'},
+  categoryRefs:{es:'👥 REFERIDOS',en:'👥 REFERRALS'},
+  missionLevelShort:{es:'Nv.{lvl}',en:'Lv.{lvl}'},
+  claimExclaim:{es:'¡Reclamar!',en:'Claim!'},
+  catProduction:{es:'⚙️ PRODUCCIÓN/HORA',en:'⚙️ PRODUCTION/HOUR'},
+  catTapBonus:{es:'👆 BONUS POR TAP',en:'👆 TAP BONUS'},
+  catMaxEnergy:{es:'🔋 ENERGÍA MÁXIMA',en:'🔋 MAX ENERGY'},
+  catRegen:{es:'💨 REGENERACIÓN',en:'💨 REGEN'},
+  catBoosts:{es:'🚀 BOOSTS TEMPORALES',en:'🚀 TEMPORARY BOOSTS'},
+  levelWord:{es:'Nivel {lvl}/{max}',en:'Level {lvl}/{max}'},
+  levelSimple:{es:'Nivel {lvl}',en:'Level {lvl}'},
+  maxLabel:{es:'MAX',en:'MAX'},
+  rankCryptoNoob:{es:'Crypto Noob',en:'Crypto Noob'},
+  rankHodler:{es:'Hodler',en:'Hodler'},
+  rankTraderPro:{es:'Trader Pro',en:'Trader Pro'},
+  rankDefiShark:{es:'DeFi Shark',en:'DeFi Shark'},
+  rankWhale:{es:'Whale',en:'Whale'},
+  rankDefiKing:{es:'DeFi King',en:'DeFi King'},
+  rankSatoshi:{es:'Satoshi',en:'Satoshi'},
+  rankBlockchainGod:{es:'Blockchain God',en:'Blockchain God'},
+  shieldLoadingData:{es:'Cargando datos del escudo…',en:'Loading shield data…'},
+  shieldActiveStatus:{es:'Escudo activo ({label}) — te protege en Invasión durante {time} más',en:'Shield active ({label}) — protects you in Invasion for {time} more'},
+  shieldInactiveStatus:{es:'No tienes escudo activo: eres un objetivo válido en Invasión',en:'You have no active shield: you\'re a valid target in Invasion'},
+  shieldLabelText:{es:'Escudo {label}',en:'Shield {label}'},
+  shieldActivated:{es:'🛡️ Escudo activado por 🪙 {cost}',en:'🛡️ Shield activated for 🪙 {cost}'},
+  shieldNotEnoughClk:{es:'❌ Te faltan $CLK para este escudo (cuesta 🪙 {cost})',en:'❌ You don\'t have enough $CLK for this shield (costs 🪙 {cost})'},
+  shieldAlreadyActive:{es:'❌ {msg}',en:'❌ {msg}'},
+  shieldCouldNotActivate:{es:'❌ No se pudo activar el escudo',en:'❌ Could not activate the shield'},
+  shieldFrozenTitle:{es:'Saldo congelado: tienes un ataque de Invasión pendiente de defender',en:'Balance frozen: you have a pending Invasion attack to defend'},
+  attackedYou:{es:'{alias} te ha atacado',en:'{alias} attacked you'},
+  attackDefendBtn:{es:'DEFENDER',en:'DEFEND'},
+  playerDefault:{es:'Jugador',en:'Player'},
+  attackLevelDifficulty:{es:'Nivel {lvl} · Dificultad {diff}',en:'Level {lvl} · Difficulty {diff}'},
+  pendingAttackTitlePlural:{es:'¡Te están atacando! ({n})',en:'You\'re under attack! ({n})'},
+  pendingAttackIntroPlural:{es:'{n} jugadores lanzaron un misil contra ti en el modo Invasión. Defiéndete de cada uno antes de que se resuelvan los duelos. Mientras tanto, tu $CLK está congelado y no puedes gastarlo en mejoras.',en:'{n} players launched a missile at you in Invasion mode. Defend against each one before the duels are resolved. Meanwhile your $CLK is frozen and you can\'t spend it on upgrades.'},
+  pendingAttackIntroSingleFrozen:{es:'Otro jugador lanzó un misil contra ti en el modo Invasión. Defiéndete antes de que se resuelva el duelo. Mientras tanto, tu $CLK está congelado y no puedes gastarlo en mejoras.',en:'Another player launched a missile at you in Invasion mode. Defend yourself before the duel is resolved. Meanwhile your $CLK is frozen and you can\'t spend it on upgrades.'},
+  diffMuyFacil:{es:'Muy fácil',en:'Very easy'},
+  diffFacil:{es:'Fácil',en:'Easy'},
+  diffNormal:{es:'Normal',en:'Normal'},
+  diffDificil:{es:'Difícil',en:'Difficult'},
+  diffMuyDificil:{es:'Casi imposible',en:'Nearly impossible'},
+  tip1:{es:'SINCRONIZANDO BLOCKCHAIN...',en:'SYNCING BLOCKCHAIN...'},
+  tip2:{es:'CARGANDO NODOS P2P...',en:'LOADING P2P NODES...'},
+  tip3:{es:'VERIFICANDO BLOQUES...',en:'VERIFYING BLOCKS...'},
+  tip4:{es:'INICIANDO MINADO...',en:'STARTING MINING...'},
+  tip5:{es:'CONECTANDO A RED CLK...',en:'CONNECTING TO CLK NETWORK...'},
+  sunLabel:{es:'sol',en:'sun'},
+  planetLabel:{es:'planeta',en:'planet'},
+  moonLabel:{es:'luna',en:'moon'},
+  starAriaLabel:{es:'estrella',en:'star'},
+  tapPowerUnlocked:{es:'poder de tap desbloqueado',en:'tap power unlocked'},
+};
+let currentLang=(function(){try{return localStorage.getItem('cck4_lang')==='en'?'en':'es';}catch(e){return 'es';}})();
+function t(key,vars){
+  const entry=I18N[key];
+  let str=entry?(entry[currentLang]||entry.es):key;
+  if(vars)for(const k in vars)str=str.split('{'+k+'}').join(vars[k]);
+  return str;
+}
+function applyI18n(root){
+  const scope=root||document;
+  scope.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    const entry=I18N[key];
+    if(!entry)return;
+    const val=entry[currentLang]||entry.es;
+    if(val.indexOf('<')!==-1)el.innerHTML=val;else el.textContent=val;
+  });
+  scope.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key=el.getAttribute('data-i18n-placeholder');
+    const entry=I18N[key];
+    if(entry)el.setAttribute('placeholder',entry[currentLang]||entry.es);
+  });
+}
+function refreshDynamicScreens(){
+  // Re-renderiza las pantallas cuyo contenido se genera por JS (listas con
+  // texto embebido en innerHTML), para que reflejen el idioma recién elegido
+  // sin tener que recargar la página ni perder ningún otro estado.
+  try{renderUps();}catch(e){}
+  try{renderMiss();}catch(e){}
+  try{renderRedeem();}catch(e){}
+  try{renderSocialClaims();}catch(e){}
+  try{renderDG();}catch(e){}
+  try{if(typeof LB_CACHE!=='undefined')renderLBList();}catch(e){}
+  try{renderShieldModalContent();}catch(e){}
+  try{upd();}catch(e){}
+}
+function toggleLang(){
+  currentLang=currentLang==='es'?'en':'es';
+  try{localStorage.setItem('cck4_lang',currentLang);}catch(e){}
+  const btn=document.getElementById('langBtn');
+  if(btn)btn.textContent=currentLang==='es'?'ES':'EN';
+  const html=document.getElementById('htmlRoot');
+  if(html)html.setAttribute('lang',currentLang);
+  applyI18n(document);
+  refreshDynamicScreens();
+}
+
 /* ════════════════════════════════════════════════════════════════
    AUDIO ENGINE — 100% sintetizado con Web Audio API, cero ficheros.
    Cada sonido es una pequeña receta de osciladores/envolventes para
@@ -1849,6 +2116,76 @@ const MISS=[
   {id:'r50',    n:'Evangelista Crypto',  i:'🚀',g:50,         t:'refs',    r:100000},
   {id:'r100',   n:'Lider de masas',      i:'👑',g:100,        t:'refs',    r:500000},
 ];
+// Traducción de los nombres de misión (MISS[].n), indexada por id, sin tocar
+// el array MISS original (usado también por lógica de progreso/recompensas).
+const MISS_I18N={
+  t10:{es:'Primeros pasos',en:'First steps'},
+  t100:{es:'Primer centenar',en:'First hundred'},
+  t500:{es:'Calentando motores',en:'Warming up'},
+  t1k:{es:'Tap Master',en:'Tap Master'},
+  t5k:{es:'Dedos de acero',en:'Steel fingers'},
+  t10k:{es:'Tap Legend',en:'Tap Legend'},
+  t25k:{es:'Manos incansables',en:'Tireless hands'},
+  t50k:{es:'Tap Máquina',en:'Tap Machine'},
+  t100k:{es:'Tap God',en:'Tap God'},
+  t250k:{es:'El Incansable',en:'The Tireless One'},
+  t500k:{es:'Medio millón',en:'Half a million'},
+  t1m:{es:'Un millón de taps',en:'A million taps'},
+  t5m:{es:'Tap Eterno',en:'Eternal Tap'},
+  t10m:{es:'Leyenda Absoluta',en:'Absolute Legend'},
+  c100:{es:'Primeros CLK',en:'First CLK'},
+  c1k:{es:'Primer millar',en:'First thousand'},
+  c10k:{es:'En racha',en:'On a streak'},
+  c50k:{es:'Cuenta gorda',en:'Fat stack'},
+  c100k:{es:'Ballena pequena',en:'Small whale'},
+  c500k:{es:'Medio millon CLK',en:'Half a million CLK'},
+  c1m:{es:'Millonario CLK',en:'CLK Millionaire'},
+  c5m:{es:'Multi-millonario',en:'Multi-millionaire'},
+  c10m:{es:'Crypto Tycoon',en:'Crypto Tycoon'},
+  c50m:{es:'Tiburon del Mercado',en:'Market Shark'},
+  c100m:{es:'Cien Millones',en:'One Hundred Million'},
+  c1b:{es:'El Primer Billion',en:'The First Billion'},
+  c10b:{es:'Dios del Blockchain',en:'Blockchain God'},
+  l2m:{es:'Primer ascenso',en:'First promotion'},
+  l5m:{es:'Subiendo peldanos',en:'Climbing steps'},
+  l10m:{es:'Doble digito',en:'Double digits'},
+  l20m:{es:'Veterano',en:'Veteran'},
+  l30m:{es:'Experto Crypto',en:'Crypto Expert'},
+  l50m:{es:'Blockchain God',en:'Blockchain God'},
+  l75m:{es:'Maestro Eterno',en:'Eternal Master'},
+  l100m:{es:'El Centenario',en:'The Centenarian'},
+  u1:{es:'Primera inversion',en:'First investment'},
+  u3:{es:'Inversor',en:'Investor'},
+  u10:{es:'VC Mode',en:'VC Mode'},
+  u25:{es:'Magnate',en:'Magnate'},
+  u50:{es:'Fondo de inversion',en:'Investment fund'},
+  u100:{es:'Imperio de Mejoras',en:'Upgrade Empire'},
+  u200:{es:'Maquina Perfecta',en:'Perfect Machine'},
+  u500:{es:'Dios de las Mejoras',en:'God of Upgrades'},
+  cmb3:{es:'Combo Iniciado',en:'Combo Starter'},
+  cmb5:{es:'Combo King',en:'Combo King'},
+  cmb10:{es:'Combo Master',en:'Combo Master'},
+  cmb20:{es:'Ultra Combo',en:'Ultra Combo'},
+  cmb50:{es:'Combo Insano',en:'Insane Combo'},
+  cmb100:{es:'Combo Legendario',en:'Legendary Combo'},
+  cmb250:{es:'Combo Inmortal',en:'Immortal Combo'},
+  cmb500:{es:'Combo Dios',en:'Combo God'},
+  d1:{es:'Primer dia',en:'First day'},
+  d3:{es:'3 dias seguidos',en:'3 days in a row'},
+  d7:{es:'7 dias seguidos',en:'7 days in a row'},
+  d14:{es:'Dos semanas crack',en:'Two great weeks'},
+  d30:{es:'Un mes fiel',en:'A loyal month'},
+  d60:{es:'Dos meses sin falta',en:'Two months straight'},
+  d100:{es:'100 dias legendario',en:'Legendary 100 days'},
+  d365:{es:'Un ano entero',en:'A whole year'},
+  r1:{es:'Primer amigo',en:'First friend'},
+  r3:{es:'Pequena tribu',en:'Small tribe'},
+  r10:{es:'Tu red crece',en:'Your network grows'},
+  r25:{es:'Influencer CLK',en:'CLK Influencer'},
+  r50:{es:'Evangelista Crypto',en:'Crypto Evangelist'},
+  r100:{es:'Lider de masas',en:'Mass leader'},
+};
+function missionNameKey(id){const e=MISS_I18N[id];return e?(e[currentLang]||e.es):id;}
 // Recompensa por día de racha semanal (índice 0 = día 1 ... índice 6 = día 7,
 // ver claimDaily()/renderDG(): el ciclo es DRWD[S.dailyDay%7] y se repite cada
 // 7 días). Base subida x5 a petición expresa (día 1: 200->1000), mismo patrón
@@ -1970,7 +2307,7 @@ function localSaveNow(){
     console.error('localStorage.setItem falló, el progreso no se está guardando ni siquiera localmente:',e);
     if(!_localSaveWarned){
       _localSaveWarned=true;
-      toast('⚠️ Tu navegador está bloqueando el guardado (¿modo privado?). Usa una pestaña normal.');
+      toast(t('browserBlockingSave'));
     }
     return false;
   }
@@ -1981,10 +2318,10 @@ function setSyncPill(state){
   if(!p)return;
   p.style.display='flex';
   p.classList.remove('saving','err');
-  if(state==='saving'){p.classList.add('saving');t.textContent='Guardando…';}
-  else if(state==='err'){p.classList.add('err');t.textContent='Guardado local';}
-  else if(state==='setup'){p.classList.add('err');t.textContent='Nube no configurada';}
-  else{t.textContent='Guardado';}
+  if(state==='saving'){p.classList.add('saving');t.textContent=window.t('savingText');}
+  else if(state==='err'){p.classList.add('err');t.textContent=window.t('savedLocalText');}
+  else if(state==='setup'){p.classList.add('err');t.textContent=window.t('cloudNotConfigured');}
+  else{t.textContent=window.t('savedText');}
 }
 
 async function cloudSaveNow(force){
@@ -2152,7 +2489,7 @@ function applyLoadedData(raw){
   const d=sanitize(JSON.parse(raw));Object.assign(S,d);
   const now=Date.now();
   const offSec=Math.min((now-S.lastSave)/1000,86400);
-  if(offSec>5&&S.pph>0){const earned=S.pph/3600*offSec;addClk(earned,'offline');setTimeout(()=>toast('💤 Ganaste '+fmt(earned)+' $CLK offline!'),2000);}
+  if(offSec>5&&S.pph>0){const earned=S.pph/3600*offSec;addClk(earned,'offline');setTimeout(()=>toast(t('offlineEarned',{amt:fmt(earned)})),2000);}
   S.energy=Math.min(S.eMax,S.energy+S.eRegen*offSec);
   S.lastPassive=now;
   ensurePeriods();
@@ -2222,7 +2559,7 @@ async function loadCloud(uid){
     }else{
       // Motivo distinto a los tres de arriba: red caída, timeout, o algo inesperado.
       // Lo mostramos en pantalla porque en móvil nadie va a mirar la consola.
-      toast('⚠️ No se pudo cargar tu partida de la nube ('+(e&&e.code||e&&e.message||'error')+'). Usando local.');
+      toast(t('cloudLoadFailed',{err:(e&&e.code||e&&e.message||'error')}));
     }
     loadLocal(uid,false);
   }
@@ -2234,6 +2571,10 @@ function spendClk(amount){if(pendingDefenseFreeze)return false;if(S.clk<amount)r
 
 function fmt(n){n=Math.floor(n);if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n+''}
 function getRank(){let r=RANKS[0];for(const x of RANKS)if(S.lvl>=x.minLvl)r=x;return r}
+// Mapea el nombre interno de un rango (S.alias-independiente, usado como clave
+// de RANK_VIDEOS/etc. en todo el código) a su clave de traducción en I18N.
+const RANK_NAME_KEYS={'Crypto Noob':'rankCryptoNoob','Hodler':'rankHodler','Trader Pro':'rankTraderPro','DeFi Shark':'rankDefiShark','Whale':'rankWhale','DeFi King':'rankDefiKing','Satoshi':'rankSatoshi','Blockchain God':'rankBlockchainGod'};
+function rankNameKey(name){return RANK_NAME_KEYS[name]||name;}
 function upCost(u){return Math.floor(u.base*Math.pow(1.5,S.ups[u.id]||0))}
 function isBoost(){return Date.now()<S.boostEnd}
 function upgradeSortValue(u){
@@ -2297,10 +2638,10 @@ function upd(){
   document.getElementById('svtaps').textContent=fmt(S.totalTaps);
   document.getElementById('svcombo').textContent=S.maxCombo+'🔥';
   const xpP=Math.min(100,Math.round(S.xp/S.xpNeed*100));
-  document.getElementById('xplabel').textContent='Nivel '+S.lvl+' · '+fmt(S.xp)+'/'+fmt(S.xpNeed)+' XP';
+  document.getElementById('xplabel').textContent=t('levelSimple',{lvl:S.lvl})+' · '+fmt(S.xp)+'/'+fmt(S.xpNeed)+' XP';
   document.getElementById('xppct').textContent=xpP+'%';
   document.getElementById('xpb').style.width=xpP+'%';
-  const r=getRank();document.getElementById('rankpill').textContent=r.e+' '+r.name;
+  const r=getRank();document.getElementById('rankpill').textContent=r.e+' '+t(rankNameKey(r.name));
   document.getElementById('ecur').textContent=Math.floor(S.energy);
   document.getElementById('emax').textContent=S.eMax;
   document.getElementById('eregen').textContent=S.eRegen.toFixed(2);
@@ -2309,9 +2650,9 @@ function upd(){
   document.getElementById('boostpill').classList.toggle('show',isBoost());
   const dr=isDailyReady();
   document.getElementById('dailybtn').classList.toggle('ready',dr);
-  document.getElementById('dailybadge').textContent=dr?'RECLAMAR':'✅ OK';
-  if(dr){document.getElementById('dailysub').textContent='¡Reclama tu recompensa!';}
-  else{const nxt=86400000-(Date.now()-S.lastDaily);const h=Math.floor(nxt/3600000),m=Math.floor((nxt%3600000)/60000);document.getElementById('dailysub').textContent='Vuelve en '+h+'h '+m+'m';}
+  document.getElementById('dailybadge').textContent=dr?t('claim'):t('dailyOk');
+  if(dr){document.getElementById('dailysub').textContent=t('dailyBonusReady');}
+  else{const nxt=86400000-(Date.now()-S.lastDaily);const h=Math.floor(nxt/3600000),m=Math.floor((nxt%3600000)/60000);document.getElementById('dailysub').textContent=t('dailyBonusCooldown',{h,m});}
   renderStarOrbit();
 }
 
@@ -2457,7 +2798,7 @@ function htap(e){
   S.xp+=1+Math.floor(combo/5);
   if(S.xp>=S.xpNeed){
     const pr=getRank().name;S.xp-=S.xpNeed;S.lvl++;S.xpNeed=Math.floor(500*Math.pow(1.18,S.lvl-1));recalc();
-    const nr=getRank();const sk=SKINS.find(x=>x.lvl===S.lvl);if(sk)toast('🎨 Nueva skin "'+sk.name+'" desbloqueada!');
+    const nr=getRank();const sk=SKINS.find(x=>x.lvl===S.lvl);if(sk)toast(t('newSkinUnlocked',{name:sk.name}));
     SFX.levelUp();
     // Nivel 50: en vez del video de subida de rango normal, se reproduce
     // star.mp4 y, al terminar, la partida se reinicia por completo
@@ -2625,8 +2966,8 @@ function tickMiningBar(now){
   const idle=!(S.pph>0);
   sec.classList.toggle('idle',idle);
   document.getElementById('miningsub').textContent=idle
-    ? 'Compra una mejora de producción para que mine solo'
-    : 'Sigue minando aunque no toques la pantalla';
+    ? t('miningSubIdle')
+    : t('miningSubActive');
   if(idle){
     document.getElementById('miningfill').style.width='0%';
     document.getElementById('miningpct').textContent='0%';
@@ -2710,8 +3051,8 @@ function toggleMute(){
 }
 function showRankup(r){
   document.getElementById('ruemoji').textContent=r.e;
-  document.getElementById('runame').textContent=r.name;
-  document.getElementById('rubonus').textContent='+'+r.tapB+' poder de tap desbloqueado';
+  document.getElementById('runame').textContent=t(rankNameKey(r.name));
+  document.getElementById('rubonus').textContent='+'+r.tapB+' '+t('tapPowerUnlocked');
   const box=document.getElementById('rubox');
   const vid=document.getElementById('ruvideo');
   const src=RANK_VIDEOS[r.name];
@@ -2793,11 +3134,11 @@ function renderStarOrbit(){
     if(i<active){
       el.style.backgroundImage="url('"+STAR_ICON_URL+"')";
       el.classList.add('osat-star');
-      el.setAttribute('aria-label','estrella');
+      el.setAttribute('aria-label',t('starAriaLabel'));
     }else{
       el.style.backgroundImage=_origOsatBg[n];
       el.classList.remove('osat-star');
-      el.setAttribute('aria-label',n===1?'sol':n===2?'planeta':'luna');
+      el.setAttribute('aria-label',n===1?t('sunLabel'):n===2?t('planetLabel'):t('moonLabel'));
     }
   });
 }
@@ -2973,12 +3314,12 @@ function buyAllUps(){
     if(cheapest.bMin)S.boostEnd=Date.now()+cheapest.bMin*(l+1)*60000;
     count++;spent+=cheapestCost;
   }
-  if(count===0){toast('❌ Sin suficiente $CLK para ninguna mejora');SFX.buyFail();return}
+  if(count===0){toast(t('notEnoughClkForAnyUpgrade'));SFX.buyFail();return}
   recalc();upd();renderUps();checkMiss();
-  toast('✅ '+count+' mejora'+(count>1?'s':'')+' compradas · -'+fmt(spent)+' $CLK');
+  toast(t('upgradesBought',{count,plural:count>1?'s':'',pluralEn:count>1?'s':'',spent:fmt(spent)}));
   SFX.coinBuy();forceSave();
 }
-function renderSkins(){const g=document.getElementById('skingrid');g.innerHTML='';for(const sk of SKINS){const ok=S.lvl>=sk.lvl;const d=document.createElement('div');d.className='skinitem'+(sk.id===S.skin?' active':'')+(ok?'':' locked');d.innerHTML=sk.ico+'<span class="skinlbl">'+(ok?sk.name:'Lvl '+sk.lvl)+'</span>';if(ok)d.onclick=()=>{S.skin=sk.id;forceSave();renderSkins();upd();toast('🎨 Skin "'+sk.name+'" activada')};g.appendChild(d);}}
+function renderSkins(){const g=document.getElementById('skingrid');g.innerHTML='';for(const sk of SKINS){const ok=S.lvl>=sk.lvl;const d=document.createElement('div');d.className='skinitem'+(sk.id===S.skin?' active':'')+(ok?'':' locked');d.innerHTML=sk.ico+'<span class="skinlbl">'+(ok?sk.name:'Lvl '+sk.lvl)+'</span>';if(ok)d.onclick=()=>{S.skin=sk.id;forceSave();renderSkins();upd();toast(t('skinActivated',{name:sk.name}))};g.appendChild(d);}}
 
 /* ===== MISIONES POR NIVELES: igual que las mejoras (UPS), una misión nunca
    "se acaba" — al reclamarla sube de nivel y reaparece con objetivo y
@@ -3029,7 +3370,7 @@ function checkMiss(){
 }
 function renderMiss(){
   checkMiss();const list=document.getElementById('misslist');list.innerHTML='';
-  const cats=[{key:'taps',label:'👆 TAPS',col:'var(--cyan)'},{key:'clk',label:'💰 $CLK ACUMULADO',col:'var(--yellow)'},{key:'lvl',label:'📈 NIVEL',col:'var(--purple)'},{key:'ups',label:'⚡ MEJORAS',col:'var(--orange)'},{key:'combo',label:'🔥 COMBO',col:'var(--pink)'},{key:'dstreak',label:'📅 RACHA DIARIA',col:'var(--green)'},{key:'refs',label:'👥 REFERIDOS',col:'var(--blue)'}];
+  const cats=[{key:'taps',label:t('categoryTaps'),col:'var(--cyan)'},{key:'clk',label:t('categoryClk'),col:'var(--yellow)'},{key:'lvl',label:t('categoryLvl'),col:'var(--purple)'},{key:'ups',label:t('categoryUps'),col:'var(--orange)'},{key:'combo',label:t('categoryCombo'),col:'var(--pink)'},{key:'dstreak',label:t('categoryDstreak'),col:'var(--green)'},{key:'refs',label:t('categoryRefs'),col:'var(--blue)'}];
   cats.sort((a,b)=>(catHasReadyMission(b)?1:0)-(catHasReadyMission(a)?1:0));
   for(const cat of cats){
     const missions=MISS.filter(m=>m.t===cat.key).sort(sortMissionsForUser);
@@ -3038,7 +3379,7 @@ function renderMiss(){
       const ms=misState(m),goal=misGoal(m,ms.lvl),reward=misReward(m,ms.lvl),p=misProgress(m,ms);
       const pct=Math.min(100,(p/goal)*100),ready=p>=goal;
       const card=document.createElement('div');card.className='mc';
-      card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+m.n+' <span style="color:var(--muted);font-weight:700">· Nv.'+ms.lvl+'</span></div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(reward)+' $CLK &nbsp;·&nbsp; '+fmt(p)+'/'+fmt(goal)+'</div></div><button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?'¡Reclamar!':pct<1?'0%':pct.toFixed(0)+'%')+'</button>';
+      card.innerHTML='<div class="micon">'+m.i+'</div><div class="minfo"><div class="mname">'+missionNameKey(m.id)+' <span style="color:var(--muted);font-weight:700">· '+t('missionLevelShort',{lvl:ms.lvl})+'</span></div><div class="mpw"><div class="mpb" style="width:'+pct+'%;background:linear-gradient(90deg,'+cat.col+',var(--pink))"></div></div><div class="mrwd">🪙 '+fmt(reward)+' $CLK &nbsp;·&nbsp; '+fmt(p)+'/'+fmt(goal)+'</div></div><button class="mcbtn" '+(ready?'':'disabled')+' onclick="claimM(\''+m.id+'\')">'+(ready?t('claimExclaim'):pct<1?'0%':pct.toFixed(0)+'%')+'</button>';
       list.appendChild(card);
     }
   }
@@ -3054,7 +3395,7 @@ function claimM(id){
   ms.base=misRaw(m); // ancla el contador aquí: la siguiente fase empieza de cero de verdad
   ms.lvl++;
   addClk(reward,'reward');upd();renderMiss();
-  toast('🎉 Misión Nv.'+(ms.lvl-1)+': +'+fmt(reward)+' $CLK');
+  toast(t('missionClaimed',{lvl:(ms.lvl-1),reward:fmt(reward)}));
   SFX.missionClaim();rankBurst();forceSave();
 }
 function claimAllMiss(){
@@ -3067,7 +3408,7 @@ function claimAllMiss(){
   // quedará lista para el siguiente click, igual que si el jugador
   // hubiera reclamado esa primera misión a mano con claimM().
   const ready=MISS.filter(m=>{const ms=misState(m);return misProgress(m,ms)>=misGoal(m,ms.lvl);});
-  if(!ready.length){toast('❌ No hay misiones listas para reclamar');SFX.buyFail();return}
+  if(!ready.length){toast(t('noMissionsReady'));SFX.buyFail();return}
   let count=0,total=0;
   for(const m of ready){
     const ms=misState(m),reward=misReward(m,ms.lvl);
@@ -3076,7 +3417,7 @@ function claimAllMiss(){
     count++;total+=reward;
   }
   upd();renderMiss();
-  toast('🎉 '+count+' misión'+(count>1?'es':'')+' reclamada'+(count>1?'s':'')+': +'+fmt(total)+' $CLK');
+  toast(t('missionsClaimed',{count,plural2:count>1?'es':'',total:fmt(total)}));
   SFX.missionClaim();rankBurst();forceSave();
 }
 
@@ -3903,6 +4244,11 @@ window.startGameForUser=async function(user){
   setTimeout(()=>AlienSprite.wave(),600); // saludo de bienvenida al abrir la app
   const mb=document.getElementById('muteBtn');
   if(mb){mb.textContent=SFX.muted?'🔇':'🔊';mb.classList.toggle('off',SFX.muted);}
+  const lb=document.getElementById('langBtn');
+  if(lb)lb.textContent=currentLang==='es'?'ES':'EN';
+  const htmlEl=document.getElementById('htmlRoot');
+  if(htmlEl)htmlEl.setAttribute('lang',currentLang);
+  applyI18n(document);
   document.getElementById('app').style.display='';
   requestAnimationFrame(fitMineScreen); // MINAR es la pantalla inicial activa
   if(_cloudWritesEnabled)setSyncPill('ok');
