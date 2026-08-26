@@ -2041,7 +2041,8 @@
 <script>
 /* =========================================================
    Sistema de idioma ES/EN — compartido entre todas las
-   páginas del sitio vía localStorage ('ca_lang'). Traduce
+   páginas del sitio vía localStorage ('cck4_lang', misma
+   clave que usa index.html). Traduce
    cualquier elemento marcado con data-i18n (texto), 
    data-i18n-html (texto con HTML simple como <strong>),
    data-i18n-alt (atributo alt de imágenes) y data-i18n-tpl
@@ -2495,12 +2496,12 @@
 
   function getLang() {
     var saved = null;
-    try { saved = localStorage.getItem('ca_lang'); } catch (e) {}
+    try { saved = localStorage.getItem('cck4_lang'); } catch (e) {}
     return (saved === 'en' || saved === 'es') ? saved : 'en';
   }
 
   function setLang(lang) {
-    try { localStorage.setItem('ca_lang', lang); } catch (e) {}
+    try { localStorage.setItem('cck4_lang', lang); } catch (e) {}
     applyLang(lang);
   }
 
