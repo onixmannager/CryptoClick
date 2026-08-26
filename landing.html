@@ -165,7 +165,7 @@
   .nav__logo span { color: var(--lime); }
   .nav__links { display: flex; gap: 32px; font-size: 0.92rem; color: var(--text-dim); }
   .nav__links a:hover { color: var(--text); }
-  .nav__right { display: flex; align-items: center; gap: 18px; }
+  .nav__right { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
   .nav__toggle {
     display: none;
     flex-direction: column;
@@ -839,6 +839,9 @@
   @media (max-width: 880px) {
     .nav__links { display: none; }
     .nav__toggle { display: flex; }
+    .nav__right { gap: 12px; }
+    .nav__right .btn--sm { padding: 9px 16px; font-size: 0.85rem; }
+    .lang-toggle { padding: 7px 10px; font-size: 0.72rem; }
     .nav--open .nav__links {
       display: flex;
       flex-direction: column;
@@ -850,6 +853,14 @@
       gap: 18px;
       border-bottom: 1px solid var(--border);
     }
+  }
+  @media (max-width: 480px) {
+    .nav__inner { padding: 0 16px; gap: 10px; }
+    .nav__logo { font-size: 0.92rem; }
+    .nav__right { gap: 8px; }
+    .lang-toggle { padding: 7px 9px; font-size: 0.68rem; }
+    .nav__right .btn--sm { padding: 8px 12px; font-size: 0.8rem; }
+    .nav__toggle { flex-shrink: 0; }
   }
   @media (max-width: 900px) {
     .cat-grid { grid-template-columns: repeat(2, 1fr); }
