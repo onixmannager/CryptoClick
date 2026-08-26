@@ -112,6 +112,16 @@ footer{
 footer a{color:var(--muted);text-decoration:none;margin:0 10px}
 footer a:hover{color:var(--gold)}
 
+/* Language toggle */
+.lang-toggle{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:8px 12px;font-size:.76rem;font-weight:700;letter-spacing:.04em;
+  color:var(--muted);background:transparent;border:1px solid var(--border);
+  border-radius:3px;cursor:pointer;transition:color .15s ease,border-color .15s ease;
+  font-family:'Space Mono',monospace;
+}
+.lang-toggle:hover{color:var(--gold);border-color:var(--gold)}
+
 /* ── Comportamiento tipo app nativa: sin selección de texto ni menú contextual ── */
 *{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
@@ -122,90 +132,240 @@ img,a{-webkit-touch-callout:none}
 
 <div class="topbar">
   <a href="landing.html" class="topbar-logo">CRYPTO ALIEN </a>
-  <a href="landing.html" class="topbar-back">← Volver al sitio</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="lang-toggle" id="langToggle" type="button" aria-label="Cambiar idioma / Switch language">ES / EN</button>
+    <a href="landing.html" class="topbar-back" data-i18n="back">← Volver al sitio</a>
+  </div>
 </div>
 
 <main>
   <div class="doc-header">
-    <div class="doc-eyebrow">Legal</div>
-    <h1>Política de Privacidad</h1>
-    <div class="doc-meta">Última actualización: 8 de agosto de 2026</div>
+    <div class="doc-eyebrow" data-i18n="eyebrow">Legal</div>
+    <h1 data-i18n="title">Política de Privacidad</h1>
+    <div class="doc-meta" data-i18n="updated">Última actualización: 8 de agosto de 2026</div>
   </div>
 
   <div class="doc-body">
-    <p>Esta Política de Privacidad explica qué datos recopila <strong>Crypto Alien </strong> (el "Juego"), un producto desarrollado y operado por <strong>Tecnologías Onix</strong> ("nosotros", "nuestro"), cómo los usamos y qué opciones tienes al respecto. Al usar el Juego, aceptas las prácticas descritas aquí.</p>
+    <p data-i18n-html="intro">Esta Política de Privacidad explica qué datos recopila <strong>Crypto Alien </strong> (el "Juego"), un producto desarrollado y operado por <strong>Tecnologías Onix</strong> ("nosotros", "nuestro"), cómo los usamos y qué opciones tienes al respecto. Al usar el Juego, aceptas las prácticas descritas aquí.</p>
 
-    <h2>1. Quiénes somos</h2>
-    <p>Crypto Alien  es propiedad y está operado por <strong>Tecnologías Onix</strong>. Si tienes cualquier duda sobre esta política o sobre tus datos, puedes escribirnos a <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a>.</p>
+    <h2 data-i18n="h1">1. Quiénes somos</h2>
+    <p data-i18n-html="p1">Crypto Alien  es propiedad y está operado por <strong>Tecnologías Onix</strong>. Si tienes cualquier duda sobre esta política o sobre tus datos, puedes escribirnos a <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a>.</p>
 
-    <h2>2. Qué datos recopilamos</h2>
-    <p>Recopilamos solo lo necesario para que puedas jugar, guardar tu progreso y participar en el ranking global:</p>
+    <h2 data-i18n="h2">2. Qué datos recopilamos</h2>
+    <p data-i18n="p2">Recopilamos solo lo necesario para que puedas jugar, guardar tu progreso y participar en el ranking global:</p>
     <table>
-      <tr><th>Dato</th><th>Origen</th><th>Para qué lo usamos</th></tr>
-      <tr><td>Nombre, correo y foto de perfil</td><td>Inicio de sesión con Google (Firebase Authentication)</td><td>Identificarte y asociar tu partida a tu cuenta</td></tr>
-      <tr><td>Progreso del juego (saldo $CLK, nivel, mejoras, misiones)</td><td>Tu actividad dentro del Juego</td><td>Guardar y sincronizar tu partida entre dispositivos</td></tr>
-      <tr><td>Alias público y puntuación</td><td>Elegido por ti dentro del Juego</td><td>Mostrar el Ranking Global (leaderboard)</td></tr>
-      <tr><td>Código de referido usado/generado</td><td>Tu actividad dentro del Juego</td><td>Gestionar el sistema de recompensas por invitar amigos</td></tr>
+      <tr><th data-i18n="th1">Dato</th><th data-i18n="th2">Origen</th><th data-i18n="th3">Para qué lo usamos</th></tr>
+      <tr><td data-i18n="t1c1">Nombre, correo y foto de perfil</td><td data-i18n="t1c2">Inicio de sesión con Google (Firebase Authentication)</td><td data-i18n="t1c3">Identificarte y asociar tu partida a tu cuenta</td></tr>
+      <tr><td data-i18n="t2c1">Progreso del juego (saldo $CLK, nivel, mejoras, misiones)</td><td data-i18n="t2c2">Tu actividad dentro del Juego</td><td data-i18n="t2c3">Guardar y sincronizar tu partida entre dispositivos</td></tr>
+      <tr><td data-i18n="t3c1">Alias público y puntuación</td><td data-i18n="t3c2">Elegido por ti dentro del Juego</td><td data-i18n="t3c3">Mostrar el Ranking Global (leaderboard)</td></tr>
+      <tr><td data-i18n="t4c1">Código de referido usado/generado</td><td data-i18n="t4c2">Tu actividad dentro del Juego</td><td data-i18n="t4c3">Gestionar el sistema de recompensas por invitar amigos</td></tr>
     </table>
-    <p>No solicitamos ni almacenamos contraseñas propias (el inicio de sesión lo gestiona Google), datos de pago, ni documentos de identidad.</p>
+    <p data-i18n="p2b">No solicitamos ni almacenamos contraseñas propias (el inicio de sesión lo gestiona Google), datos de pago, ni documentos de identidad.</p>
 
-    <h2>3. Cómo almacenamos los datos</h2>
-    <p>Usamos dos mecanismos de almacenamiento:</p>
+    <h2 data-i18n="h3">3. Cómo almacenamos los datos</h2>
+    <p data-i18n="p3">Usamos dos mecanismos de almacenamiento:</p>
     <ul>
-      <li><strong>localStorage del navegador:</strong> guarda tu progreso de forma inmediata en tu propio dispositivo, incluso antes de sincronizar con la nube, así como tu preferencia de sonido (silenciado o no).</li>
-      <li><strong>Firebase (Google Cloud) — Authentication y Firestore:</strong> gestiona el inicio de sesión y almacena tu partida (<code>saves/{'{'}tu-id{'}'}</code>) y tu entrada pública en el ranking (<code>leaderboard/{'{'}tu-id{'}'}</code>) para que puedas continuar tu progreso desde cualquier dispositivo.</li>
+      <li data-i18n-html="p3li1"><strong>localStorage del navegador:</strong> guarda tu progreso de forma inmediata en tu propio dispositivo, incluso antes de sincronizar con la nube, así como tu preferencia de sonido (silenciado o no).</li>
+      <li data-i18n-html="p3li2"><strong>Firebase (Google Cloud) — Authentication y Firestore:</strong> gestiona el inicio de sesión y almacena tu partida (<code>saves/{'{'}tu-id{'}'}</code>) y tu entrada pública en el ranking (<code>leaderboard/{'{'}tu-id{'}'}</code>) para que puedas continuar tu progreso desde cualquier dispositivo.</li>
     </ul>
     <div class="card-box">
-      <p><strong>Quién puede ver tus datos:</strong> tu partida guardada solo es accesible por tu propia cuenta autenticada — nadie más puede leerla ni modificarla. Tu entrada en el ranking (alias y puntuación) es visible para cualquier jugador con sesión iniciada, ya que su propósito es público por naturaleza.</p>
+      <p data-i18n-html="card1"><strong>Quién puede ver tus datos:</strong> tu partida guardada solo es accesible por tu propia cuenta autenticada — nadie más puede leerla ni modificarla. Tu entrada en el ranking (alias y puntuación) es visible para cualquier jugador con sesión iniciada, ya que su propósito es público por naturaleza.</p>
     </div>
 
-    <h2>4. Servicios de terceros</h2>
-    <p>Para operar el Juego usamos los siguientes proveedores, cada uno con su propia política de privacidad:</p>
+    <h2 data-i18n="h4">4. Servicios de terceros</h2>
+    <p data-i18n="p4">Para operar el Juego usamos los siguientes proveedores, cada uno con su propia política de privacidad:</p>
     <ul>
-      <li><strong>Google Firebase</strong> (autenticación y base de datos) — <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">política de privacidad de Firebase</a></li>
-      <li><strong>Google Sign-In</strong> (inicio de sesión) — <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">política de privacidad de Google</a></li>
-      <li><strong>Google Fonts</strong> (tipografías web)</li>
+      <li data-i18n-html="p4li1"><strong>Google Firebase</strong> (autenticación y base de datos) — <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">política de privacidad de Firebase</a></li>
+      <li data-i18n-html="p4li2"><strong>Google Sign-In</strong> (inicio de sesión) — <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">política de privacidad de Google</a></li>
+      <li data-i18n-html="p4li3"><strong>Google Fonts</strong> (tipografías web)</li>
     </ul>
-    <p>No utilizamos herramientas de analítica de terceros, píxeles publicitarios ni vendemos datos a anunciantes. El Juego no muestra publicidad de terceros.</p>
+    <p data-i18n="p4b">No utilizamos herramientas de analítica de terceros, píxeles publicitarios ni vendemos datos a anunciantes. El Juego no muestra publicidad de terceros.</p>
 
-    <h2>5. Menores de edad</h2>
-    <p>Crypto Alien  no está dirigido a menores de 13 años y no solicitamos conscientemente datos de menores de esa edad. Si eres madre, padre o tutor y crees que un menor a tu cargo nos ha proporcionado datos, contáctanos para eliminarlos.</p>
+    <h2 data-i18n="h5">5. Menores de edad</h2>
+    <p data-i18n="p5">Crypto Alien  no está dirigido a menores de 13 años y no solicitamos conscientemente datos de menores de esa edad. Si eres madre, padre o tutor y crees que un menor a tu cargo nos ha proporcionado datos, contáctanos para eliminarlos.</p>
 
-    <h2>6. Tus derechos</h2>
-    <p>Puedes solicitarnos en cualquier momento:</p>
+    <h2 data-i18n="h6">6. Tus derechos</h2>
+    <p data-i18n="p6">Puedes solicitarnos en cualquier momento:</p>
     <ul>
-      <li>Acceder a los datos que tenemos asociados a tu cuenta.</li>
-      <li>Corregir información incorrecta (por ejemplo, tu alias público).</li>
-      <li>Eliminar tu cuenta y los datos asociados (partida guardada y entrada en el ranking).</li>
-      <li>Cerrar sesión y desvincular tu cuenta de Google en cualquier momento desde el propio Juego.</li>
+      <li data-i18n="p6li1">Acceder a los datos que tenemos asociados a tu cuenta.</li>
+      <li data-i18n="p6li2">Corregir información incorrecta (por ejemplo, tu alias público).</li>
+      <li data-i18n="p6li3">Eliminar tu cuenta y los datos asociados (partida guardada y entrada en el ranking).</li>
+      <li data-i18n="p6li4">Cerrar sesión y desvincular tu cuenta de Google en cualquier momento desde el propio Juego.</li>
     </ul>
-    <p>Para ejercer cualquiera de estos derechos, escríbenos a <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a> indicando la cuenta de Google asociada.</p>
+    <p data-i18n-html="p6b">Para ejercer cualquiera de estos derechos, escríbenos a <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a> indicando la cuenta de Google asociada.</p>
 
-    <h2>7. Conservación de datos</h2>
-    <p>Conservamos tu progreso mientras mantengas tu cuenta activa. Si solicitas la eliminación de tu cuenta, borraremos tu partida guardada y tu entrada del ranking en un plazo razonable, salvo que la ley nos obligue a conservar algún dato por más tiempo.</p>
+    <h2 data-i18n="h7">7. Conservación de datos</h2>
+    <p data-i18n="p7">Conservamos tu progreso mientras mantengas tu cuenta activa. Si solicitas la eliminación de tu cuenta, borraremos tu partida guardada y tu entrada del ranking en un plazo razonable, salvo que la ley nos obligue a conservar algún dato por más tiempo.</p>
 
-    <h2>8. Cambios en esta política</h2>
-    <p>Podemos actualizar esta Política de Privacidad ocasionalmente para reflejar cambios en el Juego o en la normativa aplicable. Si los cambios son relevantes, lo indicaremos actualizando la fecha en la parte superior de esta página.</p>
+    <h2 data-i18n="h8">8. Cambios en esta política</h2>
+    <p data-i18n="p8">Podemos actualizar esta Política de Privacidad ocasionalmente para reflejar cambios en el Juego o en la normativa aplicable. Si los cambios son relevantes, lo indicaremos actualizando la fecha en la parte superior de esta página.</p>
 
     <div class="contact-box">
-      <div class="doc-eyebrow">¿Dudas sobre tus datos?</div>
+      <div class="doc-eyebrow" data-i18n="contactEyebrow">¿Dudas sobre tus datos?</div>
       <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a>
-      <div class="contact-sub">Tecnologías Onix — responderemos lo antes posible</div>
+      <div class="contact-sub" data-i18n="contactSub">Tecnologías Onix — responderemos lo antes posible</div>
     </div>
   </div>
 </main>
 
 <footer>
-  <a href="landing.html">Inicio</a>
-  <a href="index.html">Jugar</a>
-  <a href="terminos.html">Términos y Condiciones</a>
-  <a href="mailto:info@tecnologiasonix.com">Contacto</a>
-  <div style="margin-top:14px">© 2026 Tecnologías Onix · Crypto Alien </div>
+  <a href="landing.html" data-i18n="footHome">Inicio</a>
+  <a href="index.html" data-i18n="footPlay">Jugar</a>
+  <a href="terminos.html" data-i18n="footTerms">Términos y Condiciones</a>
+  <a href="mailto:info@tecnologiasonix.com" data-i18n="footContact">Contacto</a>
+  <div style="margin-top:14px" data-i18n="footCopy">© 2026 Tecnologías Onix · Crypto Alien </div>
 </footer>
 
 <!-- Comportamiento tipo app nativa: sin menú contextual / long-press -->
 <script>
 document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+</script>
+
+<script>
+/* Sistema de idioma ES/EN — mismo esquema que landing.html, compartido
+   vía localStorage ('ca_lang'). Traduce data-i18n (texto) y
+   data-i18n-html (texto con HTML simple como <strong>/<a>/<code>). */
+(function () {
+  'use strict';
+
+  var I18N = {
+    es: {
+      back: "← Volver al sitio",
+      eyebrow: "Legal",
+      title: "Política de Privacidad",
+      updated: "Última actualización: 8 de agosto de 2026",
+      intro: "Esta Política de Privacidad explica qué datos recopila <strong>Crypto Alien </strong> (el \"Juego\"), un producto desarrollado y operado por <strong>Tecnologías Onix</strong> (\"nosotros\", \"nuestro\"), cómo los usamos y qué opciones tienes al respecto. Al usar el Juego, aceptas las prácticas descritas aquí.",
+      h1: "1. Quiénes somos",
+      p1: "Crypto Alien  es propiedad y está operado por <strong>Tecnologías Onix</strong>. Si tienes cualquier duda sobre esta política o sobre tus datos, puedes escribirnos a <a href=\"mailto:info@tecnologiasonix.com\">info@tecnologiasonix.com</a>.",
+      h2: "2. Qué datos recopilamos",
+      p2: "Recopilamos solo lo necesario para que puedas jugar, guardar tu progreso y participar en el ranking global:",
+      th1: "Dato", th2: "Origen", th3: "Para qué lo usamos",
+      t1c1: "Nombre, correo y foto de perfil", t1c2: "Inicio de sesión con Google (Firebase Authentication)", t1c3: "Identificarte y asociar tu partida a tu cuenta",
+      t2c1: "Progreso del juego (saldo $CLK, nivel, mejoras, misiones)", t2c2: "Tu actividad dentro del Juego", t2c3: "Guardar y sincronizar tu partida entre dispositivos",
+      t3c1: "Alias público y puntuación", t3c2: "Elegido por ti dentro del Juego", t3c3: "Mostrar el Ranking Global (leaderboard)",
+      t4c1: "Código de referido usado/generado", t4c2: "Tu actividad dentro del Juego", t4c3: "Gestionar el sistema de recompensas por invitar amigos",
+      p2b: "No solicitamos ni almacenamos contraseñas propias (el inicio de sesión lo gestiona Google), datos de pago, ni documentos de identidad.",
+      h3: "3. Cómo almacenamos los datos",
+      p3: "Usamos dos mecanismos de almacenamiento:",
+      p3li1: "<strong>localStorage del navegador:</strong> guarda tu progreso de forma inmediata en tu propio dispositivo, incluso antes de sincronizar con la nube, así como tu preferencia de sonido (silenciado o no).",
+      p3li2: "<strong>Firebase (Google Cloud) — Authentication y Firestore:</strong> gestiona el inicio de sesión y almacena tu partida (<code>saves/{tu-id}</code>) y tu entrada pública en el ranking (<code>leaderboard/{tu-id}</code>) para que puedas continuar tu progreso desde cualquier dispositivo.",
+      card1: "<strong>Quién puede ver tus datos:</strong> tu partida guardada solo es accesible por tu propia cuenta autenticada — nadie más puede leerla ni modificarla. Tu entrada en el ranking (alias y puntuación) es visible para cualquier jugador con sesión iniciada, ya que su propósito es público por naturaleza.",
+      h4: "4. Servicios de terceros",
+      p4: "Para operar el Juego usamos los siguientes proveedores, cada uno con su propia política de privacidad:",
+      p4li1: "<strong>Google Firebase</strong> (autenticación y base de datos) — <a href=\"https://firebase.google.com/support/privacy\" target=\"_blank\" rel=\"noopener\">política de privacidad de Firebase</a>",
+      p4li2: "<strong>Google Sign-In</strong> (inicio de sesión) — <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener\">política de privacidad de Google</a>",
+      p4li3: "<strong>Google Fonts</strong> (tipografías web)",
+      p4b: "No utilizamos herramientas de analítica de terceros, píxeles publicitarios ni vendemos datos a anunciantes. El Juego no muestra publicidad de terceros.",
+      h5: "5. Menores de edad",
+      p5: "Crypto Alien  no está dirigido a menores de 13 años y no solicitamos conscientemente datos de menores de esa edad. Si eres madre, padre o tutor y crees que un menor a tu cargo nos ha proporcionado datos, contáctanos para eliminarlos.",
+      h6: "6. Tus derechos",
+      p6: "Puedes solicitarnos en cualquier momento:",
+      p6li1: "Acceder a los datos que tenemos asociados a tu cuenta.",
+      p6li2: "Corregir información incorrecta (por ejemplo, tu alias público).",
+      p6li3: "Eliminar tu cuenta y los datos asociados (partida guardada y entrada en el ranking).",
+      p6li4: "Cerrar sesión y desvincular tu cuenta de Google en cualquier momento desde el propio Juego.",
+      p6b: "Para ejercer cualquiera de estos derechos, escríbenos a <a href=\"mailto:info@tecnologiasonix.com\">info@tecnologiasonix.com</a> indicando la cuenta de Google asociada.",
+      h7: "7. Conservación de datos",
+      p7: "Conservamos tu progreso mientras mantengas tu cuenta activa. Si solicitas la eliminación de tu cuenta, borraremos tu partida guardada y tu entrada del ranking en un plazo razonable, salvo que la ley nos obligue a conservar algún dato por más tiempo.",
+      h8: "8. Cambios en esta política",
+      p8: "Podemos actualizar esta Política de Privacidad ocasionalmente para reflejar cambios en el Juego o en la normativa aplicable. Si los cambios son relevantes, lo indicaremos actualizando la fecha en la parte superior de esta página.",
+      contactEyebrow: "¿Dudas sobre tus datos?",
+      contactSub: "Tecnologías Onix — responderemos lo antes posible",
+      footHome: "Inicio",
+      footPlay: "Jugar",
+      footTerms: "Términos y Condiciones",
+      footContact: "Contacto",
+      footCopy: "© 2026 Tecnologías Onix · Crypto Alien "
+    },
+    en: {
+      back: "← Back to site",
+      eyebrow: "Legal",
+      title: "Privacy Policy",
+      updated: "Last updated: August 8, 2026",
+      intro: "This Privacy Policy explains what data <strong>Crypto Alien </strong> (the \"Game\") collects — a product developed and operated by <strong>Tecnologías Onix</strong> (\"we\", \"our\") — how we use it, and what choices you have. By using the Game, you accept the practices described here.",
+      h1: "1. Who we are",
+      p1: "Crypto Alien  is owned and operated by <strong>Tecnologías Onix</strong>. If you have any questions about this policy or your data, you can write to us at <a href=\"mailto:info@tecnologiasonix.com\">info@tecnologiasonix.com</a>.",
+      h2: "2. What data we collect",
+      p2: "We collect only what's necessary for you to play, save your progress, and take part in the global leaderboard:",
+      th1: "Data", th2: "Source", th3: "What we use it for",
+      t1c1: "Name, email, and profile photo", t1c2: "Google sign-in (Firebase Authentication)", t1c3: "Identify you and link your game session to your account",
+      t2c1: "Game progress ($CLK balance, level, upgrades, missions)", t2c2: "Your activity within the Game", t2c3: "Save and sync your session across devices",
+      t3c1: "Public alias and score", t3c2: "Chosen by you within the Game", t3c3: "Display the Global Leaderboard",
+      t4c1: "Referral code used/generated", t4c2: "Your activity within the Game", t4c3: "Manage the reward system for inviting friends",
+      p2b: "We do not request or store our own passwords (sign-in is managed by Google), payment data, or identity documents.",
+      h3: "3. How we store data",
+      p3: "We use two storage mechanisms:",
+      p3li1: "<strong>Browser localStorage:</strong> saves your progress immediately on your own device, even before syncing to the cloud, as well as your sound preference (muted or not).",
+      p3li2: "<strong>Firebase (Google Cloud) — Authentication and Firestore:</strong> manages sign-in and stores your game session (<code>saves/{your-id}</code>) and your public leaderboard entry (<code>leaderboard/{your-id}</code>) so you can continue your progress from any device.",
+      card1: "<strong>Who can see your data:</strong> your saved game is only accessible by your own authenticated account — no one else can read or modify it. Your leaderboard entry (alias and score) is visible to any signed-in player, since its purpose is public by nature.",
+      h4: "4. Third-party services",
+      p4: "To operate the Game we use the following providers, each with its own privacy policy:",
+      p4li1: "<strong>Google Firebase</strong> (authentication and database) — <a href=\"https://firebase.google.com/support/privacy\" target=\"_blank\" rel=\"noopener\">Firebase privacy policy</a>",
+      p4li2: "<strong>Google Sign-In</strong> (login) — <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener\">Google privacy policy</a>",
+      p4li3: "<strong>Google Fonts</strong> (web fonts)",
+      p4b: "We do not use third-party analytics tools, advertising pixels, or sell data to advertisers. The Game does not display third-party ads.",
+      h5: "5. Minors",
+      p5: "Crypto Alien  is not directed at children under 13 and we do not knowingly request data from children under that age. If you are a parent or guardian and believe a minor in your care has provided us with data, contact us to have it removed.",
+      h6: "6. Your rights",
+      p6: "You can ask us at any time to:",
+      p6li1: "Access the data we have associated with your account.",
+      p6li2: "Correct incorrect information (for example, your public alias).",
+      p6li3: "Delete your account and associated data (saved game and leaderboard entry).",
+      p6li4: "Sign out and unlink your Google account at any time from within the Game.",
+      p6b: "To exercise any of these rights, write to us at <a href=\"mailto:info@tecnologiasonix.com\">info@tecnologiasonix.com</a> indicating the associated Google account.",
+      h7: "7. Data retention",
+      p7: "We retain your progress for as long as you keep your account active. If you request account deletion, we will delete your saved game and leaderboard entry within a reasonable period, unless the law requires us to keep some data longer.",
+      h8: "8. Changes to this policy",
+      p8: "We may update this Privacy Policy from time to time to reflect changes in the Game or applicable regulations. If the changes are significant, we will indicate this by updating the date at the top of this page.",
+      contactEyebrow: "Questions about your data?",
+      contactSub: "Tecnologías Onix — we'll respond as soon as possible",
+      footHome: "Home",
+      footPlay: "Play",
+      footTerms: "Terms and Conditions",
+      footContact: "Contact",
+      footCopy: "© 2026 Tecnologías Onix · Crypto Alien "
+    }
+  };
+
+  function getLang() {
+    var saved = null;
+    try { saved = localStorage.getItem('ca_lang'); } catch (e) {}
+    return (saved === 'en' || saved === 'es') ? saved : 'es';
+  }
+
+  function setLang(lang) {
+    try { localStorage.setItem('ca_lang', lang); } catch (e) {}
+    applyLang(lang);
+  }
+
+  function applyLang(lang) {
+    var dict = I18N[lang] || I18N.es;
+    document.documentElement.setAttribute('lang', lang);
+
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (dict[key] !== undefined) el.textContent = dict[key];
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n-html');
+      if (dict[key] !== undefined) el.innerHTML = dict[key];
+    });
+
+    var toggleBtn = document.getElementById('langToggle');
+    if (toggleBtn) toggleBtn.textContent = lang === 'es' ? 'ES / EN' : 'EN / ES';
+  }
+
+  var currentLang = getLang();
+  var langToggle = document.getElementById('langToggle');
+  if (langToggle) {
+    langToggle.addEventListener('click', function () {
+      currentLang = currentLang === 'es' ? 'en' : 'es';
+      setLang(currentLang);
+    });
+  }
+
+  applyLang(currentLang);
+})();
 </script>
 
 </body>
