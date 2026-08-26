@@ -1143,7 +1143,7 @@ window.ALIEN_FRAMES = [
   function getGanadorAudioEl(){
     if (!GANADOR_SOUND_SRC) return null;
     if (!_ganadorAudioEl){
-      _ganadorAudioEl = new Audio(GANADOR_SOUND_SRC);
+      _ganadorAudioEl = new Audio(GANADOR_SOUND_SRC); _ganadorAudioEl.volume = 0.4;
       _ganadorAudioEl.preload = 'auto';
       _ganadorAudioEl.addEventListener('error', () => {
         const err = _ganadorAudioEl.error;
@@ -1169,7 +1169,7 @@ window.ALIEN_FRAMES = [
   function getYupiAudioEl(){
     if (!YUPI_SOUND_SRC) return null;
     if (!_yupiAudioEl){
-      _yupiAudioEl = new Audio(YUPI_SOUND_SRC);
+      _yupiAudioEl = new Audio(YUPI_SOUND_SRC); _yupiAudioEl.volume = 0.4;
       _yupiAudioEl.preload = 'auto';
       _yupiAudioEl.addEventListener('error', () => {
         const err = _yupiAudioEl.error;
