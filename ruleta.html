@@ -346,28 +346,11 @@
     text-transform:uppercase;
     opacity:.85;
   }
-  /* Botón de silenciar: mismo estilo que #muteBtn en index.html. */
   #ruletaTopbarLeft{
     display:flex;
     align-items:center;
     gap:8px;
   }
-  #muteBtn{
-    background:rgba(10,12,22,.5);
-    border:1px solid rgba(255,255,255,.14);
-    border-radius:50%;
-    width:28px;
-    height:28px;
-    font-size:13px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    transition:transform .12s,border-color .2s;
-    flex-shrink:0;
-  }
-  #muteBtn:active{transform:scale(.88);}
-  #muteBtn.off{opacity:.5;}
   #ruletaBalPill{
     display:flex;
     align-items:center;
@@ -487,7 +470,6 @@ const I18N_RL={
   ruletaLoginText:{es:'Inicia sesión en CRYPTO ALIEN para que tus premios de la ruleta se sumen a tu saldo $CLK.',en:'Sign in to CRYPTO ALIEN so your roulette prizes are added to your $CLK balance.'},
   ruletaLoginGoBtn:{es:'Ir a iniciar sesión',en:'Go to sign in'},
   ruletaBackLink:{es:'← Volver',en:'← Back'},
-  muteBtnAria:{es:'Silenciar sonido',en:'Mute sound'},
   spinHubBtnAria:{es:'Girar ruleta',en:'Spin wheel'},
   ruletaResultPlaceholder:{es:'¡100K créditos!',en:'100K credits!'},
   spinBtnLabel:{es:'GIRAR',en:'SPIN'},
@@ -593,7 +575,6 @@ function applyI18nRL(root){
   <div id="ruletaTopbar">
     <div id="ruletaTopbarLeft">
       <a id="ruletaBackLink" href="index.html" data-i18n="ruletaBackLink">← Volver</a>
-      <button id="muteBtn" onclick="toggleMute()" aria-label="Silenciar sonido" data-i18n-aria="muteBtnAria">🔊</button>
     </div>
     <div id="ruletaBalPill">
       <span id="ruletaBalIcon">🪙</span>
@@ -1298,37 +1279,6 @@ window.ALIEN_FRAMES = [
   }
   playMusicaFondo();
 
-  // Botón de silenciar (mismo altavoz 🔊/🔇 que index.html): silencia/reanuda
-  // la música de fondo en curso y evita que los efectos (giro, alien, ganador,
-  // fuegos, yupi) suenen mientras esté activado. Comparte la clave
-  // 'cck4_muted' de localStorage con index.html para que el estado de mute
-  // sea el mismo en toda la app.
-  window.toggleMute = function(){
-    _ruletaMuted = !_ruletaMuted;
-    try{ localStorage.setItem('cck4_muted', _ruletaMuted ? '1' : '0'); }catch(e){}
-    const musica = getMusicaFondoAudioEl();
-    if (musica){
-      if (_ruletaMuted){
-        musica.pause();
-      } else {
-        musica.volume = MUSICA_FONDO_VOL;
-        musica.play().catch(()=>{});
-      }
-    }
-    const btn = document.getElementById('muteBtn');
-    if (btn){
-      btn.textContent = _ruletaMuted ? '🔇' : '🔊';
-      btn.classList.toggle('off', _ruletaMuted);
-    }
-  };
-  // Sincroniza el ícono del botón con el estado inicial leído de localStorage.
-  (function syncMuteBtn(){
-    const btn = document.getElementById('muteBtn');
-    if (btn){
-      btn.textContent = _ruletaMuted ? '🔇' : '🔊';
-      btn.classList.toggle('off', _ruletaMuted);
-    }
-  })();
 
 
   // Convierte un ángulo "horario desde arriba" a coordenadas cartesianas del SVG.
