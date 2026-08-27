@@ -6,6 +6,55 @@
 
    <script>(function(s){s.dataset.zone='11666007',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 
+<script>
+/* ════════════════════════════════════════════════════════════════
+   LIMITADOR DE FRECUENCIA — anuncios del tag de Monetag (al5sm.com).
+   Monetag no expone ninguna función propia en este snippet para
+   limitar cada cuánto se dispara el anuncio: es un tag "onclick" que
+   engancha su propio listener de click sobre document para poder
+   abrir el anuncio dentro del mismo gesto del usuario (los
+   navegadores exigen eso para no bloquear la apertura como popup).
+   Como ese listener se registra en la fase de burbuja de document,
+   si nuestro propio listener se registra en document ANTES que el
+   suyo —esto se ejecuta en el momento en que el HTML se parsea,
+   mientras que tag.min.js tarda en descargarse y ejecutarse por
+   tratarse de un <script> creado dinámicamente (async por defecto)—
+   el nuestro se dispara primero en cada click y puede frenar el
+   evento con stopImmediatePropagation() antes de que le llegue el
+   turno al listener de Monetag, sin afectar al resto de la app: para
+   cuando el evento llega a document ya pasó por el elemento real
+   (botón, link, etc.) y ese ya hizo lo suyo.
+   Solo se deja pasar el click hacia Monetag (y por tanto solo puede
+   dispararse un anuncio) cuando se cumple UNA de estas condiciones:
+     - han pasado al menos 3 minutos desde el último anuncio permitido
+     - se acumularon 500 taps/clics desde el último anuncio permitido
+   Nota: esto es un límite del lado del cliente. Si Monetag cambiara
+   internamente a un listener en fase de captura (poco habitual en
+   este formato), este límite dejaría de aplicar y solo regiría el
+   frequency cap configurado en el panel de Monetag.
+   ════════════════════════════════════════════════════════════════ */
+(function(){
+  var AD_COOLDOWN_MS = 3*60*1000; // 3 minutos
+  var AD_TAP_LIMIT   = 500;       // o 500 taps
+  var lastAdAt = Date.now();
+  var tapsSinceAd = 0;
+
+  document.addEventListener('click', function(e){
+    var now = Date.now();
+    var cooldownOk = (now - lastAdAt) >= AD_COOLDOWN_MS;
+    var tapsOk = tapsSinceAd >= AD_TAP_LIMIT;
+    if(cooldownOk || tapsOk){
+      lastAdAt = now;
+      tapsSinceAd = 0;
+      // se deja pasar: Monetag podrá mostrar su anuncio con este click
+    } else {
+      tapsSinceAd++;
+      e.stopImmediatePropagation();
+    }
+  }, false); // misma fase (burbuja) que usa el listener de Monetag
+})();
+</script>
+
 <meta charset="UTF-8">
 <script>
 /* Redirección a landing.html solo la PRIMERA vez que se visita index.html
