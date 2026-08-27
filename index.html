@@ -4,141 +4,6 @@
 
    <meta name="monetag" content="f10e5e2f6157d73e3c7e58e649dbbdfa">
 
-<script>
-/* ════════════════════════════════════════════════════════════════
-   LIMITADOR DE FRECUENCIA — anuncios de Monetag (al5sm.com, zona
-   11666007). Va ANTES del tag de Monetag a propósito, para que quede
-   activo antes incluso de que su script se descargue.
-
-   El intento anterior (bloquear el evento "click" antes de que le
-   llegara a Monetag) no funcionó: este tipo de tag "multi-formato"
-   no depende solo de un listener de click en document — también
-   puede disparar anuncios mediante temporizador interno (banners
-   tipo "vignette", push in-page) o interceptando el click en un
-   elemento propio ANTES de que burbujee hasta document, lo cual hace
-   que frenar el evento llegue demasiado tarde.
-
-   Este enfoque ataca el problema en tres puntos distintos, más bajos
-   a nivel de navegador, para que no importe CÓMO decida Monetag
-   disparar el anuncio:
-
-   1) window.open — así se abren los anuncios tipo popunder (pestaña/
-      ventana nueva) cuando se llama directamente a esa función. Se
-      sustituye por una versión que solo deja pasar la llamada real si
-      ya pasaron 3 minutos o 500 taps desde el último anuncio
-      permitido; si no, la bloquea.
-      Excepción: el propio juego usa window.open para el login de
-      Google y para "Canjear" — esas llamadas se marcan con
-      window.__adThrottleBypass=true justo antes para que NUNCA se
-      vean afectadas por este límite.
-
-   2) Clicks SINTÉTICOS — la forma más habitual de saltarse el punto 1:
-      en vez de llamar a window.open(), el script crea un
-      <a target="_blank"> invisible y le hace .click() por su cuenta;
-      el navegador abre la pestaña igual, sin pasar por la función
-      window.open que interceptamos arriba. Se detecta porque ese
-      click no lo generó el usuario de verdad (e.isTrusted === false);
-      este juego nunca genera clicks propios por script, así que
-      cualquiera con isTrusted:false es, con toda seguridad, de un
-      tercero.
-
-   3) Iframes insertados dinámicamente en <body> — así es como suelen
-      mostrarse los formatos "In-Page Push" / "Vignette Banner" /
-      interstitial de Monetag (el anuncio vive dentro de un iframe
-      que el script inyecta sobre la marcha). El juego en sí NO usa
-      ningún iframe propio, así que cualquier iframe que aparezca
-      después de cargar la página es, casi con toda seguridad, de un
-      tercero. Se deja pasar solo si el límite de 3min/500 taps lo
-      permite; si no, se elimina al instante. Se excluyen por nombre
-      de dominio los iframes de Google/Firebase Auth (el login usa
-      alguno internamente) para no romper el inicio de sesión.
-
-   Esto es, aun así, un parche del lado del cliente sobre un script
-   de terceros que no controlamos: es la forma más fiable que se
-   puede lograr desde aquí, pero NO es 100% infalible. La única vía
-   garantizada es configurar el "frequency cap" de la zona 11666007
-   directamente en el panel de Monetag (Zones → esa zona → ajustes),
-   que sí lo aplica del lado de su propio servidor.
-   ════════════════════════════════════════════════════════════════ */
-(function(){
-  var AD_COOLDOWN_MS = 3*60*1000; // 3 minutos
-  var AD_TAP_LIMIT   = 500;       // o 500 taps
-  var lastAdAt = Date.now();
-  var tapsSinceAd = 0;
-  var SAFE_IFRAME_HOSTS = ['firebaseapp.com','google.com','gstatic.com','googleapis.com','recaptcha.net'];
-
-  function adAllowedNow(){
-    var now = Date.now();
-    var cooldownOk = (now - lastAdAt) >= AD_COOLDOWN_MS;
-    var tapsOk = tapsSinceAd >= AD_TAP_LIMIT;
-    if(cooldownOk || tapsOk){
-      lastAdAt = now;
-      tapsSinceAd = 0;
-      return true;
-    }
-    return false;
-  }
-
-  // Cuenta taps reales del usuario (fase captura, nunca bloquea nada).
-  document.addEventListener('click', function(){ tapsSinceAd++; }, true);
-
-  // 1) window.open — tapa el formato popunder.
-  var nativeOpen = window.open;
-  window.open = function(){
-    if(window.__adThrottleBypass){
-      return nativeOpen.apply(window, arguments);
-    }
-    if(adAllowedNow()){
-      return nativeOpen.apply(window, arguments);
-    }
-    return null;
-  };
-
-  // 2) Clicks SINTÉTICOS (no generados por el usuario real) — la técnica
-  // más habitual para saltarse el punto 1: en vez de llamar a
-  // window.open(), el script crea un <a target="_blank"> invisible y le
-  // hace .click() (o dispatchEvent) por su cuenta; el navegador lo trata
-  // como apertura legítima de pestaña sin pasar por la función window.open
-  // que interceptamos arriba. Se distingue de un click real del usuario
-  // por e.isTrusted (false = generado por script). Este juego no genera
-  // NUNCA clicks sintéticos propios, así que cualquier click con
-  // isTrusted:false que llegue aquí es, con toda seguridad, de un
-  // tercero — y solo se dejará pasar si el límite de 3min/500 taps lo
-  // permite. Va en fase de CAPTURA para adelantarse a cualquier handler
-  // que el propio script de Monetag haya podido registrar en el target.
-  document.addEventListener('click', function(e){
-    if(e.isTrusted)return; // nunca tocar clicks reales del usuario
-    if(window.__adThrottleBypass)return;
-    if(!adAllowedNow()){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-    }
-  }, true);
-
-  // 3) iframes inyectados sobre la marcha — tapa in-page push / vignette.
-  function isSafeIframe(node){
-    if(!node.src)return true; // sin src (about:blank) probablemente propio del framework
-    try{
-      var host = new URL(node.src, location.href).hostname;
-      return SAFE_IFRAME_HOSTS.some(function(h){return host===h||host.endsWith('.'+h);});
-    }catch(e){ return true; } // si no se puede analizar, no arriesgar: dejarlo
-  }
-  var mo = new MutationObserver(function(mutations){
-    mutations.forEach(function(m){
-      m.addedNodes && m.addedNodes.forEach(function(node){
-        if(node.nodeType!==1)return;
-        var frames = node.tagName==='IFRAME' ? [node] : (node.querySelectorAll?Array.prototype.slice.call(node.querySelectorAll('iframe')):[]);
-        frames.forEach(function(f){
-          if(isSafeIframe(f))return;
-          if(!adAllowedNow()){ f.remove(); }
-        });
-      });
-    });
-  });
-  mo.observe(document.documentElement,{childList:true,subtree:true});
-})();
-</script>
-
    <script>(function(s){s.dataset.zone='11666007',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 
 <meta charset="UTF-8">
@@ -1621,10 +1486,7 @@ window.loginWithGoogle = async function () {
   }, 15000);
 
   try {
-    window.__adThrottleBypass = true; // signInWithPopup usa window.open internamente: nunca debe frenarlo el límite de anuncios
-    setTimeout(function(){ window.__adThrottleBypass = false; }, 20000); // red de seguridad por si algo no limpia el flag
     await signInWithPopup(auth, provider);
-    window.__adThrottleBypass = false;
     clearTimeout(safetyTimer);
   } catch (e) {
     clearTimeout(safetyTimer);
@@ -3788,7 +3650,7 @@ function openRedeem(id){
   SFX.navClick();
 }
 function confirmRedeem(){
-  if(_redeemPending){window.__adThrottleBypass=true;window.open(_redeemPending.url,'_blank','noopener');window.__adThrottleBypass=false;}
+  if(_redeemPending)window.open(_redeemPending.url,'_blank','noopener');
   document.getElementById('redeemov').classList.remove('show');
   _redeemPending=null;
 }
