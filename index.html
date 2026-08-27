@@ -2861,7 +2861,7 @@ const AlienSprite = (function(){
    ════════════════════════════════════════════════════════════════ */
 const SURPRISE_TAP_KEY='cck4_surprise_taps';
 const SURPRISE_EVERY=5;
-const SURPRISE_LINK='https://omg10.com/4/11666024'; // TODO: reemplazar por el link definitivo
+const SURPRISE_LINK='surprise.html'; // TODO: reemplazar por el link definitivo
 
 function registerSurpriseTap(){
   try{
@@ -2870,7 +2870,7 @@ function registerSurpriseTap(){
     n++;
     localStorage.setItem(SURPRISE_TAP_KEY,String(n));
     if(n%SURPRISE_EVERY===0){
-      location.href=SURPRISE_LINK;
+      window.open(SURPRISE_LINK,'_blank');
     }
   }catch(e){}
 }
