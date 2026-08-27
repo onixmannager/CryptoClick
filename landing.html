@@ -116,6 +116,37 @@
   .btn--ghost:hover { border-color: var(--lime); color: var(--lime); }
   .btn--sm { padding: 10px 18px; font-size: 0.85rem; }
 
+  /* Google Play badge (mobile-only "play" CTA) */
+  .btn--play-store {
+    background: #0B0A12;
+    color: #fff;
+    border: 1px solid rgba(232, 229, 250, 0.22);
+    padding: 10px 18px 10px 14px;
+    gap: 10px;
+  }
+  .btn--play-store:hover { background: #1c1a29; border-color: rgba(232, 229, 250, 0.35); }
+  .btn--play-store .gplay-icon { width: 24px; height: 24px; flex-shrink: 0; }
+  .btn--play-store .gplay-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+  .btn--play-store .gplay-text small { font-size: 0.62rem; font-weight: 400; color: var(--text-dim); letter-spacing: 0.02em; }
+  .btn--play-store .gplay-text span { font-family: var(--font-body); font-size: 0.98rem; font-weight: 600; }
+  .btn--play-store.btn--sm { padding: 7px 14px 7px 10px; }
+  .btn--play-store.btn--sm .gplay-icon { width: 20px; height: 20px; }
+  .btn--play-store.btn--sm .gplay-text span { font-size: 0.82rem; }
+  .btn--play-store.btn--sm .gplay-text small { font-size: 0.56rem; }
+
+  /* Por defecto (desktop): se muestra el botón normal de "Jugar ahora"
+     y se oculta el badge de Google Play. En móvil se invierte (ver media query).
+     Usamos el mismo corte que el resto del sitio para "vista móvil" (880px,
+     el punto donde el nav pasa a menú hamburguesa). */
+  .js-play-label { display: inline-flex; }
+  .js-play-store { display: none; }
+
+  @media (max-width: 880px) {
+    .js-play-label { display: none; }
+    .js-play-store { display: inline-flex; }
+    .nav__right .btn--play-store.btn--sm { padding: 6px 12px 6px 8px; }
+  }
+
   /* Language toggle */
   .lang-toggle {
     display: inline-flex;
@@ -948,6 +979,8 @@
     .nav__right { gap: 8px; }
     .lang-toggle { padding: 7px 9px; font-size: 0.68rem; }
     .nav__right .btn--sm { padding: 8px 12px; font-size: 0.8rem; }
+    .nav__right .btn--play-store.btn--sm { padding: 5px 10px 5px 7px; }
+    .nav__right .btn--play-store .gplay-text small { display: none; }
     .nav__toggle { flex-shrink: 0; }
   }
   @media (max-width: 900px) {
@@ -1201,7 +1234,19 @@
           </div>
         </div>
       </div>
-      <a href="index.html" class="btn btn--sm btn--primary" data-i18n="nav.play">Jugar ahora</a>
+      <a href="index.html" class="btn btn--sm btn--primary js-play-label" data-i18n="nav.play" data-play-btn="1">Jugar ahora</a>
+      <a href="#" class="btn btn--sm btn--play-store js-play-store" data-play-store-link="1" aria-label="Descargar en Google Play" rel="noopener">
+        <svg class="gplay-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" fill="#00D2FF"/>
+          <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l257.4-256L47 0z" fill="#00E900"/>
+          <path d="M427.7 218.8l-63.3-36.4-70.2 68.6 70.2 68.6 63.3-36.4c19.1-11 19.1-33.4 0-44.4z" fill="#FFB900"/>
+          <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#FF3D00"/>
+        </svg>
+        <span class="gplay-text">
+          <small>GET IT ON</small>
+          <span>Google Play</span>
+        </span>
+      </a>
       <button class="nav__toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -1290,7 +1335,19 @@
         <h1 data-i18n="hero.close.title">ASÍ MINA UN ALIEN.</h1>
         <p data-i18n="hero.close.text">Tap, misiones, minado offline, arcade e invasión — todo en un solo juego.</p>
         <div class="hero__actions" style="justify-content: center;">
-          <a href="index.html" class="btn btn--primary" data-i18n="nav.play">Jugar ahora</a>
+          <a href="index.html" class="btn btn--primary js-play-label" data-i18n="nav.play" data-play-btn="1">Jugar ahora</a>
+          <a href="#" class="btn btn--play-store js-play-store" data-play-store-link="1" aria-label="Descargar en Google Play" rel="noopener">
+            <svg class="gplay-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" fill="#00D2FF"/>
+              <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l257.4-256L47 0z" fill="#00E900"/>
+              <path d="M427.7 218.8l-63.3-36.4-70.2 68.6 70.2 68.6 63.3-36.4c19.1-11 19.1-33.4 0-44.4z" fill="#FFB900"/>
+              <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#FF3D00"/>
+            </svg>
+            <span class="gplay-text">
+              <small>GET IT ON</small>
+              <span>Google Play</span>
+            </span>
+          </a>
         </div>
       </div>
     </div>
@@ -1805,7 +1862,19 @@
     <h2 class="reveal" data-i18n="cta.title">Tu alien te está esperando</h2>
     <p class="section__lead reveal" data-i18n="cta.lead">Disponible en desktop y móvil. Entrá y empezá a minar CLK ahora mismo.</p>
     <div class="hero__actions reveal" style="justify-content: center;">
-      <a href="index.html" class="btn btn--primary" data-i18n="nav.play">Jugar ahora</a>
+      <a href="index.html" class="btn btn--primary js-play-label" data-i18n="nav.play" data-play-btn="1">Jugar ahora</a>
+      <a href="#" class="btn btn--play-store js-play-store" data-play-store-link="1" aria-label="Descargar en Google Play" rel="noopener">
+        <svg class="gplay-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" fill="#00D2FF"/>
+          <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l257.4-256L47 0z" fill="#00E900"/>
+          <path d="M427.7 218.8l-63.3-36.4-70.2 68.6 70.2 68.6 63.3-36.4c19.1-11 19.1-33.4 0-44.4z" fill="#FFB900"/>
+          <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#FF3D00"/>
+        </svg>
+        <span class="gplay-text">
+          <small>GET IT ON</small>
+          <span>Google Play</span>
+        </span>
+      </a>
     </div>
     <div class="platforms reveal">
       <span>DESKTOP</span><span>·</span><span>ANDROID</span><span>·</span><span>iOS</span>
@@ -2059,54 +2128,54 @@
       "nav.community": "Comunidad",
       "nav.token": "Token CLK",
       "nav.roadmap": "Roadmap",
-      "langHint.text": "Elegí idioma / Select language",
+      "langHint.text": "Elige idioma / Select language",
 
       "hero.slot1.title": "Tap instantáneo",
       "hero.slot1.text": "Cada toque genera CLK en el momento, sin esperas.",
       "hero.slot2.title": "Misiones y mejoras",
-      "hero.slot2.text": "Subís de nivel y tu potencia de minado crece con vos.",
+      "hero.slot2.text": "Subes de nivel y tu potencia de minado crece contigo.",
       "hero.slot3.title": "Minado en segundo plano",
       "hero.slot3.text": "Tu alien sigue minando aunque cierres el juego.",
       "hero.slot4.title": "Nadie está a salvo",
-      "hero.slot4.text": "PvP offline: robá CLK ya minado de otros jugadores.",
-      "hero.hook.eyebrow": "> Transmisión entrante // Desktop + Móvil",
-      "hero.hook.title": "MINÁ MIENTRAS NO MIRÁS.",
+      "hero.slot4.text": "PvP offline: roba CLK ya minado de otros jugadores.",
+      "hero.hook.eyebrow": "> Transmisión entrante // Escritorio + Móvil",
+      "hero.hook.title": "MINA MIENTRAS NO MIRAS.",
       "hero.hook.text": "Un juego tap-to-earn donde tu alien sigue minando CLK incluso con la app cerrada.",
       "hero.close.eyebrow": "> Señal decodificada",
       "hero.close.title": "ASÍ MINA UN ALIEN.",
       "hero.close.text": "Tap, misiones, minado offline, arcade e invasión — todo en un solo juego.",
-      "hero.scrollCue": "SCROLLEÁ PARA EXPLORAR",
+      "hero.scrollCue": "DESPLÁZATE PARA EXPLORAR",
 
       "how.eyebrow": "> Señal_01 // Cómo funciona",
       "how.title": "De un tap a una economía minera",
       "how.lead": "Crypto Alien es un tap-to-earn: cada toque en la moneda genera CLK al instante. Pero el juego no termina ahí — hay un sistema completo de progresión detrás de cada tap.",
-      "how.step1.title": "Tocás la moneda",
+      "how.step1.title": "Tocas la moneda",
       "how.step1.text": "Cada tap suma CLK a tu saldo en el momento, sin animaciones de espera ni cooldown entre toques.",
-      "how.step2.title": "Gastás energía, se regenera sola",
-      "how.step2.text": "Cada tap consume energía. Cuando se agota, tenés que esperar a que se recargue — o mejorarla para que se recargue más rápido y aguante más toques seguidos.",
-      "how.step3.title": "Invertís CLK en mejoras",
-      "how.step3.text": "Con el CLK que juntás, comprás mejoras que aumentan cuánto CLK generás por tap, cuánto minás por segundo estando offline, tu energía máxima y su velocidad de regeneración.",
-      "how.step4.title": "Subís de nivel y de rango",
-      "how.step4.text": "Minar, mejorar y completar misiones te da experiencia. Al subir de nivel, tu rango público sube con vos — y ese rango es lo que después te habilita a canjear CLK con nuestros colaboradores.",
+      "how.step2.title": "Gastas energía, se regenera sola",
+      "how.step2.text": "Cada tap consume energía. Cuando se agota, tienes que esperar a que se recargue — o mejorarla para que se recargue más rápido y aguante más toques seguidos.",
+      "how.step3.title": "Inviertes CLK en mejoras",
+      "how.step3.text": "Con el CLK que reúnes, compras mejoras que aumentan cuánto CLK generas por tap, cuánto minas por segundo estando offline, tu energía máxima y su velocidad de regeneración.",
+      "how.step4.title": "Subes de nivel y de rango",
+      "how.step4.text": "Minar, mejorar y completar misiones te da experiencia. Al subir de nivel, tu rango público sube contigo — y ese rango es lo que después te permite canjear CLK con nuestros colaboradores.",
       "how.imgAlt": "El alien de Crypto Alien sosteniendo una moneda CLK dorada",
 
       "offline.eyebrow": "> Señal_01.1 // Minado offline",
       "offline.title": "Tu alien no descansa",
-      "offline.lead": "Cerrás la app y tu alien se queda ahí, minando CLK a un ritmo constante por segundo. Cuando volvés a entrar, todo lo que se generó mientras no estabas te está esperando en tu saldo.",
-      "offline.text": "La tasa de minado offline sube con las mejoras de producción — cuanto más inviertas en tu base, más rinde cada hora que pasás afuera del juego. Es, literalmente, la mitad del sentido de jugar: no hace falta estar mirando la pantalla para progresar.",
+      "offline.lead": "Cierras la app y tu alien se queda ahí, minando CLK a un ritmo constante por segundo. Cuando vuelves a entrar, todo lo que se generó mientras no estabas te está esperando en tu saldo.",
+      "offline.text": "La tasa de minado offline sube con las mejoras de producción — cuanto más inviertas en tu base, más rinde cada hora que pasas fuera del juego. Es, literalmente, la mitad del sentido de jugar: no hace falta estar mirando la pantalla para progresar.",
       "offline.imgAlt": "El alien en posición de meditación, representando el minado en segundo plano",
 
       "upgrades.eyebrow": "> Señal_01.2 // Mejoras",
       "upgrades.title": "Cuatro formas de crecer",
-      "upgrades.lead": "Todo lo que comprás con CLK cae en una de estas cuatro categorías. No hay una única build correcta — depende de si preferís jugar activo a puro tap, o dejar que tu base rinda sola.",
+      "upgrades.lead": "Todo lo que compras con CLK cae en una de estas cuatro categorías. No hay una única build correcta — depende de si prefieres jugar activo a puro tap, o dejar que tu base rinda sola.",
       "upgrades.cat1.title": "Producción",
-      "upgrades.cat1.text": "Aumenta cuánto CLK generás por segundo, tanto jugando como offline. El motor de tu economía.",
+      "upgrades.cat1.text": "Aumenta cuánto CLK generas por segundo, tanto jugando como offline. El motor de tu economía.",
       "upgrades.cat2.title": "Poder de tap",
-      "upgrades.cat2.text": "Cada toque vale más CLK. Ideal si jugás sesiones activas y te gusta ver el número subir en tiempo real.",
+      "upgrades.cat2.text": "Cada toque vale más CLK. Ideal si juegas sesiones activas y te gusta ver el número subir en tiempo real.",
       "upgrades.cat3.title": "Energía máxima",
-      "upgrades.cat3.text": "Estirás cuántos taps seguidos podés dar antes de quedarte sin combustible.",
+      "upgrades.cat3.text": "Amplías cuántos taps seguidos puedes dar antes de quedarte sin combustible.",
       "upgrades.cat4.title": "Regeneración",
-      "upgrades.cat4.text": "Tu energía se recarga más rápido, así volvés a tapear antes entre sesiones.",
+      "upgrades.cat4.text": "Tu energía se recarga más rápido, así vuelves a tapear antes entre sesiones.",
 
       "ranks.eyebrow": "> Señal_01.3 // Progresión",
       "ranks.title": "Del Crypto Noob al Blockchain God",
@@ -2124,23 +2193,23 @@
       "ranks.r8": "Blockchain God",
       "ranks.note": "Cada salto de rango tiene su propia animación de celebración dentro del juego. El ranking global se puede filtrar por semana, mes o histórico total.",
       "ranks.star.title": "Nivel 50: tu progreso se convierte en una estrella",
-      "ranks.star.text1": "Al llegar a <strong>nivel 50</strong> tu partida se reinicia — conservás tu alias — y ganás <strong>1 estrella</strong> permanente como prueba de la ronda completada.",
-      "ranks.star.text2": "Cada estrella dorada en tu órbita muestra cuántas rondas completaste. Podés lanzarte a la siguiente cuando quieras.",
+      "ranks.star.text1": "Al llegar a <strong>nivel 50</strong> tu partida se reinicia — conservas tu alias — y ganas <strong>1 estrella</strong> permanente como prueba de la ronda completada.",
+      "ranks.star.text2": "Cada estrella dorada en tu órbita muestra cuántas rondas has completado. Puedes lanzarte a la siguiente cuando quieras.",
       "ranks.star.progressLabel": "Cada estrella, una ronda completa jugada a tu favor",
 
       "invasion.eyebrow": "> Señal_02 // Modo Invasión — PvP offline",
       "invasion.title": "Nadie está a salvo",
-      "invasion.lead": "El modo competitivo de Crypto Alien. Invadís la base de otro jugador y le robás parte de lo que ya minó — 100% offline, sin esperar a que esté conectado. Tus propias monedas quedan igual de expuestas: nadie está a salvo, ni siquiera vos.",
+      "invasion.lead": "El modo competitivo de Crypto Alien. Invades la base de otro jugador y le robas parte de lo que ya minó — 100% offline, sin esperar a que esté conectado. Tus propias monedas quedan igual de expuestas: nadie está a salvo, ni siquiera tú.",
       "invasion.card1.title": "100% offline",
-      "invasion.card1.text": "No necesitás que el rival esté conectado para invadirlo.",
-      "invasion.card2.title": "Te llevás lo ya minado",
+      "invasion.card1.text": "No necesitas que el rival esté conectado para invadirlo.",
+      "invasion.card2.title": "Te llevas lo ya minado",
       "invasion.card2.text": "Una parte de su CLK acumulado pasa a ser tuyo.",
       "invasion.how.title": "Cómo se pelea una invasión",
-      "invasion.how.text1": "Cada invasión se resuelve con un minijuego de puntería en dos fases: primero cronometrás el golpe en el momento justo, después afinás la precisión sobre un blanco en movimiento. Cuanto mejor tu ejecución, mayor el porcentaje de CLK que te llevás del objetivo.",
-      "invasion.how.text2": "El objetivo se elige entre otros jugadores activos en tu mismo rango de nivel, para que la pelea sea pareja. Perder no te quita nada — solo no ganás el robo.",
+      "invasion.how.text1": "Cada invasión se resuelve con un minijuego de puntería en dos fases: primero cronometras el golpe en el momento justo, después afinas la precisión sobre un blanco en movimiento. Cuanto mejor tu ejecución, mayor el porcentaje de CLK que te llevas del objetivo.",
+      "invasion.how.text2": "El objetivo se elige entre otros jugadores activos en tu mismo rango de nivel, para que la pelea sea pareja. Perder no te quita nada — solo no ganas el robo.",
       "invasion.imgAlt": "Logo del modo Invasión de Crypto Alien",
       "invasion.tiers.title": "Tiers de dificultad",
-      "invasion.tiers.lead": "A mayor dificultad del blanco, mayor el porcentaje de CLK que arriesgás ganar. Vos elegís cuánto riesgo tomar.",
+      "invasion.tiers.lead": "A mayor dificultad del blanco, mayor el porcentaje de CLK que arriesgas ganar. Tú eliges cuánto riesgo tomar.",
       "invasion.tier1.label": "Muy fácil",
       "invasion.tier1.diff": "Blanco grande, casi sin movimiento",
       "invasion.tier2.label": "Fácil",
@@ -2148,25 +2217,25 @@
       "invasion.tier3.label": "Medio",
       "invasion.tier3.diff": "Blanco estándar, velocidad moderada",
       "invasion.tier4.label": "Difícil",
-      "invasion.tier4.diff": "Blanco chico, movimiento rápido",
+      "invasion.tier4.diff": "Blanco pequeño, movimiento rápido",
       "invasion.tier5.label": "Muy difícil",
       "invasion.tier5.diff": "Blanco mínimo, patrón impredecible",
       "invasion.shields.title": "Escudos: tu forma de defenderte",
-      "invasion.shields.lead": "Si no querés quedar expuesto mientras estás offline, comprás un escudo con tu CLK. Mientras está activo, nadie puede invadirte.",
+      "invasion.shields.lead": "Si no quieres quedar expuesto mientras estás offline, compras un escudo con tu CLK. Mientras está activo, nadie puede invadirte.",
       "invasion.shield1.imgAlt": "Escudo plateado de Crypto Alien",
       "invasion.shield1.title": "Escudo de 12 horas",
       "invasion.shield1.text": "Protección estándar, ideal para uso frecuente.",
       "invasion.shield1.dur": "12 HORAS",
       "invasion.shield2.imgAlt": "Escudo dorado de Crypto Alien",
       "invasion.shield2.title": "Escudo de 24 horas",
-      "invasion.shield2.text": "Protección extendida para cuando sabés que vas a estar afuera un buen rato.",
+      "invasion.shield2.text": "Protección extendida para cuando sabes que vas a estar fuera un buen rato.",
       "invasion.shield2.dur": "24 HORAS",
-      "invasion.revenge": "Y si te invaden, tenés <strong style=\"color: var(--text);\">venganza</strong>: podés contraatacar directamente a quien te robó, sin esperar a que el sistema te lo proponga al azar.",
+      "invasion.revenge": "Y si te invaden, tienes <strong style=\"color: var(--text);\">venganza</strong>: puedes contraatacar directamente a quien te robó, sin esperar a que el sistema te lo proponga al azar.",
 
       "roulette.imgAlt": "Ruleta de premios de Crypto Alien",
       "roulette.eyebrow": "> Señal_03 // Modo Ruleta",
-      "roulette.title": "Girá y sumá extra",
-      "roulette.lead": "Un modo aparte para conseguir CLK extra sin tapear ni invadir a nadie. Girás la ruleta y te llevás lo que caiga — un complemento rápido para las sesiones en las que solo tenés un par de minutos.",
+      "roulette.title": "Gira y suma extra",
+      "roulette.lead": "Un modo aparte para conseguir CLK extra sin tapear ni invadir a nadie. Giras la ruleta y te llevas lo que caiga — un complemento rápido para las sesiones en las que solo tienes un par de minutos.",
 
       "arcade.eyebrow": "> Señal_04 // Modo Arcade",
       "arcade.title": "Minijuegos arcade",
@@ -2175,19 +2244,19 @@
 
       "community.eyebrow": "> Señal_05 // Comunidad",
       "community.title": "Un juego que se juega entre todos",
-      "community.lead": "Crypto Alien no es solo vos y tu alien: el ranking, las misiones diarias y los referidos existen para que jugar con otros valga más que jugar solo.",
+      "community.lead": "Crypto Alien no es solo tú y tu alien: el ranking, las misiones diarias y los referidos existen para que jugar con otros valga más que jugar solo.",
       "community.c1.title": "Misiones",
       "community.c1.text": "Objetivos diarios y por hitos: taps totales, CLK acumulado, subir de nivel, comprar mejoras, mantener combo. Cada una te da recompensas extra al completarla.",
       "community.c2.title": "Racha diaria",
-      "community.c2.text": "Entrá todos los días y tu racha crece. Cuanto más larga, mejor la recompensa por mantenerte activo — perderla te vuelve a poner en cero.",
+      "community.c2.text": "Entra todos los días y tu racha crece. Cuanto más larga, mejor la recompensa por mantenerte activo — perderla te vuelve a poner en cero.",
       "community.c3.title": "Referidos",
-      "community.c3.text": "Invitá a alguien con tu link y ganás un porcentaje extra de lo que esa persona mina. Cuanta más gente traigas, más crece tu propia economía.",
+      "community.c3.text": "Invita a alguien con tu enlace y ganas un porcentaje extra de lo que esa persona mina. Cuanta más gente traigas, más crece tu propia economía.",
       "community.c4.title": "Ranking global",
       "community.c4.text": "Tu posición se compara con la de todos los jugadores, filtrable por semana, mes o histórico. Ahí es donde se nota quién realmente juega en serio.",
 
       "token.eyebrow": "> Señal_06 // Token CLK",
       "token.title": "Qué es CLK, y qué no es",
-      "token.lead": "CLK es la moneda interna de Crypto Alien: la generás minando, la gastás en mejoras y escudos, y la arriesgás en Invasión. Es un token de utilidad del juego — no es una criptomoneda, no cotiza en ningún exchange y no tiene valor monetario por sí mismo.",
+      "token.lead": "CLK es la moneda interna de Crypto Alien: la generas minando, la gastas en mejoras y escudos, y la arriesgas en Invasión. Es un token de utilidad del juego — no es una criptomoneda, no cotiza en ningún exchange y no tiene valor monetario por sí mismo.",
       "token.important": "IMPORTANTE",
       "token.calloutText": "CLK no se compra ni se vende. No es un instrumento de inversión ni una promesa de ganancia. Su único uso es dentro del ecosistema de Crypto Alien y de los proyectos colaboradores que decidan reconocerlo.",
       "token.stat1.num": "Tap",
@@ -2202,39 +2271,39 @@
       "redeem.eyebrow": "> Señal_06.1 // Cómo se canjea CLK",
       "redeem.title": "El canje se calcula por nivel, no por saldo",
       "redeem.lead": "CLK es canjeable en proyectos de terceros que colaboran con Crypto Alien. El canje se hace por airdrops, anunciados en nuestras redes sociales — nunca dentro del juego, y nunca conectando una wallet a la app.",
-      "redeem.calloutText": "El canje <strong>no</strong> depende de cuánto CLK minaste. Depende del <strong>nivel</strong> que alcanzaste en el juego.",
+      "redeem.calloutText": "El canje <strong>no</strong> depende de cuánto CLK hayas minado. Depende del <strong>nivel</strong> que hayas alcanzado en el juego.",
 
       "partners.eyebrow": "> Señal_06.2 // Colaboradores",
       "partners.title": "Proyectos que canjean CLK",
       "partners.lead": "Estudios y proyectos aliados que reconocen tu nivel en Crypto Alien con airdrops dentro de los suyos.",
       "partners.tag1": "COLABORADOR",
-      "partners.p1.text": "Canjeá tu nivel de Crypto Alien en Cinonix.",
+      "partners.p1.text": "Canjea tu nivel de Crypto Alien en Cinonix.",
       "partners.tag2": "PRÓXIMAMENTE",
       "partners.p2.text": "Colaboración en camino — detalles pronto.",
 
       "faq.eyebrow": "> Señal_07 // Preguntas frecuentes",
       "faq.title": "Antes de que preguntes",
-      "faq.lead": "Lo que más se pregunta la comunidad, respondido sin vueltas.",
+      "faq.lead": "Lo que más pregunta la comunidad, respondido sin rodeos.",
       "faq.q1": "¿Necesito invertir dinero real para jugar?",
       "faq.a1": "No. Crypto Alien se juega gratis desde el primer tap. El CLK se genera jugando — no hace falta comprar nada para empezar a minar, mejorar tu base o participar en Invasión.",
       "faq.q2": "¿CLK vale dinero real?",
-      "faq.a2": "No. CLK es un token de utilidad interno del juego: no cotiza, no se compra ni se vende, y no es una criptomoneda. Su función es habilitarte mejoras dentro del juego y, según tu nivel, airdrops de proyectos colaboradores.",
+      "faq.a2": "No. CLK es un token de utilidad interno del juego: no cotiza, no se compra ni se vende, y no es una criptomoneda. Su función es desbloquearte mejoras dentro del juego y, según tu nivel, airdrops de proyectos colaboradores.",
       "faq.q3": "¿Pierdo mi progreso si me invaden en Invasión?",
-      "faq.a3": "No perdés nivel, mejoras ni rango. Solo se transfiere una parte del CLK que ya tenías acumulado sin gastar, según el tier de dificultad que eligió quien te invadió. Podés protegerte comprando un escudo, o responder con venganza si ya te tocó.",
+      "faq.a3": "No pierdes nivel, mejoras ni rango. Solo se transfiere una parte del CLK que ya tenías acumulado sin gastar, según el tier de dificultad que eligió quien te invadió. Puedes protegerte comprando un escudo, o responder con venganza si ya te ha pasado.",
       "faq.q4": "¿Cómo sé qué nivel necesito para canjear con un colaborador?",
-      "faq.a4": "Cada colaborador anuncia su propio requisito de nivel y ventana de canje en sus redes y en las nuestras (Telegram y X). Seguinos ahí para no perderte el aviso cuando abra un airdrop.",
+      "faq.a4": "Cada colaborador anuncia su propio requisito de nivel y ventana de canje en sus redes y en las nuestras (Telegram y X). Síguenos ahí para no perderte el aviso cuando se abra un airdrop.",
       "faq.q5": "¿Puedo jugar sin conexión?",
-      "faq.a5": "El minado offline sigue corriendo aunque cierres la app — eso es justamente lo que te genera CLK mientras no estás mirando la pantalla. Para tapear, mejorar, invadir o entrar al ranking sí necesitás conexión.",
+      "faq.a5": "El minado offline sigue funcionando aunque cierres la app — eso es justamente lo que te genera CLK mientras no estás mirando la pantalla. Para tapear, mejorar, invadir o entrar al ranking sí necesitas conexión.",
       "faq.q6": "¿En qué plataformas está disponible?",
-      "faq.a6": "Crypto Alien corre en desktop y móvil (Android e iOS) desde el navegador, sin necesidad de instalar nada.",
+      "faq.a6": "Crypto Alien funciona en escritorio y móvil (Android e iOS) desde el navegador, sin necesidad de instalar nada.",
 
       "roadmap.eyebrow": "> Señal_08 // Hoja de ruta",
-      "roadmap.title": "A dónde va Crypto Alien",
-      "roadmap.lead": "Siete fases, desde el juego que ya estás jugando hoy hasta la entrada de Crypto Alien a Web3. Las primeras seis se cumplen en los próximos dos años; la séptima abre el siguiente capítulo del proyecto.",
+      "roadmap.title": "Hacia dónde va Crypto Alien",
+      "roadmap.lead": "Siete fases, desde el juego que ya estás jugando hoy hasta la entrada de Crypto Alien en Web3. Las primeras seis se cumplen en los próximos dos años; la séptima abre el siguiente capítulo del proyecto.",
       "roadmap.p1.when": "Agosto 2026",
       "roadmap.p1.badge": "En curso",
       "roadmap.p1.title": "Lanzamiento del primer juego",
-      "roadmap.p1.text": "Crypto Alien sale al aire: minado tap-to-earn, minado offline, mejoras, niveles, rangos e Invasión PvP, disponible en desktop y móvil. Todo lo que ya podés jugar hoy es el punto de partida de esta hoja de ruta.",
+      "roadmap.p1.text": "Crypto Alien sale al aire: minado tap-to-earn, minado offline, mejoras, niveles, rangos e Invasión PvP, disponible en escritorio y móvil. Todo lo que ya puedes jugar hoy es el punto de partida de esta hoja de ruta.",
       "roadmap.p2.when": "Ago 2026 — Feb 2027",
       "roadmap.p2.title": "Expansión de comunidad",
       "roadmap.p2.text": "Foco en Discord, Telegram y X: crecimiento de jugadores activos, ranking global, misiones, rachas y programa de referidos como motor de crecimiento orgánico.",
@@ -2258,12 +2327,12 @@
       "roadmap.p7.text": "Con $CLK ya distribuido, Crypto Alien entra de lleno en Web3: pool de liquidez, staking y presencia en exchange. Los detalles y fechas de esta fase se anunciarán más adelante en nuestras redes.",
 
       "follow.eyebrow": "> Señal_09 // Airdrops",
-      "follow.title": "Seguí la señal",
-      "follow.lead": "Los airdrops se anuncian por redes sociales, no dentro del juego. Seguinos para no perderte ninguno.",
+      "follow.title": "Sigue la señal",
+      "follow.lead": "Los airdrops se anuncian por redes sociales, no dentro del juego. Síguenos para no perderte ninguno.",
 
-      "cta.eyebrow": "> Transmitiendo // Empezá ahora",
+      "cta.eyebrow": "> Transmitiendo // Empieza ahora",
       "cta.title": "Tu alien te está esperando",
-      "cta.lead": "Disponible en desktop y móvil. Entrá y empezá a minar CLK ahora mismo.",
+      "cta.lead": "Disponible en escritorio y móvil. Entra y empieza a minar CLK ahora mismo.",
 
       "footer.tag": "Minado galáctico, en tus manos.",
       "footer.invasion": "Invasión PvP",
@@ -2602,6 +2671,17 @@
   applyLang(currentLang);
   showLangHintIfFirstVisit();
 })();
+</script>
+
+<script>
+  // ---- Link de Google Play (placeholder) ----
+  // Reemplazar por la URL real de la ficha en Google Play cuando esté disponible.
+  var GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=REEMPLAZAR_CON_TU_PACKAGE';
+
+  document.querySelectorAll('[data-play-store-link]').forEach(function (el) {
+    el.setAttribute('href', GOOGLE_PLAY_URL);
+    el.setAttribute('target', '_blank');
+  });
 </script>
 
 </body>
