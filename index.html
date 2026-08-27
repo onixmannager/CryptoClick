@@ -4474,5 +4474,126 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+<!-- ===================================================================
+     CONTADOR DE CLICS -> MODAL PERIÓDICO (cada N taps)
+     - Cuenta TODOS los clics de la página (captura en document).
+     - El contador persiste entre sesiones via localStorage.
+     - Al llegar al múltiplo de N, muestra un modal con un botón que el
+       usuario debe pulsar explícitamente para "activar" el anuncio.
+       (Nada se abre/reproduce automáticamente sin ese clic extra.)
+     - N = 5 SOLO PARA PRUEBAS. Cambia AD_TAP_INTERVAL a 500 para prod.
+     =================================================================== -->
+<style>
+#adTapOverlay{
+  position:fixed;inset:0;z-index:100000;
+  background:rgba(6,6,14,.72);
+  backdrop-filter:blur(6px);
+  display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+#adTapOverlay.show{display:flex}
+#adTapModal{
+  width:100%;max-width:360px;
+  background:var(--card,#16141F);
+  border:1px solid var(--glass-border,rgba(255,255,255,.14));
+  border-radius:18px;
+  padding:22px 20px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+#adTapModal .adTapIcon{font-size:34px;margin-bottom:8px}
+#adTapModal h3{
+  font-family:var(--fh,'Fredoka One',cursive);
+  font-size:17px;color:var(--text,#EDEBFA);margin-bottom:6px;
+}
+#adTapModal p{
+  font-size:12.5px;color:var(--muted,#918EAA);font-weight:700;
+  line-height:1.4;margin-bottom:16px;
+}
+#adTapModal .adTapBtn{
+  width:100%;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--green,#C8FF4D),#059669);
+  color:#001a0a;font-family:var(--fh,'Fredoka One',cursive);
+  font-size:15px;cursor:pointer;margin-bottom:10px;
+}
+#adTapModal .adTapBtn:active{transform:scale(.97)}
+#adTapModal .adTapSkip{
+  background:none;border:none;color:var(--muted,#918EAA);
+  font-size:12px;font-weight:800;cursor:pointer;padding:6px;
+}
+</style>
+
+<div id="adTapOverlay">
+  <div id="adTapModal">
+    <div class="adTapIcon">🎬</div>
+    <h3>¡Sigue así!</h3>
+    <p id="adTapCounterText">Has hecho 5 taps.</p>
+    <button class="adTapBtn" id="adTapGoBtn">Continuar</button>
+    <button class="adTapSkip" id="adTapCloseBtn">Cerrar</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---- CONFIG ----
+  var AD_TAP_INTERVAL = 5;              // <-- PRUEBA: cada 5 taps. Cambiar a 500 en producción.
+  var AD_TAP_STORAGE_KEY = 'cck4_tapCount_v1';
+  var AD_TAP_URL = '';                  // <-- PLACEHOLDER: aquí va tu enlace real (déjalo vacío mientras pruebas)
+
+  // ---- ESTADO PERSISTENTE (localStorage, sobrevive entre sesiones) ----
+  function getTapCount(){
+    var raw = localStorage.getItem(AD_TAP_STORAGE_KEY);
+    var n = parseInt(raw, 10);
+    return isNaN(n) ? 0 : n;
+  }
+  function setTapCount(n){
+    localStorage.setItem(AD_TAP_STORAGE_KEY, String(n));
+  }
+
+  var overlay = document.getElementById('adTapOverlay');
+  var counterText = document.getElementById('adTapCounterText');
+  var goBtn = document.getElementById('adTapGoBtn');
+  var closeBtn = document.getElementById('adTapCloseBtn');
+
+  function showModal(totalTaps){
+    counterText.textContent = 'Has hecho ' + totalTaps + ' taps.';
+    overlay.classList.add('show');
+  }
+  function hideModal(){
+    overlay.classList.remove('show');
+  }
+
+  // El "anuncio" solo se abre con un clic EXPLÍCITO del usuario dentro
+  // del modal — nunca automáticamente al alcanzar el contador.
+  goBtn.addEventListener('click', function(){
+    if(AD_TAP_URL){
+      window.open(AD_TAP_URL, '_blank', 'noopener');
+    } else {
+      console.log('[adTap] AD_TAP_URL vacío — aquí se abriría el enlace en producción.');
+    }
+    hideModal();
+  });
+  closeBtn.addEventListener('click', hideModal);
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) hideModal();
+  });
+
+  // Captura TODOS los clics de la página (fase de captura, sin
+  // interferir con los onclick/listeners existentes de cada botón).
+  document.addEventListener('click', function(e){
+    // Evita contar los propios clics dentro del modal del anuncio.
+    if(overlay.contains(e.target)) return;
+
+    var count = getTapCount() + 1;
+    setTapCount(count);
+
+    if(count % AD_TAP_INTERVAL === 0){
+      showModal(count);
+    }
+  }, true);
+})();
+</script>
+
 </body>
   </html>
