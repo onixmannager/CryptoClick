@@ -2851,6 +2851,30 @@ const AlienSprite = (function(){
   return { init, wave, registerTap };
 })();
 
+/* ════════════════════════════════════════════════════════════════
+   SURPRISE REDIRECT — cada 500 taps (contados en localStorage, solo
+   en la página index) se redirige al usuario a una página sorpresa.
+   Contador 100% independiente de S.totalTaps (el del juego): esto es
+   solo un contador de "clics en pantalla" persistido aparte, para no
+   tocar ni depender de la lógica de guardado/nube del juego.
+   El link de destino se añadirá más adelante (placeholder por ahora).
+   ════════════════════════════════════════════════════════════════ */
+const SURPRISE_TAP_KEY='cck4_surprise_taps';
+const SURPRISE_EVERY=500;
+const SURPRISE_LINK='https://omg10.com/4/11666024'; // TODO: reemplazar por el link definitivo
+
+function registerSurpriseTap(){
+  try{
+    let n=parseInt(localStorage.getItem(SURPRISE_TAP_KEY),10);
+    if(!Number.isFinite(n)||n<0)n=0;
+    n++;
+    localStorage.setItem(SURPRISE_TAP_KEY,String(n));
+    if(n%SURPRISE_EVERY===0){
+      location.href=SURPRISE_LINK;
+    }
+  }catch(e){}
+}
+
 /* ── TAP HANDLER: now on coinwrap, works everywhere on circle ── */
 let lastTap=0,combo=0,comboTO=null,tLock=false;
 
@@ -2867,6 +2891,9 @@ function htap(e){
 
   // ADS: interstitial cada 300 clics/taps acumulados del jugador.
   if(S.totalTaps%300===0){showInterstitialAd();}
+
+  // SURPRISE: cada 500 taps (contador propio en localStorage) redirige a la página sorpresa.
+  registerSurpriseTap();
 
   const now=Date.now();
   if(now-lastTap<500)combo++;else combo=1;
