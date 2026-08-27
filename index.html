@@ -18,20 +18,31 @@
    elemento propio ANTES de que burbujee hasta document, lo cual hace
    que frenar el evento llegue demasiado tarde.
 
-   Este enfoque ataca el problema en dos puntos distintos, más bajos
+   Este enfoque ataca el problema en tres puntos distintos, más bajos
    a nivel de navegador, para que no importe CÓMO decida Monetag
    disparar el anuncio:
 
-   1) window.open — así es como se abren los anuncios tipo popunder
-      (pestaña/ventana nueva). Se sustituye por una versión que solo
-      deja pasar la llamada real si ya pasaron 3 minutos o 500 taps
-      desde el último anuncio permitido; si no, la bloquea.
+   1) window.open — así se abren los anuncios tipo popunder (pestaña/
+      ventana nueva) cuando se llama directamente a esa función. Se
+      sustituye por una versión que solo deja pasar la llamada real si
+      ya pasaron 3 minutos o 500 taps desde el último anuncio
+      permitido; si no, la bloquea.
       Excepción: el propio juego usa window.open para el login de
       Google y para "Canjear" — esas llamadas se marcan con
       window.__adThrottleBypass=true justo antes para que NUNCA se
       vean afectadas por este límite.
 
-   2) Iframes insertados dinámicamente en <body> — así es como suelen
+   2) Clicks SINTÉTICOS — la forma más habitual de saltarse el punto 1:
+      en vez de llamar a window.open(), el script crea un
+      <a target="_blank"> invisible y le hace .click() por su cuenta;
+      el navegador abre la pestaña igual, sin pasar por la función
+      window.open que interceptamos arriba. Se detecta porque ese
+      click no lo generó el usuario de verdad (e.isTrusted === false);
+      este juego nunca genera clicks propios por script, así que
+      cualquiera con isTrusted:false es, con toda seguridad, de un
+      tercero.
+
+   3) Iframes insertados dinámicamente en <body> — así es como suelen
       mostrarse los formatos "In-Page Push" / "Vignette Banner" /
       interstitial de Monetag (el anuncio vive dentro de un iframe
       que el script inyecta sobre la marcha). El juego en sí NO usa
@@ -83,7 +94,28 @@
     return null;
   };
 
-  // 2) iframes inyectados sobre la marcha — tapa in-page push / vignette.
+  // 2) Clicks SINTÉTICOS (no generados por el usuario real) — la técnica
+  // más habitual para saltarse el punto 1: en vez de llamar a
+  // window.open(), el script crea un <a target="_blank"> invisible y le
+  // hace .click() (o dispatchEvent) por su cuenta; el navegador lo trata
+  // como apertura legítima de pestaña sin pasar por la función window.open
+  // que interceptamos arriba. Se distingue de un click real del usuario
+  // por e.isTrusted (false = generado por script). Este juego no genera
+  // NUNCA clicks sintéticos propios, así que cualquier click con
+  // isTrusted:false que llegue aquí es, con toda seguridad, de un
+  // tercero — y solo se dejará pasar si el límite de 3min/500 taps lo
+  // permite. Va en fase de CAPTURA para adelantarse a cualquier handler
+  // que el propio script de Monetag haya podido registrar en el target.
+  document.addEventListener('click', function(e){
+    if(e.isTrusted)return; // nunca tocar clicks reales del usuario
+    if(window.__adThrottleBypass)return;
+    if(!adAllowedNow()){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }, true);
+
+  // 3) iframes inyectados sobre la marcha — tapa in-page push / vignette.
   function isSafeIframe(node){
     if(!node.src)return true; // sin src (about:blank) probablemente propio del framework
     try{
