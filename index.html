@@ -1088,7 +1088,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <!-- MINE -->
   <div id="screen-mine" class="screen active">
     <div id="bal-area">
-      <a href="arcade/index.html" id="arcadeLink" class="minigameLink" aria-label="Arcade" onclick="SFX.navClick();forceSave()"><img src="images/arcade.png" alt="Arcade"></a>
+      <a href="arcade/index.html" id="arcadeLink" class="minigameLink" aria-label="Arcade" onclick="SFX.navClick();forceSave();showInterstitialAd()"><img src="images/arcade.png" alt="Arcade"></a>
       <a href="ruleta.html" id="ruletaLink" class="minigameLink" aria-label="Ruleta" onclick="SFX.navClick();forceSave()"><img src="images/ruleta.png" alt="Ruleta"></a>
       <img src="images/escudo.png" id="escudoLink" class="minigameLink" alt="Escudo" aria-label="Escudo" onclick="openShieldModal()">
       <a href="invasion/" id="invasionLink" class="minigameLink" aria-label="Invasión" onclick="SFX.navClick();forceSave()"><img src="images/invasion.png" alt="Invasión"></a>
@@ -1547,6 +1547,21 @@ setTimeout(() => {
 
 
 <script>
+/* ════════════════════════════════════════════════════════════════
+   ADS — puente hacia el interstitial nativo de AdMob en la app Android.
+   window.AndroidAds solo existe dentro del WebView de la app Android
+   (lo inyecta LauncherActivity.java). En navegador normal / PWA no
+   existe, así que la función no hace nada y no rompe nada ahí.
+   El cooldown entre anuncios (180s) lo gestiona el lado Android.
+   ════════════════════════════════════════════════════════════════ */
+function showInterstitialAd(){
+  try{
+    if(window.AndroidAds && typeof window.AndroidAds.showInterstitial==='function'){
+      window.AndroidAds.showInterstitial();
+    }
+  }catch(err){/* nunca debe romper el juego si el puente falla */}
+}
+
 /* ════════════════════════════════════════════════════════════════
    I18N — sistema de idioma ES/EN. Un único diccionario clave->{es,en}
    cubre todo el texto estático (marcado en el HTML con data-i18n /
@@ -2847,6 +2862,9 @@ function htap(e){
   const mult=isBoost()?2:1, earned=S.tapPow*mult;
   addClk(earned,'tap');S.totalTaps++;S.energy=Math.max(0,S.energy-1);
 
+  // ADS: interstitial cada 300 clics/taps acumulados del jugador.
+  if(S.totalTaps%300===0){showInterstitialAd();}
+
   const now=Date.now();
   if(now-lastTap<500)combo++;else combo=1;
   lastTap=now;
@@ -3342,7 +3360,7 @@ function resetGameKeepingAliasAndStars(newStars){
 function isDailyReady(){return Date.now()-S.lastDaily>86400000}
 function openDaily(){renderDG();document.getElementById('dailyov').classList.add('show');const cb=document.getElementById('dailyclaim');cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';}
 function renderDG(){const g=document.getElementById('dailygrid');g.innerHTML='';for(let i=0;i<7;i++){const div=document.createElement('div');div.className='dday'+(i<S.dailyDay?' done':i===S.dailyDay?' today':'');div.innerHTML='<div class="ddv">'+fmt(DRWD[i])+'</div>'+t('dailyDayLabel',{n:i+1});g.appendChild(div);}}
-function claimDaily(){if(!isDailyReady())return;const rwd=DRWD[S.dailyDay%7];addClk(rwd,'daily');S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();upd();checkMiss();renderDG();document.getElementById('dailyclaim').disabled=true;document.getElementById('dailyclaim').style.opacity='.4';toast(t('dailyBonusClaimed',{amt:fmt(rwd)}));SFX.dailyClaim();rankBurst();forceSave();}
+function claimDaily(){if(!isDailyReady())return;const rwd=DRWD[S.dailyDay%7];addClk(rwd,'daily');S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();upd();checkMiss();renderDG();document.getElementById('dailyclaim').disabled=true;document.getElementById('dailyclaim').style.opacity='.4';toast(t('dailyBonusClaimed',{amt:fmt(rwd)}));SFX.dailyClaim();rankBurst();forceSave();showInterstitialAd();}
 
 function renderUps(){
   recalc();const list=document.getElementById('upslist');list.innerHTML='';
