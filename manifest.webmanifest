@@ -2,7 +2,7 @@
   "id": "index.html",
   "name": "Crypto Alien — $CLK",
   "short_name": "Crypto Alien",
-  "description": "Juego clicker de minería $CLK con recompensas diarias y ranking global. ¡Mina, sube de nivel y compite por el airdrop!",
+  "description": "Juego clicker de minería $CLK con recompensas diarias y ranking global. ¡Mina, sube de nivel y compite!",
   "start_url": "index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
