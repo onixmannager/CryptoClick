@@ -2678,9 +2678,40 @@
   // Reemplazar por la URL real de la ficha en Google Play cuando esté disponible.
   var GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=REEMPLAZAR_CON_TU_PACKAGE';
 
+  // Detecta si la landing se está viendo dentro de la propia PWA instalada
+  // (standalone/fullscreen/minimal-ui, iOS navigator.standalone, o ?source=pwa).
+  function isInsideCryptoClickApp() {
+    try {
+      if (window.matchMedia && (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches ||
+        window.matchMedia('(display-mode: minimal-ui)').matches
+      )) return true;
+      if (window.navigator && window.navigator.standalone === true) return true;
+      if (/[?&]source=pwa\b/.test(window.location.search)) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  var insideApp = isInsideCryptoClickApp();
+
   document.querySelectorAll('[data-play-store-link]').forEach(function (el) {
-    el.setAttribute('href', GOOGLE_PLAY_URL);
-    el.setAttribute('target', '_blank');
+    if (insideApp) {
+      var savedLang = null;
+      try { savedLang = localStorage.getItem('cck4_lang'); } catch (e) {}
+      var label = (savedLang === 'en') ? 'Play now' : 'Jugar ahora';
+      var textEl = el.querySelector('.gplay-text span:last-child');
+      var smallEl = el.querySelector('.gplay-text small');
+      if (textEl) textEl.textContent = label;
+      if (smallEl) smallEl.parentNode.removeChild(smallEl);
+      el.setAttribute('href', 'index.html');
+      el.removeAttribute('target');
+      el.setAttribute('aria-label', label);
+      el.classList.add('js-play-label');
+    } else {
+      el.setAttribute('href', GOOGLE_PLAY_URL);
+      el.setAttribute('target', '_blank');
+    }
   });
 </script>
 
