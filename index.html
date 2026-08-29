@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" id="htmlRoot">
 <head>
-   <meta name="monetag" content="f10e5e2f6157d73e3c7e58e649dbbdfa">
-   
 <meta charset="UTF-8">
 <script>
 /* Redirección a landing.html solo la PRIMERA vez que se visita index.html
@@ -86,17 +84,15 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 /* APP */
 #app{position:relative;z-index:1;max-width:430px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;padding-bottom:82px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
 #app::-webkit-scrollbar{display:none}
-/* La sección MINAR normalmente no necesita scroll (fitMineScreen ya encoge
-   #coinout para que todo quepa), pero en pantallas muy bajas u horizontales
-   (móvil en landscape, tablets, etc.) el escalado tiene un límite mínimo y
-   el contenido puede seguir sin caber del todo. Antes esto quedaba oculto
-   sin más (overflow-y:hidden) y la pantalla se veía "colapsada"/cortada.
-   Se deja overflow-y:auto siempre (igual que el resto de secciones) para
-   que, si de verdad no cabe, el usuario pueda hacer scroll y ver todo.
-   overscroll-behavior-y:contain (ya puesto en #app más arriba) más
-   overscroll-behavior-y:none aquí evitan que reaparezca el "estirón"
-   elástico de iOS en el caso normal, sin necesidad de bloquear overflow. */
-#app.no-bounce{overflow-y:auto;overscroll-behavior-y:none;-webkit-overflow-scrolling:touch}
+/* La sección MINAR no necesita scroll (su contenido entra siempre en la
+   pantalla): dejar #app con overflow-y:auto ahí es lo que producía el
+   "estirón" tipo goma elástica (rubber-band/bounce nativo de iOS al usar
+   -webkit-overflow-scrolling:touch) con cualquier arrastre del dedo sobre
+   esa pantalla, aunque no hubiera nada que desplazar. #app.no-bounce se
+   activa SOLO mientras la sección MINAR está visible (ver goTo() en JS)
+   y bloquea el scroll/bounce ahí, sin tocar el overflow normal que sí
+   necesitan Misiones, Mejoras, Ranking, etc.*/
+#app.no-bounce{overflow-y:hidden;-webkit-overflow-scrolling:auto}
 
 /* TOPBAR */
 #topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
@@ -1045,7 +1041,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 #redeemcancel{width:100%;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--fb);font-weight:800;font-size:14px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.2/dist/mux-player.js"></script>
-
    
 </head>
 <body>
@@ -1093,7 +1088,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   <!-- MINE -->
   <div id="screen-mine" class="screen active">
     <div id="bal-area">
-      <a href="arcade/index.html" id="arcadeLink" class="minigameLink" aria-label="Arcade" onclick="SFX.navClick();forceSave();showInterstitialAd()"><img src="images/arcade.png" alt="Arcade"></a>
+      <a href="arcade/index.html" id="arcadeLink" class="minigameLink" aria-label="Arcade" onclick="SFX.navClick();forceSave()"><img src="images/arcade.png" alt="Arcade"></a>
       <a href="ruleta.html" id="ruletaLink" class="minigameLink" aria-label="Ruleta" onclick="SFX.navClick();forceSave()"><img src="images/ruleta.png" alt="Ruleta"></a>
       <img src="images/escudo.png" id="escudoLink" class="minigameLink" alt="Escudo" aria-label="Escudo" onclick="openShieldModal()">
       <a href="invasion/" id="invasionLink" class="minigameLink" aria-label="Invasión" onclick="SFX.navClick();forceSave()"><img src="images/invasion.png" alt="Invasión"></a>
@@ -1552,21 +1547,6 @@ setTimeout(() => {
 
 
 <script>
-/* ════════════════════════════════════════════════════════════════
-   ADS — puente hacia el interstitial nativo de AdMob en la app Android.
-   window.AndroidAds solo existe dentro del WebView de la app Android
-   (lo inyecta LauncherActivity.java). En navegador normal / PWA no
-   existe, así que la función no hace nada y no rompe nada ahí.
-   El cooldown entre anuncios (180s) lo gestiona el lado Android.
-   ════════════════════════════════════════════════════════════════ */
-function showInterstitialAd(){
-  try{
-    if(window.AndroidAds && typeof window.AndroidAds.showInterstitial==='function'){
-      window.AndroidAds.showInterstitial();
-    }
-  }catch(err){/* nunca debe romper el juego si el puente falla */}
-}
-
 /* ════════════════════════════════════════════════════════════════
    I18N — sistema de idioma ES/EN. Un único diccionario clave->{es,en}
    cubre todo el texto estático (marcado en el HTML con data-i18n /
@@ -2853,30 +2833,6 @@ const AlienSprite = (function(){
   return { init, wave, registerTap };
 })();
 
-/* ════════════════════════════════════════════════════════════════
-   SURPRISE REDIRECT — cada 500 taps (contados en localStorage, solo
-   en la página index) se redirige al usuario a una página sorpresa.
-   Contador 100% independiente de S.totalTaps (el del juego): esto es
-   solo un contador de "clics en pantalla" persistido aparte, para no
-   tocar ni depender de la lógica de guardado/nube del juego.
-   El link de destino se añadirá más adelante (placeholder por ahora).
-   ════════════════════════════════════════════════════════════════ */
-const SURPRISE_TAP_KEY='cck4_surprise_taps';
-const SURPRISE_EVERY=300;
-const SURPRISE_LINK='https://omg10.com/4/11666024'; // TODO: reemplazar por el link definitivo
-
-function registerSurpriseTap(){
-  try{
-    let n=parseInt(localStorage.getItem(SURPRISE_TAP_KEY),10);
-    if(!Number.isFinite(n)||n<0)n=0;
-    n++;
-    localStorage.setItem(SURPRISE_TAP_KEY,String(n));
-    if(n%SURPRISE_EVERY===0){
-      window.open(SURPRISE_LINK,'_blank');
-    }
-  }catch(e){}
-}
-
 /* ── TAP HANDLER: now on coinwrap, works everywhere on circle ── */
 let lastTap=0,combo=0,comboTO=null,tLock=false;
 
@@ -2890,12 +2846,6 @@ function htap(e){
 
   const mult=isBoost()?2:1, earned=S.tapPow*mult;
   addClk(earned,'tap');S.totalTaps++;S.energy=Math.max(0,S.energy-1);
-
-  // ADS: interstitial cada 300 clics/taps acumulados del jugador.
-  if(S.totalTaps%300===0){showInterstitialAd();}
-
-  // SURPRISE: cada 500 taps (contador propio en localStorage) redirige a la página sorpresa.
-  registerSurpriseTap();
 
   const now=Date.now();
   if(now-lastTap<500)combo++;else combo=1;
@@ -3144,12 +3094,6 @@ document.addEventListener('visibilitychange',()=>{
       if(S.pph>0)addClk(S.pph/3600*dt,'passive');
       upd();save();
     }
-    // Recalcula el layout de la pantalla MINAR (fitMineScreen) al recuperar el foco.
-    // Cuando la app pasa a segundo plano por un window.open() a un enlace externo
-    // (p.ej. la redirección sorpresa cada 500 taps), el WebView no siempre dispara
-    // 'resize'/'orientationchange' al volver, y #coinout puede quedar escalado sobre
-    // una medida de pantalla vieja, viéndose descolocado aunque no haya scroll extra.
-    requestAnimationFrame(fitMineScreen);
   }
 });
 window.addEventListener('beforeunload',()=>{ localSaveNow(); });
@@ -3398,7 +3342,7 @@ function resetGameKeepingAliasAndStars(newStars){
 function isDailyReady(){return Date.now()-S.lastDaily>86400000}
 function openDaily(){renderDG();document.getElementById('dailyov').classList.add('show');const cb=document.getElementById('dailyclaim');cb.disabled=!isDailyReady();cb.style.opacity=isDailyReady()?'1':'.4';}
 function renderDG(){const g=document.getElementById('dailygrid');g.innerHTML='';for(let i=0;i<7;i++){const div=document.createElement('div');div.className='dday'+(i<S.dailyDay?' done':i===S.dailyDay?' today':'');div.innerHTML='<div class="ddv">'+fmt(DRWD[i])+'</div>'+t('dailyDayLabel',{n:i+1});g.appendChild(div);}}
-function claimDaily(){if(!isDailyReady())return;const rwd=DRWD[S.dailyDay%7];addClk(rwd,'daily');S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();upd();checkMiss();renderDG();document.getElementById('dailyclaim').disabled=true;document.getElementById('dailyclaim').style.opacity='.4';toast(t('dailyBonusClaimed',{amt:fmt(rwd)}));SFX.dailyClaim();rankBurst();forceSave();showInterstitialAd();}
+function claimDaily(){if(!isDailyReady())return;const rwd=DRWD[S.dailyDay%7];addClk(rwd,'daily');S.dailyDay=(S.dailyDay+1)%7;S.dStreak++;S.lastDaily=Date.now();upd();checkMiss();renderDG();document.getElementById('dailyclaim').disabled=true;document.getElementById('dailyclaim').style.opacity='.4';toast(t('dailyBonusClaimed',{amt:fmt(rwd)}));SFX.dailyClaim();rankBurst();forceSave();}
 
 function renderUps(){
   recalc();const list=document.getElementById('upslist');list.innerHTML='';
